@@ -22,7 +22,8 @@ public sealed record RunEntryViewModel(
     string Title,
     string Status,
     string StartedAtText,
-    string StepCountText);
+    string StepCountText,
+    string Summary);
 
 public sealed record ModelEntryViewModel(
     string ModelId,

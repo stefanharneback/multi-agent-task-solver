@@ -49,7 +49,7 @@ public sealed class FileSystemTaskWorkspaceStore : ITaskWorkspaceStore
             Title = request.Title.Trim(),
             Slug = TaskFolderConventions.Slugify(request.Title),
             Summary = request.Summary.Trim(),
-            Status = "draft",
+            Status = TaskLifecycleState.Draft,
             CreatedAtUtc = createdAtUtc,
             UpdatedAtUtc = createdAtUtc,
             InputCategories = categories,
@@ -177,7 +177,7 @@ public sealed class FileSystemTaskWorkspaceStore : ITaskWorkspaceStore
         var taskRootPath = await GetRequiredTaskRootPathAsync(workspaceRootPath, taskId, cancellationToken);
         var snapshot = await LoadSnapshotAsync(taskRootPath, cancellationToken);
 
-        var runDirectoryName = $"{run.Sequence:0000}-{TaskFolderConventions.Slugify(run.Kind)}";
+        var runDirectoryName = $"{run.Sequence:0000}-{run.Kind.GetStorageName()}";
         var runDirectoryPath = EnsureDirectoryWithinTaskRoot(
             taskRootPath,
             Path.Combine(TaskFolderConventions.RunsFolderName, runDirectoryName));
@@ -188,7 +188,7 @@ public sealed class FileSystemTaskWorkspaceStore : ITaskWorkspaceStore
         foreach (var step in run.Steps)
         {
             var stepDirectoryName = string.IsNullOrWhiteSpace(step.RelativeDirectory)
-                ? $"{step.Attempt:00}-{TaskFolderConventions.Slugify(step.StepType)}"
+                ? $"{step.Attempt:00}-{step.StepType.GetStorageName()}"
                 : step.RelativeDirectory;
 
             var stepDirectoryPath = EnsureDirectoryWithinTaskRoot(
@@ -237,6 +237,35 @@ public sealed class FileSystemTaskWorkspaceStore : ITaskWorkspaceStore
         };
 
         await WriteManifestAsync(taskRootPath, updatedManifest, cancellationToken);
+    }
+
+    public async Task SaveStepArtifactsAsync(
+        string workspaceRootPath,
+        string taskId,
+        string runId,
+        string stepId,
+        StepArtifactsPayload payload,
+        CancellationToken cancellationToken = default)
+    {
+        var taskRootPath = await GetRequiredTaskRootPathAsync(workspaceRootPath, taskId, cancellationToken);
+        var snapshot = await LoadSnapshotAsync(taskRootPath, cancellationToken);
+
+        var run = snapshot.Manifest.Runs.FirstOrDefault(existingRun => string.Equals(existingRun.Id, runId, StringComparison.OrdinalIgnoreCase))
+            ?? throw new InvalidOperationException($"Run '{runId}' was not found for task '{taskId}'.");
+
+        var step = run.Steps.FirstOrDefault(existingStep => string.Equals(existingStep.Id, stepId, StringComparison.OrdinalIgnoreCase))
+            ?? throw new InvalidOperationException($"Step '{stepId}' was not found for run '{runId}'.");
+
+        var stepDirectoryPath = EnsureDirectoryWithinTaskRoot(taskRootPath, step.RelativeDirectory);
+        Directory.CreateDirectory(stepDirectoryPath);
+
+        var promptPath = EnsurePathWithinDirectory(stepDirectoryPath, step.PromptPath, "Prompt file path escaped the step directory.");
+        var responsePath = EnsurePathWithinDirectory(stepDirectoryPath, step.ResponsePath, "Response file path escaped the step directory.");
+        var usagePath = EnsurePathWithinDirectory(stepDirectoryPath, step.UsagePath, "Usage file path escaped the step directory.");
+
+        await File.WriteAllTextAsync(promptPath, payload.PromptMarkdown ?? string.Empty, cancellationToken);
+        await File.WriteAllTextAsync(responsePath, payload.ResponseMarkdown ?? string.Empty, cancellationToken);
+        await WriteJsonFileAsync(usagePath, payload.Usage, cancellationToken);
     }
 
     private static async Task<TaskWorkspaceSnapshot> LoadSnapshotAsync(string taskRootPath, CancellationToken cancellationToken)

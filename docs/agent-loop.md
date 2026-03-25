@@ -2,6 +2,12 @@
 
 This document defines the planned orchestration contract for the review, worker, critic, and user-decision loop. It is intentionally future-facing, but it should stay aligned with implementation as the loop lands.
 
+## Current implementation note
+
+- The repository currently implements the `task-review` run kind only.
+- The current path resolves referenced `@alias` artifacts, assembles a review prompt, calls the configured provider, and persists prompt, response, and usage artifacts.
+- User approval and revise decisions are not implemented yet, so `review-ready` currently means the review output exists and the task is ready for a future approval step.
+
 ## Roles
 
 - User: creates and edits tasks, approves progression, and decides done vs rework

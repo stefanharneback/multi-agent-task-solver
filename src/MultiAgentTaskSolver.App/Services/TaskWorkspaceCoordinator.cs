@@ -11,6 +11,7 @@ public sealed class TaskWorkspaceCoordinator
     private readonly IAppSettingsStore _appSettingsStore;
     private readonly ISecretStore _secretStore;
     private readonly IModelCatalog _modelCatalog;
+    private readonly ITaskReviewWorkflow _taskReviewWorkflow;
     private readonly Dictionary<string, IProviderAdapter> _providerAdapters;
 
     public TaskWorkspaceCoordinator(
@@ -18,12 +19,14 @@ public sealed class TaskWorkspaceCoordinator
         IAppSettingsStore appSettingsStore,
         ISecretStore secretStore,
         IModelCatalog modelCatalog,
+        ITaskReviewWorkflow taskReviewWorkflow,
         IEnumerable<IProviderAdapter> providerAdapters)
     {
         _taskWorkspaceStore = taskWorkspaceStore;
         _appSettingsStore = appSettingsStore;
         _secretStore = secretStore;
         _modelCatalog = modelCatalog;
+        _taskReviewWorkflow = taskReviewWorkflow;
         _providerAdapters = providerAdapters.ToDictionary(adapter => adapter.ProviderId, StringComparer.OrdinalIgnoreCase);
     }
 
@@ -103,6 +106,14 @@ public sealed class TaskWorkspaceCoordinator
         return _modelCatalog.GetModelsAsync(providerId, cancellationToken);
     }
 
+    public async Task<IReadOnlyList<ModelRef>> GetTextModelsAsync(string providerId, CancellationToken cancellationToken = default)
+    {
+        return (await _modelCatalog.GetModelsAsync(providerId, cancellationToken))
+            .Where(static model => model.Capabilities.SupportsTextInput)
+            .OrderBy(model => model.DisplayName, StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+    }
+
     public async Task<ProviderRef> GetProviderAsync(string providerId, CancellationToken cancellationToken = default)
     {
         var settings = await GetSettingsAsync(cancellationToken);
@@ -124,5 +135,35 @@ public sealed class TaskWorkspaceCoordinator
         return _providerAdapters.TryGetValue(providerId, out var adapter)
             ? adapter
             : throw new InvalidOperationException($"No provider adapter is registered for '{providerId}'.");
+    }
+
+    public async Task<TaskReviewResult> RunTaskReviewAsync(TaskReviewRequest request, string taskId, CancellationToken cancellationToken = default)
+    {
+        var settings = await GetSettingsAsync(cancellationToken);
+        var snapshot = await _taskWorkspaceStore.LoadTaskAsync(settings.WorkspaceRootPath, taskId, cancellationToken)
+            ?? throw new InvalidOperationException($"Task '{taskId}' was not found.");
+
+        var provider = await GetProviderAsync(request.ProviderId, cancellationToken);
+        var model = await _modelCatalog.GetModelAsync(request.ProviderId, request.ModelId, cancellationToken)
+            ?? throw new InvalidOperationException($"Model '{request.ModelId}' is not known for provider '{request.ProviderId}'.");
+
+        var bearerToken = request.ProviderId.ToLowerInvariant() switch
+        {
+            "openai" => await GetOpenAiBearerTokenAsync(cancellationToken),
+            _ => null,
+        };
+
+        if (string.IsNullOrWhiteSpace(bearerToken))
+        {
+            throw new InvalidOperationException($"No client bearer token is configured for provider '{request.ProviderId}'.");
+        }
+
+        return await _taskReviewWorkflow.RunAsync(
+            settings.WorkspaceRootPath,
+            snapshot,
+            provider,
+            model,
+            bearerToken,
+            cancellationToken);
     }
 }

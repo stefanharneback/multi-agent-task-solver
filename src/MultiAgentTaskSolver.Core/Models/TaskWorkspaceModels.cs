@@ -14,7 +14,7 @@ public sealed record TaskManifest
 
     public string Summary { get; init; } = string.Empty;
 
-    public string Status { get; init; } = "draft";
+    public TaskLifecycleState Status { get; init; } = TaskLifecycleState.Draft;
 
     public DateTimeOffset CreatedAtUtc { get; init; }
 
@@ -56,11 +56,13 @@ public sealed record RunManifest
 
     public string Title { get; init; } = string.Empty;
 
-    public string Kind { get; init; } = "placeholder";
+    public TaskRunKind Kind { get; init; } = TaskRunKind.TaskReview;
 
-    public string Status { get; init; } = "planned";
+    public TaskRunStatus Status { get; init; } = TaskRunStatus.Planned;
 
     public int Sequence { get; init; }
+
+    public string Summary { get; init; } = string.Empty;
 
     public DateTimeOffset StartedAtUtc { get; init; }
 
@@ -73,9 +75,9 @@ public sealed record StepManifest
 {
     public string Id { get; init; } = string.Empty;
 
-    public string StepType { get; init; } = string.Empty;
+    public TaskStepType StepType { get; init; } = TaskStepType.TaskReview;
 
-    public string Status { get; init; } = "planned";
+    public TaskStepStatus Status { get; init; } = TaskStepStatus.Planned;
 
     public int Attempt { get; init; } = 1;
 
@@ -92,6 +94,12 @@ public sealed record StepManifest
     public string ResponsePath { get; init; } = "response.md";
 
     public string UsagePath { get; init; } = "usage.json";
+
+    public string PromptVersion { get; init; } = string.Empty;
+
+    public string Summary { get; init; } = string.Empty;
+
+    public IReadOnlyList<string> ReferencedArtifactAliases { get; init; } = [];
 
     public DateTimeOffset StartedAtUtc { get; init; }
 

@@ -47,4 +47,9 @@ public partial class TaskDetailsPage : ContentPage
         await page.LoadAsync(_viewModel.TaskId);
         await Shell.Current.Navigation.PushAsync(page);
     }
+
+    private async void OnRunTaskReviewClicked(object? sender, EventArgs e)
+    {
+        await _viewModel.RunTaskReviewAsync();
+    }
 }

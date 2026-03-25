@@ -26,6 +26,17 @@ This roadmap defines the next major milestones for the repository. Update it whe
 ## Milestone 1
 
 - Name: task review loop
+- Status: in progress
+- Current slice delivered:
+  - typed task, run, and step workflow states
+  - `@alias` file-reference resolution
+  - review prompt assembly
+  - persisted task-review runs with `step.json`, `prompt.md`, `response.md`, and `usage.json`
+  - MAUI task-details entry point for running a review
+- Remaining scope:
+  - explicit user approval or revise decision UI
+  - stronger review feedback surfacing in the run-history details
+  - manual smoke coverage for the MAUI review path
 - Scope:
   - review-agent run kind
   - explicit task readiness feedback
@@ -43,6 +54,7 @@ This roadmap defines the next major milestones for the repository. Update it whe
 ## Milestone 2
 
 - Name: worker execution loop
+- Status: not started
 - Scope:
   - worker-agent run kind
   - output artifact creation under `outputs/`
@@ -60,6 +72,7 @@ This roadmap defines the next major milestones for the repository. Update it whe
 ## Milestone 3
 
 - Name: critic and completion loop
+- Status: not started
 - Scope:
   - critic-agent run kind
   - user decision step for done vs rework
@@ -77,6 +90,7 @@ This roadmap defines the next major milestones for the repository. Update it whe
 ## Milestone 4
 
 - Name: evaluation and reporting
+- Status: not started
 - Scope:
   - run summary artifacts
   - cost and token rollups
@@ -90,6 +104,7 @@ This roadmap defines the next major milestones for the repository. Update it whe
 ## Milestone 5
 
 - Name: provider expansion
+- Status: not started
 - Scope:
   - additional provider adapters and settings
   - model catalogs and capability normalization for non-OpenAI providers

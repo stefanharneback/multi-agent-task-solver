@@ -77,6 +77,14 @@ public interface ITaskWorkspaceStore
         string taskId,
         RunManifest run,
         CancellationToken cancellationToken = default);
+
+    Task SaveStepArtifactsAsync(
+        string workspaceRootPath,
+        string taskId,
+        string runId,
+        string stepId,
+        StepArtifactsPayload payload,
+        CancellationToken cancellationToken = default);
 }
 
 public interface IAppSettingsStore
@@ -91,4 +99,25 @@ public interface ISecretStore
     Task<string?> GetAsync(string key, CancellationToken cancellationToken = default);
 
     Task SetAsync(string key, string? value, CancellationToken cancellationToken = default);
+}
+
+public interface IArtifactReferenceResolver
+{
+    Task<TaskReferenceResolution> ResolveAsync(TaskWorkspaceSnapshot snapshot, CancellationToken cancellationToken = default);
+}
+
+public interface IReviewPromptFactory
+{
+    ReviewPromptPackage Create(TaskWorkspaceSnapshot snapshot, TaskReferenceResolution resolution);
+}
+
+public interface ITaskReviewWorkflow
+{
+    Task<TaskReviewResult> RunAsync(
+        string workspaceRootPath,
+        TaskWorkspaceSnapshot snapshot,
+        ProviderRef provider,
+        ModelRef model,
+        string bearerToken,
+        CancellationToken cancellationToken = default);
 }

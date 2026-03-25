@@ -33,6 +33,9 @@ Use raw `dotnet test` only when you intentionally want it to build.
 - filesystem persistence and round-trips
 - path-boundary protection
 - artifact import behavior
+- review workflow persistence
+- file-reference resolution
+- review prompt assembly
 - provider config loading
 - gateway request mapping
 - gateway error handling

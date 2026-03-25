@@ -5,6 +5,7 @@ using MultiAgentTaskSolver.App.Services;
 using MultiAgentTaskSolver.App.ViewModels;
 using MultiAgentTaskSolver.Core.Abstractions;
 using MultiAgentTaskSolver.Infrastructure.Configuration;
+using MultiAgentTaskSolver.Infrastructure.Execution;
 using MultiAgentTaskSolver.Infrastructure.FileSystem;
 using MultiAgentTaskSolver.Infrastructure.Gateway;
 
@@ -30,8 +31,11 @@ public static class MauiProgram
         builder.Services.AddSingleton<IModelCatalog>(_ =>
             new JsonModelCatalog(Path.Combine(AppContext.BaseDirectory, "config", "providers")));
         builder.Services.AddSingleton<IUsageNormalizer, OpenAiUsageNormalizer>();
+        builder.Services.AddSingleton<IArtifactReferenceResolver, ArtifactReferenceResolver>();
+        builder.Services.AddSingleton<IReviewPromptFactory, ReviewPromptFactory>();
         builder.Services.AddHttpClient<OpenAiGatewayAdapter>().AddStandardResilienceHandler();
         builder.Services.AddTransient<IProviderAdapter>(serviceProvider => serviceProvider.GetRequiredService<OpenAiGatewayAdapter>());
+        builder.Services.AddSingleton<ITaskReviewWorkflow, TaskReviewWorkflow>();
 
         builder.Services.AddSingleton<TaskWorkspaceCoordinator>();
 

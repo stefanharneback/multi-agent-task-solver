@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Globalization;
 using MultiAgentTaskSolver.App.Services;
+using MultiAgentTaskSolver.Core;
 
 namespace MultiAgentTaskSolver.App.ViewModels;
 
@@ -39,10 +40,11 @@ public sealed partial class RunHistoryViewModel : ViewModelBase
             {
                 Runs.Add(new RunEntryViewModel(
                     run.Id,
-                    string.IsNullOrWhiteSpace(run.Title) ? run.Kind : run.Title,
-                    run.Status,
+                    string.IsNullOrWhiteSpace(run.Title) ? run.Kind.GetDisplayName() : run.Title,
+                    run.Status.GetDisplayName(),
                     run.StartedAtUtc.LocalDateTime.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture),
-                    $"{run.Steps.Count} step(s)"));
+                    $"{run.Steps.Count} step(s)",
+                    run.Summary));
             }
         });
     }

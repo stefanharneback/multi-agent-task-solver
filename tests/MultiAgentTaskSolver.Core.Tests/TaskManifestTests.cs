@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text.Json;
+using MultiAgentTaskSolver.Core;
 using MultiAgentTaskSolver.Core.Models;
 
 namespace MultiAgentTaskSolver.Core.Tests;
@@ -16,7 +17,7 @@ public sealed class TaskManifestTests
             Title = "Draft policy summary",
             Slug = "draft-policy-summary",
             Summary = "Summarize the attached policy files.",
-            Status = "draft",
+            Status = TaskLifecycleState.Draft,
             CreatedAtUtc = DateTimeOffset.Parse("2026-03-23T20:00:00Z", CultureInfo.InvariantCulture),
             UpdatedAtUtc = DateTimeOffset.Parse("2026-03-23T20:30:00Z", CultureInfo.InvariantCulture),
             InputCategories = ["documents", "notes"],
@@ -41,8 +42,8 @@ public sealed class TaskManifestTests
                 {
                     Id = "run-1",
                     Title = "Review draft",
-                    Kind = "review",
-                    Status = "planned",
+                    Kind = TaskRunKind.TaskReview,
+                    Status = TaskRunStatus.Planned,
                     Sequence = 1,
                     StartedAtUtc = DateTimeOffset.Parse("2026-03-23T20:15:00Z", CultureInfo.InvariantCulture),
                     Steps =
@@ -50,8 +51,8 @@ public sealed class TaskManifestTests
                         new StepManifest
                         {
                             Id = "step-1",
-                            StepType = "task-review",
-                            Status = "planned",
+                            StepType = TaskStepType.TaskReview,
+                            Status = TaskStepStatus.Planned,
                             Provider = new ProviderRef
                             {
                                 ProviderId = "openai",
@@ -79,6 +80,32 @@ public sealed class TaskManifestTests
         Assert.Single(roundTripped.Artifacts);
         Assert.Single(roundTripped.Runs);
         Assert.Equal("policy", roundTripped.Artifacts[0].Alias);
-        Assert.Equal("task-review", roundTripped.Runs[0].Steps[0].StepType);
+        Assert.Equal(TaskStepType.TaskReview, roundTripped.Runs[0].Steps[0].StepType);
+    }
+
+    [Fact]
+    public void WorkflowStatesRoundTripAsExpectedJsonStrings()
+    {
+        var manifest = new TaskManifest
+        {
+            Id = "task-2",
+            FolderName = "Task-task-2",
+            Title = "Review draft",
+            Status = TaskLifecycleState.ReviewReady,
+        };
+
+        var json = JsonSerializer.Serialize(manifest);
+        var roundTripped = JsonSerializer.Deserialize<TaskManifest>(json);
+
+        Assert.NotNull(roundTripped);
+        Assert.Equal(TaskLifecycleState.ReviewReady, roundTripped!.Status);
+    }
+
+    [Fact]
+    public void TaskReviewTransitionsMoveBetweenDraftUnderReviewAndReviewReady()
+    {
+        Assert.Equal(TaskLifecycleState.UnderReview, TaskWorkflowStateMachine.StartTaskReview(TaskLifecycleState.Draft));
+        Assert.Equal(TaskLifecycleState.ReviewReady, TaskWorkflowStateMachine.CompleteTaskReview(TaskLifecycleState.UnderReview));
+        Assert.Equal(TaskLifecycleState.Draft, TaskWorkflowStateMachine.FailTaskReview(TaskLifecycleState.UnderReview));
     }
 }

@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using MultiAgentTaskSolver.App.Services;
+using MultiAgentTaskSolver.Core;
 using MultiAgentTaskSolver.Core.Models;
 
 namespace MultiAgentTaskSolver.App.ViewModels;
@@ -21,6 +22,8 @@ public sealed partial class TaskDetailsViewModel : ViewModelBase
 
     public ObservableCollection<ArtifactEntryViewModel> Artifacts { get; } = [];
 
+    public ObservableCollection<ModelEntryViewModel> ReviewModels { get; } = [];
+
     [CommunityToolkit.Mvvm.ComponentModel.ObservableProperty]
     public partial string TaskId { get; set; } = string.Empty;
 
@@ -39,6 +42,18 @@ public sealed partial class TaskDetailsViewModel : ViewModelBase
     [CommunityToolkit.Mvvm.ComponentModel.ObservableProperty]
     public partial string SelectedImportDestination { get; set; } = string.Empty;
 
+    [CommunityToolkit.Mvvm.ComponentModel.ObservableProperty]
+    public partial string TaskStatusText { get; set; } = string.Empty;
+
+    [CommunityToolkit.Mvvm.ComponentModel.ObservableProperty]
+    public partial ModelEntryViewModel? SelectedReviewModel { get; set; }
+
+    [CommunityToolkit.Mvvm.ComponentModel.ObservableProperty]
+    public partial string LatestReviewSummary { get; set; } = string.Empty;
+
+    [CommunityToolkit.Mvvm.ComponentModel.ObservableProperty]
+    public partial string LatestReviewOutput { get; set; } = string.Empty;
+
     public Task LoadAsync(string taskId)
     {
         return RunBusyAsync(async () =>
@@ -55,6 +70,7 @@ public sealed partial class TaskDetailsViewModel : ViewModelBase
             Title = snapshot.Manifest.Title;
             Summary = snapshot.Manifest.Summary;
             TaskMarkdown = snapshot.TaskMarkdown;
+            TaskStatusText = snapshot.Manifest.Status.GetDisplayName();
 
             ImportDestinations.Clear();
             foreach (var destination in GetImportDestinations(snapshot.Manifest))
@@ -82,6 +98,15 @@ public sealed partial class TaskDetailsViewModel : ViewModelBase
                     artifact.MediaType,
                     $"{artifact.SizeBytes:n0} bytes"));
             }
+
+            ReviewModels.Clear();
+            foreach (var model in await _coordinator.GetTextModelsAsync("openai"))
+            {
+                ReviewModels.Add(new ModelEntryViewModel(model.ModelId, model.DisplayName, model.Description));
+            }
+
+            SelectedReviewModel = SelectReviewModel(snapshot.Manifest, ReviewModels, SelectedReviewModel);
+            PopulateLatestReview(snapshot.Manifest);
         });
     }
 
@@ -120,6 +145,34 @@ public sealed partial class TaskDetailsViewModel : ViewModelBase
         });
     }
 
+    public Task RunTaskReviewAsync()
+    {
+        return RunBusyAsync(async () =>
+        {
+            if (string.IsNullOrWhiteSpace(TaskId))
+            {
+                throw new InvalidOperationException("Load a task before running review.");
+            }
+
+            if (SelectedReviewModel is null)
+            {
+                throw new InvalidOperationException("Select a review model before running review.");
+            }
+
+            var result = await _coordinator.RunTaskReviewAsync(
+                new TaskReviewRequest
+                {
+                    ProviderId = "openai",
+                    ModelId = SelectedReviewModel.ModelId,
+                },
+                TaskId);
+
+            LatestReviewSummary = result.Summary;
+            LatestReviewOutput = result.OutputText;
+            await LoadAsync(TaskId);
+        });
+    }
+
     private static string[] GetImportDestinations(TaskManifest manifest)
     {
         return manifest.InputCategories
@@ -146,5 +199,42 @@ public sealed partial class TaskDetailsViewModel : ViewModelBase
         }
 
         return flattened;
+    }
+
+    private static ModelEntryViewModel? SelectReviewModel(
+        TaskManifest manifest,
+        IEnumerable<ModelEntryViewModel> reviewModels,
+        ModelEntryViewModel? currentSelection)
+    {
+        var latestReviewModelId = manifest.Runs
+            .Where(static run => run.Kind == TaskRunKind.TaskReview)
+            .OrderByDescending(static run => run.Sequence)
+            .SelectMany(static run => run.Steps)
+            .Select(static step => step.Model.ModelId)
+            .FirstOrDefault(static modelId => !string.IsNullOrWhiteSpace(modelId));
+
+        if (!string.IsNullOrWhiteSpace(latestReviewModelId))
+        {
+            return reviewModels.FirstOrDefault(model => string.Equals(model.ModelId, latestReviewModelId, StringComparison.OrdinalIgnoreCase));
+        }
+
+        if (currentSelection is not null
+            && reviewModels.Any(model => string.Equals(model.ModelId, currentSelection.ModelId, StringComparison.OrdinalIgnoreCase)))
+        {
+            return currentSelection;
+        }
+
+        return reviewModels.FirstOrDefault();
+    }
+
+    private void PopulateLatestReview(TaskManifest manifest)
+    {
+        var latestReview = manifest.Runs
+            .Where(static run => run.Kind == TaskRunKind.TaskReview)
+            .OrderByDescending(static run => run.Sequence)
+            .FirstOrDefault();
+
+        LatestReviewSummary = latestReview?.Summary ?? string.Empty;
+        LatestReviewOutput = latestReview?.Summary ?? string.Empty;
     }
 }

@@ -10,9 +10,12 @@ This repository currently delivers the foundation slice:
 - a `.NET 10` / `MAUI 10` solution with shared core and infrastructure libraries
 - file-first task storage with one root folder per task
 - provider abstractions and a first OpenAI gateway adapter
-- a basic MAUI shell for tasks, task details, run history, and settings
+- explicit task, run, and step workflow states
+- task file-reference resolution for `@alias` references
+- a first task-review execution path with persisted prompt, response, and usage artifacts
+- a MAUI shell for tasks, task details, run history, and settings
 
-The full review -> worker -> critic execution loop is intentionally not implemented yet.
+The full review -> worker -> critic execution loop is not implemented yet. The current execution slice covers only the task-review agent path.
 The next milestones and extension points are tracked in `docs/roadmap.md`.
 
 ## Architecture
@@ -30,6 +33,7 @@ MAUI App
   |
   +- Infrastructure
        |- filesystem task workspace store
+       |- review workflow, prompt assembly, and file-reference resolution
        |- JSON-backed model catalog
        |- OpenAI gateway client and usage normalization
 ```

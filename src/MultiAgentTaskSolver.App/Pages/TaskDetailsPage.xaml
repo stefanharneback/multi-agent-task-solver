@@ -10,6 +10,7 @@
     <ScrollView>
         <VerticalStackLayout Padding="20" Spacing="14">
             <Label Text="{Binding TaskRootPath}" FontAttributes="Italic" />
+            <Label Text="{Binding TaskStatusText}" FontAttributes="Bold" />
 
             <Entry Placeholder="Title" Text="{Binding Title}" />
 
@@ -28,6 +29,18 @@
                 <Button Text="Save" Clicked="OnSaveClicked" />
                 <Button Text="Run History" Clicked="OnRunHistoryClicked" />
             </HorizontalStackLayout>
+
+            <Label Text="Task review agent" FontAttributes="Bold" FontSize="18" />
+            <Picker
+                ItemDisplayBinding="{Binding DisplayName}"
+                ItemsSource="{Binding ReviewModels}"
+                SelectedItem="{Binding SelectedReviewModel}" />
+            <Button Text="Run Task Review" Clicked="OnRunTaskReviewClicked" />
+
+            <Label Text="Latest review summary" FontAttributes="Bold" FontSize="18" />
+            <Border Padding="10" StrokeThickness="1">
+                <Label Text="{Binding LatestReviewSummary}" />
+            </Border>
 
             <Label Text="Import files" FontAttributes="Bold" FontSize="18" />
 
