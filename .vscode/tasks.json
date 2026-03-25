@@ -1,0 +1,49 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "dotnet:workload:restore",
+      "type": "shell",
+      "command": "dotnet workload restore",
+      "group": "build",
+      "problemMatcher": []
+    },
+    {
+      "label": "dotnet:restore",
+      "type": "shell",
+      "command": "dotnet restore MultiAgentTaskSolver.sln",
+      "group": "build",
+      "problemMatcher": []
+    },
+    {
+      "label": "dotnet:build",
+      "type": "shell",
+      "command": "dotnet build MultiAgentTaskSolver.sln",
+      "group": "build",
+      "problemMatcher": []
+    },
+    {
+      "label": "dotnet:test",
+      "type": "shell",
+      "command": "dotnet test MultiAgentTaskSolver.sln",
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "dotnet:test:no-build",
+      "type": "shell",
+      "command": "dotnet test MultiAgentTaskSolver.sln --no-build",
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "dotnet:verify",
+      "dependsOn": [
+        "dotnet:build",
+        "dotnet:test:no-build"
+      ],
+      "dependsOrder": "sequence",
+      "problemMatcher": []
+    }
+  ]
+}

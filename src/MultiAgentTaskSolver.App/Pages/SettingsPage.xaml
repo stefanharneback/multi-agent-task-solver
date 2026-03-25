@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="MultiAgentTaskSolver.App.Pages.SettingsPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:viewModels="clr-namespace:MultiAgentTaskSolver.App.ViewModels"
+    x:DataType="viewModels:SettingsViewModel"
+    Title="Settings">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="14">
+            <Label Text="Workspace settings" FontAttributes="Bold" FontSize="24" />
+
+            <Label Text="Workspace root" />
+            <Entry Text="{Binding WorkspaceRootPath}" />
+            <Button Text="Browse Workspace Folder" Clicked="OnBrowseWorkspaceClicked" HorizontalOptions="Start" />
+
+            <Label Text="OpenAI gateway base URL" />
+            <Entry Text="{Binding OpenAiGatewayBaseUrl}" Keyboard="Url" />
+
+            <Label Text="OpenAI client bearer token" />
+            <Entry Text="{Binding OpenAiBearerToken}" IsPassword="True" />
+
+            <Button Text="Save Settings" Clicked="OnSaveClicked" HorizontalOptions="Start" />
+            <Label Text="{Binding ErrorMessage}" TextColor="IndianRed" />
+
+            <Label Text="Seeded OpenAI models" FontAttributes="Bold" FontSize="18" />
+            <CollectionView ItemsSource="{Binding OpenAiModels}">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="viewModels:ModelEntryViewModel">
+                        <Border Padding="10" Margin="0,0,0,8" StrokeThickness="1">
+                            <VerticalStackLayout Spacing="4">
+                                <Label Text="{Binding DisplayName}" FontAttributes="Bold" />
+                                <Label Text="{Binding ModelId}" FontSize="12" />
+                                <Label Text="{Binding Description}" />
+                            </VerticalStackLayout>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

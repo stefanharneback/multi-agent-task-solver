@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="MultiAgentTaskSolver.App.Pages.CreateTaskPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:viewModels="clr-namespace:MultiAgentTaskSolver.App.ViewModels"
+    x:DataType="viewModels:CreateTaskViewModel"
+    Title="Create Task">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="14">
+            <Label Text="New task" FontAttributes="Bold" FontSize="24" />
+
+            <Entry Placeholder="Title" Text="{Binding Title}" />
+
+            <Editor
+                AutoSize="TextChanges"
+                HeightRequest="80"
+                Placeholder="Short summary"
+                Text="{Binding Summary}" />
+
+            <Entry
+                Placeholder="Additional input categories, comma separated"
+                Text="{Binding AdditionalInputCategories}" />
+
+            <Editor
+                AutoSize="TextChanges"
+                HeightRequest="320"
+                Text="{Binding TaskMarkdown}" />
+
+            <Label Text="{Binding ErrorMessage}" TextColor="IndianRed" />
+
+            <HorizontalStackLayout Spacing="12">
+                <Button Text="Create" Clicked="OnCreateClicked" />
+                <Button Text="Cancel" Clicked="OnCancelClicked" />
+            </HorizontalStackLayout>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

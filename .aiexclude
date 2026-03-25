@@ -1,0 +1,13 @@
+# Secrets and local settings
+.env*
+*.pem
+*.p12
+*.key
+
+# Build outputs
+**/bin/
+**/obj/
+**/TestResults/
+
+# Local editor/private overrides
+.github/copilot/settings.local.json

@@ -1,0 +1,81 @@
+{
+  "provider": {
+    "providerId": "openai",
+    "displayName": "OpenAI via Gateway",
+    "baseUrl": "http://localhost:3000"
+  },
+  "models": [
+    {
+      "providerId": "openai",
+      "modelId": "gpt-5.4",
+      "displayName": "GPT-5.4",
+      "description": "Higher-capability OpenAI reasoning model exposed through the gateway.",
+      "capabilities": {
+        "supportsTextInput": true,
+        "supportsImageInput": true,
+        "supportsAudioInput": false,
+        "supportsStreaming": false,
+        "supportsToolCalls": true,
+        "supportsStructuredOutputs": true
+      },
+      "contextWindowTokens": 400000
+    },
+    {
+      "providerId": "openai",
+      "modelId": "gpt-5.4-mini",
+      "displayName": "GPT-5.4 Mini",
+      "description": "Lower-cost OpenAI text model exposed through the gateway.",
+      "capabilities": {
+        "supportsTextInput": true,
+        "supportsImageInput": true,
+        "supportsAudioInput": false,
+        "supportsStreaming": false,
+        "supportsToolCalls": true,
+        "supportsStructuredOutputs": true
+      },
+      "contextWindowTokens": 400000
+    },
+    {
+      "providerId": "openai",
+      "modelId": "gpt-4o-transcribe",
+      "displayName": "GPT-4o Transcribe",
+      "description": "Speech-to-text model available through the OpenAI gateway whisper endpoint.",
+      "capabilities": {
+        "supportsTextInput": false,
+        "supportsImageInput": false,
+        "supportsAudioInput": true,
+        "supportsStreaming": false,
+        "supportsToolCalls": false,
+        "supportsStructuredOutputs": false
+      }
+    },
+    {
+      "providerId": "openai",
+      "modelId": "gpt-4o-mini-transcribe",
+      "displayName": "GPT-4o Mini Transcribe",
+      "description": "Lower-cost speech-to-text model available through the OpenAI gateway.",
+      "capabilities": {
+        "supportsTextInput": false,
+        "supportsImageInput": false,
+        "supportsAudioInput": true,
+        "supportsStreaming": false,
+        "supportsToolCalls": false,
+        "supportsStructuredOutputs": false
+      }
+    },
+    {
+      "providerId": "openai",
+      "modelId": "gpt-4o-transcribe-diarize",
+      "displayName": "GPT-4o Transcribe Diarize",
+      "description": "Speech-to-text diarization model available through the OpenAI gateway.",
+      "capabilities": {
+        "supportsTextInput": false,
+        "supportsImageInput": false,
+        "supportsAudioInput": true,
+        "supportsStreaming": false,
+        "supportsToolCalls": false,
+        "supportsStructuredOutputs": false
+      }
+    }
+  ]
+}

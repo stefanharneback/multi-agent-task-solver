@@ -1,0 +1,197 @@
+using System.Net;
+using System.Text;
+using MultiAgentTaskSolver.Core.Models;
+using MultiAgentTaskSolver.Infrastructure.Gateway;
+
+namespace MultiAgentTaskSolver.Infrastructure.Tests;
+
+public sealed class OpenAiGatewayAdapterTests
+{
+    [Fact]
+    public async Task SendTextAsyncSendsAuthorizationHeaderAndParsesResponse()
+    {
+        HttpRequestMessage? capturedRequest = null;
+        var responseJson = """
+        {
+          "id": "resp_1",
+          "output_text": "hello",
+          "usage": {
+            "input_tokens": 10,
+            "output_tokens": 5,
+            "total_tokens": 15
+          }
+        }
+        """;
+
+        var adapter = CreateAdapter(request =>
+        {
+            capturedRequest = request;
+            return new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent(responseJson, Encoding.UTF8, "application/json"),
+                Headers =
+                {
+                    { "x-request-id", "req-1" },
+                },
+            };
+        });
+
+        var response = await adapter.SendTextAsync(
+            CreateProvider(),
+            new LlmRequest
+            {
+                ModelId = "gpt-5.4-mini",
+                InputText = "hello",
+            },
+            "client-secret");
+
+        Assert.NotNull(capturedRequest);
+        Assert.Equal("Bearer", capturedRequest!.Headers.Authorization?.Scheme);
+        Assert.Equal("client-secret", capturedRequest.Headers.Authorization?.Parameter);
+        Assert.Equal("/v1/llm", capturedRequest.RequestUri?.AbsolutePath);
+        Assert.Equal("hello", response.OutputText);
+        Assert.Equal(15, response.Usage?.TotalTokens);
+    }
+
+    [Fact]
+    public async Task SendTextAsyncThrowsGatewayApiExceptionOnValidationFailure()
+    {
+        var adapter = CreateAdapter(_ => new HttpResponseMessage(HttpStatusCode.BadRequest)
+        {
+            Content = new StringContent("{\"error\":{\"code\":\"invalid_request\"}}", Encoding.UTF8, "application/json"),
+        });
+
+        var exception = await Assert.ThrowsAsync<GatewayApiException>(async () =>
+        {
+            await adapter.SendTextAsync(
+                CreateProvider(),
+                new LlmRequest
+                {
+                    ModelId = "gpt-5.4-mini",
+                    InputText = "hello",
+                },
+                "client-secret");
+        });
+
+        Assert.Equal(HttpStatusCode.BadRequest, exception.StatusCode);
+        Assert.Contains("invalid_request", exception.ResponseBody, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task SendTextAsyncRejectsStreamingRequests()
+    {
+        var requestWasSent = false;
+        var adapter = CreateAdapter(_ =>
+        {
+            requestWasSent = true;
+            return new HttpResponseMessage(HttpStatusCode.OK);
+        });
+
+        var exception = await Assert.ThrowsAsync<NotSupportedException>(async () =>
+        {
+            await adapter.SendTextAsync(
+                CreateProvider(),
+                new LlmRequest
+                {
+                    ModelId = "gpt-5.4-mini",
+                    InputText = "hello",
+                    Stream = true,
+                },
+                "client-secret");
+        });
+
+        Assert.False(requestWasSent);
+        Assert.Contains("Streaming text responses", exception.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task GetUsageAsyncThrowsGatewayApiExceptionOnAuthFailure()
+    {
+        var adapter = CreateAdapter(_ => new HttpResponseMessage(HttpStatusCode.Unauthorized)
+        {
+            Content = new StringContent("{\"error\":{\"code\":\"invalid_auth\"}}", Encoding.UTF8, "application/json"),
+        });
+
+        var exception = await Assert.ThrowsAsync<GatewayApiException>(async () =>
+        {
+            await adapter.GetUsageAsync(CreateProvider(), "bad-secret", new UsageQuery());
+        });
+
+        Assert.Equal(HttpStatusCode.Unauthorized, exception.StatusCode);
+        Assert.Contains("invalid_auth", exception.ResponseBody, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task GetUsageAsyncParsesUsageHistory()
+    {
+        HttpRequestMessage? capturedRequest = null;
+        var payload = """
+        {
+          "clientId": "client-1",
+          "items": [
+            {
+              "id": "request-1",
+              "created_at": "2026-03-23T20:00:00Z",
+              "model": "gpt-5.4-mini",
+              "http_status": 200,
+              "duration_ms": 125,
+              "input_tokens": 20,
+              "output_tokens": 8,
+              "total_tokens": 28,
+              "total_cost_usd": 0.0021
+            }
+          ]
+        }
+        """;
+
+        var adapter = CreateAdapter(request =>
+        {
+            capturedRequest = request;
+            return new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent(payload, Encoding.UTF8, "application/json"),
+            };
+        });
+
+        var items = await adapter.GetUsageAsync(CreateProvider(), "client-secret", new UsageQuery { Limit = 10, Offset = 5 });
+
+        Assert.NotNull(capturedRequest);
+        Assert.Equal("/v1/usage", capturedRequest!.RequestUri?.AbsolutePath);
+        Assert.Equal("?limit=10&offset=5", capturedRequest.RequestUri?.Query);
+        Assert.Single(items);
+        Assert.Equal(28, items[0].TotalTokens);
+        Assert.Equal(0.0021m, items[0].TotalCostUsd);
+    }
+
+    private static OpenAiGatewayAdapter CreateAdapter(Func<HttpRequestMessage, HttpResponseMessage> responder)
+    {
+        var handler = new StubHandler(responder);
+        var httpClient = new HttpClient(handler);
+        return new OpenAiGatewayAdapter(httpClient, new OpenAiUsageNormalizer());
+    }
+
+    private static ProviderRef CreateProvider()
+    {
+        return new ProviderRef
+        {
+            ProviderId = "openai",
+            DisplayName = "OpenAI via Gateway",
+            BaseUrl = "http://localhost:3000",
+        };
+    }
+
+    private sealed class StubHandler : HttpMessageHandler
+    {
+        private readonly Func<HttpRequestMessage, HttpResponseMessage> _responder;
+
+        public StubHandler(Func<HttpRequestMessage, HttpResponseMessage> responder)
+        {
+            _responder = responder;
+        }
+
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            return Task.FromResult(_responder(request));
+        }
+    }
+}

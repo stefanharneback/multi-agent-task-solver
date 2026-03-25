@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="MultiAgentTaskSolver.App.Pages.TaskDetailsPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:viewModels="clr-namespace:MultiAgentTaskSolver.App.ViewModels"
+    x:DataType="viewModels:TaskDetailsViewModel"
+    Title="Task Details">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="14">
+            <Label Text="{Binding TaskRootPath}" FontAttributes="Italic" />
+
+            <Entry Placeholder="Title" Text="{Binding Title}" />
+
+            <Editor
+                AutoSize="TextChanges"
+                HeightRequest="80"
+                Placeholder="Summary"
+                Text="{Binding Summary}" />
+
+            <Editor
+                AutoSize="TextChanges"
+                HeightRequest="260"
+                Text="{Binding TaskMarkdown}" />
+
+            <HorizontalStackLayout Spacing="12">
+                <Button Text="Save" Clicked="OnSaveClicked" />
+                <Button Text="Run History" Clicked="OnRunHistoryClicked" />
+            </HorizontalStackLayout>
+
+            <Label Text="Import files" FontAttributes="Bold" FontSize="18" />
+
+            <Picker ItemsSource="{Binding ImportDestinations}" SelectedItem="{Binding SelectedImportDestination}" />
+            <Button Text="Import Files" Clicked="OnImportFilesClicked" />
+
+            <Label Text="{Binding ErrorMessage}" TextColor="IndianRed" />
+
+            <Label Text="Artifacts" FontAttributes="Bold" FontSize="18" />
+            <CollectionView ItemsSource="{Binding Artifacts}">
+                <CollectionView.EmptyView>
+                    <Label Text="No imported artifacts yet." />
+                </CollectionView.EmptyView>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="viewModels:ArtifactEntryViewModel">
+                        <Border Padding="10" Margin="0,0,0,8" StrokeThickness="1">
+                            <VerticalStackLayout Spacing="4">
+                                <Label Text="{Binding Alias}" FontAttributes="Bold" />
+                                <Label Text="{Binding RelativePath}" />
+                                <Label Text="{Binding MediaType}" FontSize="12" />
+                                <Label Text="{Binding SizeText}" FontSize="12" />
+                            </VerticalStackLayout>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+            <Label Text="Folder tree" FontAttributes="Bold" FontSize="18" />
+            <CollectionView ItemsSource="{Binding TreeEntries}">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="viewModels:TaskTreeEntryViewModel">
+                        <Label Text="{Binding DisplayName}" FontFamily="OpenSansRegular" />
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

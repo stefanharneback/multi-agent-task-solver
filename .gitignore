@@ -1,0 +1,27 @@
+# Build outputs
+**/bin/
+**/obj/
+**/TestResults/
+**/artifacts/
+
+# Editor and local state
+.vs/
+.idea/
+*.user
+*.suo
+*.userprefs
+
+# Local secrets and settings
+.env*
+*.pem
+*.p12
+*.key
+.github/copilot/settings.local.json
+
+# OS and logs
+Thumbs.db
+Desktop.ini
+*.log
+
+# Alternate solution format
+*.slnx
