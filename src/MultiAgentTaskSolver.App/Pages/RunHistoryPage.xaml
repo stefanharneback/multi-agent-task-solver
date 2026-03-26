@@ -8,10 +8,10 @@
     Title="Run History">
 
     <VerticalStackLayout Padding="20" Spacing="14">
-        <Label Text="{Binding TaskTitle}" FontAttributes="Bold" FontSize="24" />
-        <Label Text="{Binding ErrorMessage}" TextColor="IndianRed" />
+        <Label AutomationId="RunHistoryTaskTitleLabel" Text="{Binding TaskTitle}" FontAttributes="Bold" FontSize="24" />
+        <Label AutomationId="RunHistoryErrorLabel" Text="{Binding ErrorMessage}" TextColor="IndianRed" />
 
-        <CollectionView ItemsSource="{Binding Runs}">
+        <CollectionView AutomationId="RunHistoryCollectionView" ItemsSource="{Binding Runs}">
             <CollectionView.EmptyView>
                 <Label Text="No runs yet." />
             </CollectionView.EmptyView>

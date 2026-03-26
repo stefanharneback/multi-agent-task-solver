@@ -9,20 +9,22 @@
 
     <Grid Padding="20" RowDefinitions="Auto,Auto,*" RowSpacing="16">
         <Label
+            AutomationId="TaskListHeadingLabel"
             Text="Task workspace"
             FontAttributes="Bold"
             FontSize="24" />
 
         <Border Grid.Row="1" Padding="12" StrokeThickness="1">
             <VerticalStackLayout Spacing="10">
-                <Label Text="{Binding WorkspaceRootPath}" FontAttributes="Italic" />
-                <Button Text="Create Task" Clicked="OnCreateTaskClicked" HorizontalOptions="Start" />
-                <Label Text="{Binding ErrorMessage}" TextColor="IndianRed" />
+                <Label AutomationId="WorkspaceRootLabel" Text="{Binding WorkspaceRootPath}" FontAttributes="Italic" />
+                <Button AutomationId="CreateTaskButton" Text="Create Task" Command="{Binding OpenCreateTaskCommand}" HorizontalOptions="Start" />
+                <Label AutomationId="TaskListErrorLabel" Text="{Binding ErrorMessage}" TextColor="IndianRed" />
             </VerticalStackLayout>
         </Border>
 
         <CollectionView
             x:Name="TasksCollectionView"
+            AutomationId="TasksCollectionView"
             Grid.Row="2"
             ItemsSource="{Binding Tasks}"
             SelectionMode="Single"

@@ -19,6 +19,7 @@ This repository is a .NET MAUI task workspace for file-first multi-agent task so
 - Read `docs/provider-expansion.md` when touching provider abstractions or adding providers.
 - Treat this repo as security-sensitive: never commit secrets, bearer keys, tokens, or local machine credentials.
 - Prefer minimal diffs and keep MAUI UI code thin over shared services.
+- Keep MAUI page behavior behind testable view models or app services. Add `AutomationId` values when introducing new interactive controls.
 - When changing behavior, update implementation, tests, docs, and relevant prompt/agent files together.
 - Keep canonical task files human-readable. Only `cache/` may contain machine-oriented derived artifacts.
 - Do not assume hidden model chain-of-thought is portable or storable. Persist explicit summaries and critiques instead.
@@ -28,6 +29,7 @@ This repository is a .NET MAUI task workspace for file-first multi-agent task so
 - Restore: `dotnet restore MultiAgentTaskSolver.sln`
 - Build: `dotnet build MultiAgentTaskSolver.sln`
 - Test: `dotnet test MultiAgentTaskSolver.sln --no-build`
+- App tests only: `dotnet test tests/MultiAgentTaskSolver.App.Tests/MultiAgentTaskSolver.App.Tests.csproj --no-build`
 - Verify locally: run build first, then run tests with `--no-build`
 - MAUI workload restore: `dotnet workload restore`
 
@@ -42,6 +44,7 @@ This repository is a .NET MAUI task workspace for file-first multi-agent task so
 
 - `dotnet build MultiAgentTaskSolver.sln` passes.
 - `dotnet test MultiAgentTaskSolver.sln --no-build` passes for code changes after a successful build.
+- App-facing behavior changes include automated coverage in `tests/MultiAgentTaskSolver.App.Tests` when practical.
 - Manual smoke coverage is run when MAUI navigation, settings, or task-folder flows change.
 - Docs, prompts, and agents are updated when workflow behavior changes.
 - Secrets and local task data remain out of version control.

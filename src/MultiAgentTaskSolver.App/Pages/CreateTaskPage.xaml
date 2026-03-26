@@ -9,30 +9,33 @@
 
     <ScrollView>
         <VerticalStackLayout Padding="20" Spacing="14">
-            <Label Text="New task" FontAttributes="Bold" FontSize="24" />
+            <Label AutomationId="CreateTaskHeadingLabel" Text="New task" FontAttributes="Bold" FontSize="24" />
 
-            <Entry Placeholder="Title" Text="{Binding Title}" />
+            <Entry AutomationId="CreateTaskTitleEntry" Placeholder="Title" Text="{Binding Title}" />
 
             <Editor
+                AutomationId="CreateTaskSummaryEditor"
                 AutoSize="TextChanges"
                 HeightRequest="80"
                 Placeholder="Short summary"
                 Text="{Binding Summary}" />
 
             <Entry
+                AutomationId="CreateTaskCategoriesEntry"
                 Placeholder="Additional input categories, comma separated"
                 Text="{Binding AdditionalInputCategories}" />
 
             <Editor
+                AutomationId="CreateTaskMarkdownEditor"
                 AutoSize="TextChanges"
                 HeightRequest="320"
                 Text="{Binding TaskMarkdown}" />
 
-            <Label Text="{Binding ErrorMessage}" TextColor="IndianRed" />
+            <Label AutomationId="CreateTaskErrorLabel" Text="{Binding ErrorMessage}" TextColor="IndianRed" />
 
             <HorizontalStackLayout Spacing="12">
-                <Button Text="Create" Clicked="OnCreateClicked" />
-                <Button Text="Cancel" Clicked="OnCancelClicked" />
+                <Button AutomationId="CreateTaskConfirmButton" Text="Create" Command="{Binding CreateCommand}" />
+                <Button AutomationId="CreateTaskCancelButton" Text="Cancel" Command="{Binding CancelCommand}" />
             </HorizontalStackLayout>
         </VerticalStackLayout>
     </ScrollView>

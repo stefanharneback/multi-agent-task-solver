@@ -36,8 +36,11 @@ public static class MauiProgram
         builder.Services.AddHttpClient<OpenAiGatewayAdapter>().AddStandardResilienceHandler();
         builder.Services.AddTransient<IProviderAdapter>(serviceProvider => serviceProvider.GetRequiredService<OpenAiGatewayAdapter>());
         builder.Services.AddSingleton<ITaskReviewWorkflow, TaskReviewWorkflow>();
+        builder.Services.AddSingleton<IAppNavigationService, ShellNavigationService>();
+        builder.Services.AddSingleton<IFilePickerService, MauiFilePickerService>();
+        builder.Services.AddSingleton<IFolderPickerService, MauiFolderPickerService>();
 
-        builder.Services.AddSingleton<TaskWorkspaceCoordinator>();
+        builder.Services.AddSingleton<ITaskWorkspaceCoordinator, TaskWorkspaceCoordinator>();
 
         builder.Services.AddSingleton<TaskListViewModel>();
         builder.Services.AddSingleton<SettingsViewModel>();

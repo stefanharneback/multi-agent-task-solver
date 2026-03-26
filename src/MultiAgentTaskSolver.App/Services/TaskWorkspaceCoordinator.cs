@@ -3,7 +3,7 @@ using MultiAgentTaskSolver.Core.Models;
 
 namespace MultiAgentTaskSolver.App.Services;
 
-public sealed class TaskWorkspaceCoordinator
+public sealed class TaskWorkspaceCoordinator : ITaskWorkspaceCoordinator
 {
     private const string OpenAiSecretKey = "providers:openai:bearer";
 

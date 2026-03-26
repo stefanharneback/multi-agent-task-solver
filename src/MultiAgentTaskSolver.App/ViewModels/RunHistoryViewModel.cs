@@ -7,9 +7,9 @@ namespace MultiAgentTaskSolver.App.ViewModels;
 
 public sealed partial class RunHistoryViewModel : ViewModelBase
 {
-    private readonly TaskWorkspaceCoordinator _coordinator;
+    private readonly ITaskWorkspaceCoordinator _coordinator;
 
-    public RunHistoryViewModel(TaskWorkspaceCoordinator coordinator)
+    public RunHistoryViewModel(ITaskWorkspaceCoordinator coordinator)
     {
         _coordinator = coordinator;
     }

@@ -9,48 +9,51 @@
 
     <ScrollView>
         <VerticalStackLayout Padding="20" Spacing="14">
-            <Label Text="{Binding TaskRootPath}" FontAttributes="Italic" />
-            <Label Text="{Binding TaskStatusText}" FontAttributes="Bold" />
+            <Label AutomationId="TaskRootPathLabel" Text="{Binding TaskRootPath}" FontAttributes="Italic" />
+            <Label AutomationId="TaskStatusLabel" Text="{Binding TaskStatusText}" FontAttributes="Bold" />
 
-            <Entry Placeholder="Title" Text="{Binding Title}" />
+            <Entry AutomationId="TaskTitleEntry" Placeholder="Title" Text="{Binding Title}" />
 
             <Editor
+                AutomationId="TaskSummaryEditor"
                 AutoSize="TextChanges"
                 HeightRequest="80"
                 Placeholder="Summary"
                 Text="{Binding Summary}" />
 
             <Editor
+                AutomationId="TaskMarkdownEditor"
                 AutoSize="TextChanges"
                 HeightRequest="260"
                 Text="{Binding TaskMarkdown}" />
 
             <HorizontalStackLayout Spacing="12">
-                <Button Text="Save" Clicked="OnSaveClicked" />
-                <Button Text="Run History" Clicked="OnRunHistoryClicked" />
+                <Button AutomationId="TaskSaveButton" Text="Save" Command="{Binding SaveCommand}" />
+                <Button AutomationId="TaskRunHistoryButton" Text="Run History" Command="{Binding OpenRunHistoryCommand}" />
             </HorizontalStackLayout>
 
-            <Label Text="Task review agent" FontAttributes="Bold" FontSize="18" />
+            <Label AutomationId="TaskReviewHeadingLabel" Text="Task review agent" FontAttributes="Bold" FontSize="18" />
             <Picker
+                AutomationId="TaskReviewModelPicker"
                 ItemDisplayBinding="{Binding DisplayName}"
                 ItemsSource="{Binding ReviewModels}"
                 SelectedItem="{Binding SelectedReviewModel}" />
-            <Button Text="Run Task Review" Clicked="OnRunTaskReviewClicked" />
+            <Button AutomationId="RunTaskReviewButton" Text="Run Task Review" Command="{Binding RunTaskReviewCommand}" />
 
-            <Label Text="Latest review summary" FontAttributes="Bold" FontSize="18" />
+            <Label AutomationId="LatestReviewHeadingLabel" Text="Latest review summary" FontAttributes="Bold" FontSize="18" />
             <Border Padding="10" StrokeThickness="1">
-                <Label Text="{Binding LatestReviewSummary}" />
+                <Label AutomationId="LatestReviewSummaryLabel" Text="{Binding LatestReviewSummary}" />
             </Border>
 
-            <Label Text="Import files" FontAttributes="Bold" FontSize="18" />
+            <Label AutomationId="ImportFilesHeadingLabel" Text="Import files" FontAttributes="Bold" FontSize="18" />
 
-            <Picker ItemsSource="{Binding ImportDestinations}" SelectedItem="{Binding SelectedImportDestination}" />
-            <Button Text="Import Files" Clicked="OnImportFilesClicked" />
+            <Picker AutomationId="ImportDestinationPicker" ItemsSource="{Binding ImportDestinations}" SelectedItem="{Binding SelectedImportDestination}" />
+            <Button AutomationId="ImportFilesButton" Text="Import Files" Command="{Binding ImportPickedFilesCommand}" />
 
-            <Label Text="{Binding ErrorMessage}" TextColor="IndianRed" />
+            <Label AutomationId="TaskDetailsErrorLabel" Text="{Binding ErrorMessage}" TextColor="IndianRed" />
 
-            <Label Text="Artifacts" FontAttributes="Bold" FontSize="18" />
-            <CollectionView ItemsSource="{Binding Artifacts}">
+            <Label AutomationId="ArtifactsHeadingLabel" Text="Artifacts" FontAttributes="Bold" FontSize="18" />
+            <CollectionView AutomationId="ArtifactsCollectionView" ItemsSource="{Binding Artifacts}">
                 <CollectionView.EmptyView>
                     <Label Text="No imported artifacts yet." />
                 </CollectionView.EmptyView>
@@ -68,8 +71,8 @@
                 </CollectionView.ItemTemplate>
             </CollectionView>
 
-            <Label Text="Folder tree" FontAttributes="Bold" FontSize="18" />
-            <CollectionView ItemsSource="{Binding TreeEntries}">
+            <Label AutomationId="FolderTreeHeadingLabel" Text="Folder tree" FontAttributes="Bold" FontSize="18" />
+            <CollectionView AutomationId="FolderTreeCollectionView" ItemsSource="{Binding TreeEntries}">
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="viewModels:TaskTreeEntryViewModel">
                         <Label Text="{Binding DisplayName}" FontFamily="OpenSansRegular" />

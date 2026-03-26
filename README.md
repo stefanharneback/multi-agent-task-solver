@@ -14,6 +14,7 @@ This repository currently delivers the foundation slice:
 - task file-reference resolution for `@alias` references
 - a first task-review execution path with persisted prompt, response, and usage artifacts
 - a MAUI shell for tasks, task details, run history, and settings
+- app-level automated tests for MAUI viewmodels and navigation/picker seams
 
 The full review -> worker -> critic execution loop is not implemented yet. The current execution slice covers only the task-review agent path.
 The next milestones and extension points are tracked in `docs/roadmap.md`.
@@ -69,6 +70,7 @@ src/
   MultiAgentTaskSolver.Core/            shared domain types and interfaces
   MultiAgentTaskSolver.Infrastructure/  filesystem and gateway services
 tests/
+  MultiAgentTaskSolver.App.Tests/
   MultiAgentTaskSolver.Core.Tests/
   MultiAgentTaskSolver.Infrastructure.Tests/
 config/
@@ -98,6 +100,12 @@ dotnet workload restore
 dotnet restore MultiAgentTaskSolver.sln
 dotnet build MultiAgentTaskSolver.sln
 dotnet test MultiAgentTaskSolver.sln --no-build
+```
+
+For app-layer-only verification, run:
+
+```bash
+dotnet test tests/MultiAgentTaskSolver.App.Tests/MultiAgentTaskSolver.App.Tests.csproj --no-build
 ```
 
 For release-style verification, run:
@@ -130,3 +138,4 @@ Model discovery is seeded locally from `config/providers/openai.models.json` in 
 - `docs/roadmap.md`, `docs/agent-loop.md`, `docs/testing-strategy.md`, and `docs/provider-expansion.md` define upcoming implementation contracts.
 - `.github/` contains reusable prompts, instructions, agents, and CI workflow files.
 - `.vscode/` contains shared settings, tasks, and MCP baseline.
+- New MAUI controls should include stable `AutomationId` values so the UI stays automation-ready.

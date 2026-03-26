@@ -1,3 +1,4 @@
+using CommunityToolkit.Mvvm.Input;
 using MultiAgentTaskSolver.App.Services;
 using MultiAgentTaskSolver.Core.Models;
 
@@ -5,11 +6,15 @@ namespace MultiAgentTaskSolver.App.ViewModels;
 
 public sealed partial class CreateTaskViewModel : ViewModelBase
 {
-    private readonly TaskWorkspaceCoordinator _coordinator;
+    private readonly ITaskWorkspaceCoordinator _coordinator;
+    private readonly IAppNavigationService _navigationService;
 
-    public CreateTaskViewModel(TaskWorkspaceCoordinator coordinator)
+    public CreateTaskViewModel(ITaskWorkspaceCoordinator coordinator, IAppNavigationService navigationService)
     {
         _coordinator = coordinator;
+        _navigationService = navigationService;
+        CreateCommand = new AsyncRelayCommand(CreateAsync);
+        CancelCommand = new AsyncRelayCommand(CancelAsync);
         TaskMarkdown = """
 # Task
 
@@ -29,11 +34,13 @@ Describe the task, expected outcome, and how attached files should be referenced
     [CommunityToolkit.Mvvm.ComponentModel.ObservableProperty]
     public partial string TaskMarkdown { get; set; } = string.Empty;
 
-    public async Task<string?> CreateAsync()
-    {
-        string? createdTaskId = null;
+    public IAsyncRelayCommand CreateCommand { get; }
 
-        await RunBusyAsync(async () =>
+    public IAsyncRelayCommand CancelCommand { get; }
+
+    public Task CreateAsync()
+    {
+        return RunBusyAsync(async () =>
         {
             var snapshot = await _coordinator.CreateTaskAsync(new CreateTaskRequest
             {
@@ -44,9 +51,12 @@ Describe the task, expected outcome, and how attached files should be referenced
                     .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries),
             });
 
-            createdTaskId = snapshot.Manifest.Id;
+            await _navigationService.GoToTaskDetailsAsync(snapshot.Manifest.Id, replaceCurrentPage: true);
         });
+    }
 
-        return createdTaskId;
+    public Task CancelAsync()
+    {
+        return RunBusyAsync(() => _navigationService.GoBackAsync());
     }
 }

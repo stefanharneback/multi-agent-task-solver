@@ -37,6 +37,13 @@
       "problemMatcher": []
     },
     {
+      "label": "dotnet:test:app:no-build",
+      "type": "shell",
+      "command": "dotnet test tests/MultiAgentTaskSolver.App.Tests/MultiAgentTaskSolver.App.Tests.csproj --no-build",
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
       "label": "dotnet:verify",
       "dependsOn": [
         "dotnet:build",

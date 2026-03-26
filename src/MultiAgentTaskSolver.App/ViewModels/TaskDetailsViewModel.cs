@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using CommunityToolkit.Mvvm.Input;
 using MultiAgentTaskSolver.App.Services;
 using MultiAgentTaskSolver.Core;
 using MultiAgentTaskSolver.Core.Models;
@@ -7,13 +8,24 @@ namespace MultiAgentTaskSolver.App.ViewModels;
 
 public sealed partial class TaskDetailsViewModel : ViewModelBase
 {
-    private readonly TaskWorkspaceCoordinator _coordinator;
+    private readonly ITaskWorkspaceCoordinator _coordinator;
+    private readonly IAppNavigationService _navigationService;
+    private readonly IFilePickerService _filePickerService;
 
     private TaskManifest? _manifest;
 
-    public TaskDetailsViewModel(TaskWorkspaceCoordinator coordinator)
+    public TaskDetailsViewModel(
+        ITaskWorkspaceCoordinator coordinator,
+        IAppNavigationService navigationService,
+        IFilePickerService filePickerService)
     {
         _coordinator = coordinator;
+        _navigationService = navigationService;
+        _filePickerService = filePickerService;
+        SaveCommand = new AsyncRelayCommand(SaveAsync);
+        ImportPickedFilesCommand = new AsyncRelayCommand(ImportPickedFilesAsync);
+        OpenRunHistoryCommand = new AsyncRelayCommand(OpenRunHistoryAsync);
+        RunTaskReviewCommand = new AsyncRelayCommand(RunTaskReviewAsync);
     }
 
     public ObservableCollection<string> ImportDestinations { get; } = [];
@@ -23,6 +35,14 @@ public sealed partial class TaskDetailsViewModel : ViewModelBase
     public ObservableCollection<ArtifactEntryViewModel> Artifacts { get; } = [];
 
     public ObservableCollection<ModelEntryViewModel> ReviewModels { get; } = [];
+
+    public IAsyncRelayCommand SaveCommand { get; }
+
+    public IAsyncRelayCommand ImportPickedFilesCommand { get; }
+
+    public IAsyncRelayCommand OpenRunHistoryCommand { get; }
+
+    public IAsyncRelayCommand RunTaskReviewCommand { get; }
 
     [CommunityToolkit.Mvvm.ComponentModel.ObservableProperty]
     public partial string TaskId { get; set; } = string.Empty;
@@ -56,58 +76,7 @@ public sealed partial class TaskDetailsViewModel : ViewModelBase
 
     public Task LoadAsync(string taskId)
     {
-        return RunBusyAsync(async () =>
-        {
-            var snapshot = await _coordinator.LoadTaskAsync(taskId);
-            if (snapshot is null)
-            {
-                throw new InvalidOperationException($"Task '{taskId}' was not found.");
-            }
-
-            _manifest = snapshot.Manifest;
-            TaskId = snapshot.Manifest.Id;
-            TaskRootPath = snapshot.TaskRootPath;
-            Title = snapshot.Manifest.Title;
-            Summary = snapshot.Manifest.Summary;
-            TaskMarkdown = snapshot.TaskMarkdown;
-            TaskStatusText = snapshot.Manifest.Status.GetDisplayName();
-
-            ImportDestinations.Clear();
-            foreach (var destination in GetImportDestinations(snapshot.Manifest))
-            {
-                ImportDestinations.Add(destination);
-            }
-
-            if (ImportDestinations.Count > 0)
-            {
-                SelectedImportDestination = ImportDestinations[0];
-            }
-
-            TreeEntries.Clear();
-            foreach (var entry in FlattenTree(snapshot.Tree, depth: 0))
-            {
-                TreeEntries.Add(entry);
-            }
-
-            Artifacts.Clear();
-            foreach (var artifact in snapshot.Manifest.Artifacts.OrderBy(item => item.RelativePath, StringComparer.OrdinalIgnoreCase))
-            {
-                Artifacts.Add(new ArtifactEntryViewModel(
-                    artifact.Alias,
-                    artifact.RelativePath,
-                    artifact.MediaType,
-                    $"{artifact.SizeBytes:n0} bytes"));
-            }
-
-            ReviewModels.Clear();
-            foreach (var model in await _coordinator.GetTextModelsAsync("openai"))
-            {
-                ReviewModels.Add(new ModelEntryViewModel(model.ModelId, model.DisplayName, model.Description));
-            }
-
-            SelectedReviewModel = SelectReviewModel(snapshot.Manifest, ReviewModels, SelectedReviewModel);
-            PopulateLatestReview(snapshot.Manifest);
-        });
+        return RunBusyAsync(() => LoadCoreAsync(taskId));
     }
 
     public Task SaveAsync()
@@ -130,6 +99,21 @@ public sealed partial class TaskDetailsViewModel : ViewModelBase
         });
     }
 
+    public Task ImportPickedFilesAsync()
+    {
+        return RunBusyAsync(async () =>
+        {
+            var filePaths = await _filePickerService.PickFilesAsync();
+            if (filePaths.Count == 0)
+            {
+                return;
+            }
+
+            await ImportFilesCoreAsync(filePaths);
+            await LoadCoreAsync(TaskId);
+        });
+    }
+
     public async Task ImportFilesAsync(IEnumerable<string> filePaths)
     {
         await RunBusyAsync(async () =>
@@ -140,8 +124,21 @@ public sealed partial class TaskDetailsViewModel : ViewModelBase
                 return;
             }
 
-            await _coordinator.ImportArtifactsAsync(TaskId, SelectedImportDestination, paths);
-            await LoadAsync(TaskId);
+            await ImportFilesCoreAsync(paths);
+            await LoadCoreAsync(TaskId);
+        });
+    }
+
+    public Task OpenRunHistoryAsync()
+    {
+        return RunBusyAsync(() =>
+        {
+            if (string.IsNullOrWhiteSpace(TaskId))
+            {
+                throw new InvalidOperationException("Load a task before viewing run history.");
+            }
+
+            return _navigationService.GoToRunHistoryAsync(TaskId);
         });
     }
 
@@ -167,10 +164,69 @@ public sealed partial class TaskDetailsViewModel : ViewModelBase
                 },
                 TaskId);
 
+            await LoadCoreAsync(TaskId);
             LatestReviewSummary = result.Summary;
             LatestReviewOutput = result.OutputText;
-            await LoadAsync(TaskId);
         });
+    }
+
+    private async Task LoadCoreAsync(string taskId)
+    {
+        var snapshot = await _coordinator.LoadTaskAsync(taskId);
+        if (snapshot is null)
+        {
+            throw new InvalidOperationException($"Task '{taskId}' was not found.");
+        }
+
+        _manifest = snapshot.Manifest;
+        TaskId = snapshot.Manifest.Id;
+        TaskRootPath = snapshot.TaskRootPath;
+        Title = snapshot.Manifest.Title;
+        Summary = snapshot.Manifest.Summary;
+        TaskMarkdown = snapshot.TaskMarkdown;
+        TaskStatusText = snapshot.Manifest.Status.GetDisplayName();
+
+        ImportDestinations.Clear();
+        foreach (var destination in GetImportDestinations(snapshot.Manifest))
+        {
+            ImportDestinations.Add(destination);
+        }
+
+        if (ImportDestinations.Count > 0
+            && !ImportDestinations.Contains(SelectedImportDestination, StringComparer.OrdinalIgnoreCase))
+        {
+            SelectedImportDestination = ImportDestinations[0];
+        }
+
+        TreeEntries.Clear();
+        foreach (var entry in FlattenTree(snapshot.Tree, depth: 0))
+        {
+            TreeEntries.Add(entry);
+        }
+
+        Artifacts.Clear();
+        foreach (var artifact in snapshot.Manifest.Artifacts.OrderBy(item => item.RelativePath, StringComparer.OrdinalIgnoreCase))
+        {
+            Artifacts.Add(new ArtifactEntryViewModel(
+                artifact.Alias,
+                artifact.RelativePath,
+                artifact.MediaType,
+                $"{artifact.SizeBytes:n0} bytes"));
+        }
+
+        ReviewModels.Clear();
+        foreach (var model in await _coordinator.GetTextModelsAsync("openai"))
+        {
+            ReviewModels.Add(new ModelEntryViewModel(model.ModelId, model.DisplayName, model.Description));
+        }
+
+        SelectedReviewModel = SelectReviewModel(snapshot.Manifest, ReviewModels, SelectedReviewModel);
+        PopulateLatestReview(snapshot.Manifest);
+    }
+
+    private Task ImportFilesCoreAsync(IEnumerable<string> filePaths)
+    {
+        return _coordinator.ImportArtifactsAsync(TaskId, SelectedImportDestination, filePaths);
     }
 
     private static string[] GetImportDestinations(TaskManifest manifest)

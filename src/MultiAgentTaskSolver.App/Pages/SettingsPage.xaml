@@ -9,23 +9,23 @@
 
     <ScrollView>
         <VerticalStackLayout Padding="20" Spacing="14">
-            <Label Text="Workspace settings" FontAttributes="Bold" FontSize="24" />
+            <Label AutomationId="SettingsHeadingLabel" Text="Workspace settings" FontAttributes="Bold" FontSize="24" />
 
             <Label Text="Workspace root" />
-            <Entry Text="{Binding WorkspaceRootPath}" />
-            <Button Text="Browse Workspace Folder" Clicked="OnBrowseWorkspaceClicked" HorizontalOptions="Start" />
+            <Entry AutomationId="WorkspaceRootEntry" Text="{Binding WorkspaceRootPath}" />
+            <Button AutomationId="BrowseWorkspaceButton" Text="Browse Workspace Folder" Command="{Binding BrowseWorkspaceFolderCommand}" HorizontalOptions="Start" />
 
             <Label Text="OpenAI gateway base URL" />
-            <Entry Text="{Binding OpenAiGatewayBaseUrl}" Keyboard="Url" />
+            <Entry AutomationId="OpenAiGatewayBaseUrlEntry" Text="{Binding OpenAiGatewayBaseUrl}" Keyboard="Url" />
 
             <Label Text="OpenAI client bearer token" />
-            <Entry Text="{Binding OpenAiBearerToken}" IsPassword="True" />
+            <Entry AutomationId="OpenAiBearerTokenEntry" Text="{Binding OpenAiBearerToken}" IsPassword="True" />
 
-            <Button Text="Save Settings" Clicked="OnSaveClicked" HorizontalOptions="Start" />
-            <Label Text="{Binding ErrorMessage}" TextColor="IndianRed" />
+            <Button AutomationId="SaveSettingsButton" Text="Save Settings" Command="{Binding SaveCommand}" HorizontalOptions="Start" />
+            <Label AutomationId="SettingsErrorLabel" Text="{Binding ErrorMessage}" TextColor="IndianRed" />
 
-            <Label Text="Seeded OpenAI models" FontAttributes="Bold" FontSize="18" />
-            <CollectionView ItemsSource="{Binding OpenAiModels}">
+            <Label AutomationId="OpenAiModelsHeadingLabel" Text="Seeded OpenAI models" FontAttributes="Bold" FontSize="18" />
+            <CollectionView AutomationId="OpenAiModelsCollectionView" ItemsSource="{Binding OpenAiModels}">
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="viewModels:ModelEntryViewModel">
                         <Border Padding="10" Margin="0,0,0,8" StrokeThickness="1">

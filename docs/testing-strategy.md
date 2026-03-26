@@ -45,7 +45,9 @@ Use raw `dotnet test` only when you intentionally want it to build.
 
 - view model validation and command behavior
 - settings and task-workspace coordination logic
-- page-level behaviors only if lightweight MAUI test coverage is added later
+- navigation and native-picker behavior through app service abstractions
+- prefer stable `AutomationId` values on new interactive controls so end-to-end automation can be added without rewriting the UI
+- page-level rendering and native control behavior may still need manual smoke coverage
 
 ### Manual smoke coverage
 
@@ -90,6 +92,8 @@ The minimum smoke checklist should cover:
 ### MAUI changes
 
 - keep code-behind thin and logic in testable services or view models
+- add or update tests in `tests/MultiAgentTaskSolver.App.Tests` for changed view model or app-service behavior
+- add `AutomationId` values for new buttons, entries, pickers, and collections
 - add manual smoke notes to the change summary when automated UI coverage does not exist
 
 ## Definition of done for new behavior

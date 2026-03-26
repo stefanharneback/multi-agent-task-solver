@@ -40,6 +40,8 @@ Editor-specific files refine this guidance and must not replace it.
 - Prefer `dotnet build MultiAgentTaskSolver.sln` followed by `dotnet test MultiAgentTaskSolver.sln --no-build`.
 - Use the Release equivalent before shipping milestone-sized changes or doing a release check.
 - Add automated coverage for storage boundaries, provider mappings, and state transitions when those areas change.
+- Add or update `tests/MultiAgentTaskSolver.App.Tests` when MAUI-facing behavior changes.
+- Add `AutomationId` values for new interactive MAUI controls so later UI automation stays feasible.
 - Verify manual task-folder and MAUI flows when storage, navigation, settings, or page behavior changes.
 
 4. Review
