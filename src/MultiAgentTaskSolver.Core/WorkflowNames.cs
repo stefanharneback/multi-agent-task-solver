@@ -57,6 +57,19 @@ public static class WorkflowNames
         };
     }
 
+    public static string GetDisplayName(this TaskStepStatus status)
+    {
+        return status switch
+        {
+            TaskStepStatus.Planned => "Planned",
+            TaskStepStatus.Running => "Running",
+            TaskStepStatus.Completed => "Completed",
+            TaskStepStatus.Failed => "Failed",
+            TaskStepStatus.Cancelled => "Cancelled",
+            _ => "Unknown",
+        };
+    }
+
     public static string GetDisplayName(this TaskLifecycleState state)
     {
         return state switch

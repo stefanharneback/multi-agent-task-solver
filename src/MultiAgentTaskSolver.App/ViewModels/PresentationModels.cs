@@ -17,13 +17,42 @@ public sealed record ArtifactEntryViewModel(
     string MediaType,
     string SizeText);
 
-public sealed record RunEntryViewModel(
-    string RunId,
+public sealed record FlowSummaryMetricViewModel(
+    string Label,
+    string Value,
+    string Detail);
+
+public sealed record TaskFlowStageViewModel(
+    string Title,
+    string StateText,
+    string Detail,
+    bool IsCompleted,
+    bool IsCurrent);
+
+public sealed record StepHistoryEntryViewModel(
+    string SequenceText,
     string Title,
     string Status,
-    string StartedAtText,
-    string StepCountText,
+    string ModelText,
+    string ProviderText,
+    string TimingText,
+    string PromptVersionText,
+    string ReferencedAliasesText,
     string Summary);
+
+public sealed record RunHistoryEntryViewModel(
+    string RunId,
+    string SequenceText,
+    string Title,
+    string KindText,
+    string Status,
+    string TimingText,
+    string DurationText,
+    string ModelText,
+    string ReferencedAliasesText,
+    string StepCountText,
+    string Summary,
+    IReadOnlyList<StepHistoryEntryViewModel> Steps);
 
 public sealed record ModelEntryViewModel(
     string ModelId,

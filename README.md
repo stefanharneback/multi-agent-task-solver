@@ -13,7 +13,7 @@ This repository currently delivers the foundation slice:
 - explicit task, run, and step workflow states
 - task file-reference resolution for `@alias` references
 - a first task-review execution path with persisted prompt, response, and usage artifacts
-- a MAUI shell for tasks, task details, run history, and settings
+- a MAUI shell for tasks, task details, flow/history, and settings
 - app-level automated tests for MAUI viewmodels and navigation/picker seams
 
 The full review -> worker -> critic execution loop is not implemented yet. The current execution slice covers only the task-review agent path.

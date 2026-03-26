@@ -29,7 +29,7 @@
 
             <HorizontalStackLayout Spacing="12">
                 <Button AutomationId="TaskSaveButton" Text="Save" Command="{Binding SaveCommand}" />
-                <Button AutomationId="TaskRunHistoryButton" Text="Run History" Command="{Binding OpenRunHistoryCommand}" />
+                <Button AutomationId="TaskRunHistoryButton" Text="Flow &amp; History" Command="{Binding OpenRunHistoryCommand}" />
             </HorizontalStackLayout>
 
             <Label AutomationId="TaskReviewHeadingLabel" Text="Task review agent" FontAttributes="Bold" FontSize="18" />
