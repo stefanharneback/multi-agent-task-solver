@@ -49,6 +49,28 @@ jobs:
             Get-Content "artifacts/coverage/SummaryGithub.md" >> $env:GITHUB_STEP_SUMMARY
           }
 
+      - name: Enforce coverage thresholds
+        shell: pwsh
+        run: |
+          $xml = [xml](Get-Content "artifacts/coverage/Cobertura.xml")
+          $thresholds = @{
+            "MultiAgentTaskSolver.Core"           = @{ Lines = 65; Branches = 20 }
+            "MultiAgentTaskSolver.Infrastructure"  = @{ Lines = 70; Branches = 35 }
+          }
+          $failed = $false
+          foreach ($pkg in $xml.coverage.packages.package) {
+            $name = $pkg.name
+            if (-not $thresholds.ContainsKey($name)) { continue }
+            $lines = [math]::Round([double]$pkg.'line-rate' * 100, 1)
+            $branches = [math]::Round([double]$pkg.'branch-rate' * 100, 1)
+            $t = $thresholds[$name]
+            Write-Host "$name : lines=${lines}% (min $($t.Lines)%) branches=${branches}% (min $($t.Branches)%)"
+            if ($lines -lt $t.Lines) { Write-Host "::error::$name line coverage ${lines}% is below $($t.Lines)% threshold"; $failed = $true }
+            if ($branches -lt $t.Branches) { Write-Host "::error::$name branch coverage ${branches}% is below $($t.Branches)% threshold"; $failed = $true }
+          }
+          if ($failed) { exit 1 }
+          Write-Host "All coverage thresholds met."
+
       - name: Audit NuGet packages
         shell: pwsh
         run: |

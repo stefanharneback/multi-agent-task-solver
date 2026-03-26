@@ -33,6 +33,7 @@ This repository is a .NET MAUI task workspace for file-first multi-agent task so
 - Coverage: `dotnet test MultiAgentTaskSolver.sln --configuration Release --no-build --collect:"XPlat Code Coverage" --results-directory artifacts/test-results`
 - App tests only: `dotnet test tests/MultiAgentTaskSolver.App.Tests/MultiAgentTaskSolver.App.Tests.csproj --no-build`
 - NuGet audit: `dotnet package list --project MultiAgentTaskSolver.sln --vulnerable --include-transitive --format json --no-restore`
+- Model catalog drift: `pwsh -File scripts/sync-models.ps1`
 - Verify locally: run build first, then run tests with `--no-build`
 - MAUI workload restore: `dotnet workload restore`
 

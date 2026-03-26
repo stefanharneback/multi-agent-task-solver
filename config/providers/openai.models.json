@@ -37,6 +37,36 @@
     },
     {
       "providerId": "openai",
+      "modelId": "gpt-5.4-nano",
+      "displayName": "GPT-5.4 Nano",
+      "description": "Lowest-cost OpenAI text model exposed through the gateway.",
+      "capabilities": {
+        "supportsTextInput": true,
+        "supportsImageInput": true,
+        "supportsAudioInput": false,
+        "supportsStreaming": false,
+        "supportsToolCalls": true,
+        "supportsStructuredOutputs": true
+      },
+      "contextWindowTokens": 400000
+    },
+    {
+      "providerId": "openai",
+      "modelId": "gpt-5.4-pro",
+      "displayName": "GPT-5.4 Pro",
+      "description": "Highest-capability OpenAI reasoning model exposed through the gateway.",
+      "capabilities": {
+        "supportsTextInput": true,
+        "supportsImageInput": true,
+        "supportsAudioInput": false,
+        "supportsStreaming": false,
+        "supportsToolCalls": true,
+        "supportsStructuredOutputs": true
+      },
+      "contextWindowTokens": 400000
+    },
+    {
+      "providerId": "openai",
       "modelId": "gpt-4o-transcribe",
       "displayName": "GPT-4o Transcribe",
       "description": "Speech-to-text model available through the OpenAI gateway whisper endpoint.",
