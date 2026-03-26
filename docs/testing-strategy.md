@@ -20,6 +20,14 @@ dotnet test MultiAgentTaskSolver.sln --configuration Release --no-build
 
 Use raw `dotnet test` only when you intentionally want it to build.
 
+Use this sequence for local coverage output:
+
+```bash
+dotnet tool restore
+dotnet test MultiAgentTaskSolver.sln --configuration Release --no-build --collect:"XPlat Code Coverage" --results-directory artifacts/test-results
+dotnet tool run reportgenerator "-reports:artifacts/test-results/**/coverage.cobertura.xml" "-targetdir:artifacts/coverage" "-reporttypes:HtmlInline;Cobertura;MarkdownSummaryGithub"
+```
+
 ## Test layers
 
 ### Core unit tests
@@ -67,6 +75,13 @@ The minimum smoke checklist should cover:
 - edit task details
 - inspect run history
 - any newly added workflow path
+
+## CI and security workflow baseline
+
+- `dotnet.yml` should keep build, test, coverage collection, merged coverage reports, and artifact upload working on GitHub Actions.
+- `codeql.yml` should stay aligned with the solution build path and only run where repository settings allow it.
+- `dependency-review.yml` and `dependabot.yml` are part of the expected supply-chain baseline, not optional extras.
+- GitHub-side secret scanning and push protection should be enabled manually in repository settings.
 
 ## Feature-specific expectations
 

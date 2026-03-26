@@ -22,7 +22,7 @@ Review:
    - whether current patterns for prompting, storage, critiques, outputs, retries, and provider usage still fit
 4. AI workflow drift:
    - prompts, custom agents, instructions, MCP or editor settings, and evaluation habits
-5. CI, docs, and maintenance workflow relevance.
+5. CI, coverage, security workflow, docs, and maintenance workflow relevance.
 
 Return:
 

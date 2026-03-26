@@ -97,6 +97,7 @@ docs/
 
 ```bash
 dotnet workload restore
+dotnet tool restore
 dotnet restore MultiAgentTaskSolver.sln
 dotnet build MultiAgentTaskSolver.sln
 dotnet test MultiAgentTaskSolver.sln --no-build
@@ -106,6 +107,13 @@ For app-layer-only verification, run:
 
 ```bash
 dotnet test tests/MultiAgentTaskSolver.App.Tests/MultiAgentTaskSolver.App.Tests.csproj --no-build
+```
+
+For local coverage output, run:
+
+```bash
+dotnet test MultiAgentTaskSolver.sln --configuration Release --no-build --collect:"XPlat Code Coverage" --results-directory artifacts/test-results
+dotnet tool run reportgenerator "-reports:artifacts/test-results/**/coverage.cobertura.xml" "-targetdir:artifacts/coverage" "-reporttypes:HtmlInline;Cobertura;MarkdownSummaryGithub"
 ```
 
 For release-style verification, run:
@@ -130,6 +138,16 @@ Model discovery is seeded locally from `config/providers/openai.models.json` in 
 - Store gateway base URLs and workspace paths in local JSON settings.
 - Store gateway bearer keys in MAUI `SecureStorage`.
 - Do not commit real workspace roots, local task data, or credentials.
+- GitHub-side secret scanning and push protection still need to be enabled in repository settings because they are not fully repo-file driven.
+
+## CI and Coverage
+
+- [dotnet.yml](/C:/Users/stefa/OneDrive/Programming/VSCode_WithAI/multi-agent-task-solver/.github/workflows/dotnet.yml) builds, tests, collects coverage, generates merged reports, uploads artifacts, and can publish coverage to Codecov.
+- [codeql.yml](/C:/Users/stefa/OneDrive/Programming/VSCode_WithAI/multi-agent-task-solver/.github/workflows/codeql.yml) adds CodeQL analysis for C#.
+- [dependency-review.yml](/C:/Users/stefa/OneDrive/Programming/VSCode_WithAI/multi-agent-task-solver/.github/workflows/dependency-review.yml) checks new dependency risk on pull requests.
+- [.github/dependabot.yml](/C:/Users/stefa/OneDrive/Programming/VSCode_WithAI/multi-agent-task-solver/.github/dependabot.yml) keeps NuGet packages and GitHub Actions updated.
+- Coverage reports are always available as workflow artifacts. Codecov upload is enabled automatically for public repos and can be enabled for private repos with the `ENABLE_CODECOV=true` repository variable.
+- CodeQL runs automatically for public repos. For private repos, set `ENABLE_CODEQL=true` only after GitHub Code Security is available for the repository.
 
 ## AI workflow baseline
 

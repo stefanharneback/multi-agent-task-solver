@@ -27,9 +27,12 @@ This repository is a .NET MAUI task workspace for file-first multi-agent task so
 ## Commands
 
 - Restore: `dotnet restore MultiAgentTaskSolver.sln`
+- Restore local tools: `dotnet tool restore`
 - Build: `dotnet build MultiAgentTaskSolver.sln`
 - Test: `dotnet test MultiAgentTaskSolver.sln --no-build`
+- Coverage: `dotnet test MultiAgentTaskSolver.sln --configuration Release --no-build --collect:"XPlat Code Coverage" --results-directory artifacts/test-results`
 - App tests only: `dotnet test tests/MultiAgentTaskSolver.App.Tests/MultiAgentTaskSolver.App.Tests.csproj --no-build`
+- NuGet audit: `dotnet package list --project MultiAgentTaskSolver.sln --vulnerable --include-transitive --format json --no-restore`
 - Verify locally: run build first, then run tests with `--no-build`
 - MAUI workload restore: `dotnet workload restore`
 
@@ -38,7 +41,7 @@ This repository is a .NET MAUI task workspace for file-first multi-agent task so
 - Run a lightweight maintenance pass monthly.
 - Run a deeper architecture and tooling review quarterly.
 - Use `docs/maintenance-cadence.md` as the checklist.
-- Treat provider API drift, model drift, MAUI/.NET SDK drift, and AI workflow drift as normal maintenance work.
+- Treat provider API drift, model drift, MAUI/.NET SDK drift, CI/security workflow drift, and AI workflow drift as normal maintenance work.
 
 ## Done criteria
 
@@ -46,5 +49,6 @@ This repository is a .NET MAUI task workspace for file-first multi-agent task so
 - `dotnet test MultiAgentTaskSolver.sln --no-build` passes for code changes after a successful build.
 - App-facing behavior changes include automated coverage in `tests/MultiAgentTaskSolver.App.Tests` when practical.
 - Manual smoke coverage is run when MAUI navigation, settings, or task-folder flows change.
+- Coverage and CI workflow changes keep `.github/workflows/`, `.github/dependabot.yml`, and related docs aligned.
 - Docs, prompts, and agents are updated when workflow behavior changes.
 - Secrets and local task data remain out of version control.

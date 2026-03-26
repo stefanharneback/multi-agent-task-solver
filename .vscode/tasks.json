@@ -16,6 +16,13 @@
       "problemMatcher": []
     },
     {
+      "label": "dotnet:tool:restore",
+      "type": "shell",
+      "command": "dotnet tool restore",
+      "group": "build",
+      "problemMatcher": []
+    },
+    {
       "label": "dotnet:build",
       "type": "shell",
       "command": "dotnet build MultiAgentTaskSolver.sln",
@@ -40,6 +47,27 @@
       "label": "dotnet:test:app:no-build",
       "type": "shell",
       "command": "dotnet test tests/MultiAgentTaskSolver.App.Tests/MultiAgentTaskSolver.App.Tests.csproj --no-build",
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "dotnet:test:coverage",
+      "type": "shell",
+      "command": "dotnet test MultiAgentTaskSolver.sln --configuration Release --no-build --collect:\"XPlat Code Coverage\" --results-directory artifacts/test-results",
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "dotnet:coverage:report",
+      "type": "shell",
+      "command": "dotnet tool run reportgenerator \"-reports:artifacts/test-results/**/coverage.cobertura.xml\" \"-targetdir:artifacts/coverage\" \"-reporttypes:HtmlInline;Cobertura;MarkdownSummaryGithub\"",
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "dotnet:package:audit",
+      "type": "shell",
+      "command": "dotnet package list --project MultiAgentTaskSolver.sln --vulnerable --include-transitive --format json --no-restore",
       "group": "test",
       "problemMatcher": []
     },
