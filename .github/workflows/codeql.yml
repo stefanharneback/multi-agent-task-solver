@@ -25,10 +25,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
         with:
           global-json-file: global.json
 
@@ -45,7 +45,7 @@ jobs:
         run: dotnet restore MultiAgentTaskSolver.sln
 
       - name: Build
-        run: dotnet build MultiAgentTaskSolver.sln --configuration Release --no-restore
+        run: dotnet build MultiAgentTaskSolver.sln --configuration Release --no-restore -p:PublishReadyToRun=false
 
       - name: Analyze
         uses: github/codeql-action/analyze@v4
