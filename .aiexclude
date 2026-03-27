@@ -8,6 +8,7 @@
 **/bin/
 **/obj/
 **/TestResults/
+artifacts/
 
 # Local editor/private overrides
 .github/copilot/settings.local.json

@@ -6,6 +6,7 @@
 - Cadence:
 - Reviewer:
 - Scope:
+- Overall outcome: green | amber | red
 
 ## Sources checked
 

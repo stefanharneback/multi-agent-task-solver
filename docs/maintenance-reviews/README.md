@@ -6,3 +6,23 @@ Place monthly and quarterly maintenance reports here using the naming format:
 - `YYYY-MM-DD-quarterly.md`
 
 Start new reports from `template.md` so sources, findings, actions, and limitations stay consistent over time.
+
+## Minimum contents
+
+- review date
+- cadence
+- reviewer/tool used
+- scope
+- overall outcome (green / amber / red)
+- sources checked
+- commands run
+- findings
+- required maintenance actions
+- follow-ups or deferred work
+- limitations or unverified areas
+
+## Research expectation
+
+- Use official online sources when the reviewing tool supports web access.
+- Prefer vendor documentation, API references, release notes, changelogs, and pricing pages.
+- If browsing is unavailable, say so explicitly in the report instead of implying the review was fully up to date.
