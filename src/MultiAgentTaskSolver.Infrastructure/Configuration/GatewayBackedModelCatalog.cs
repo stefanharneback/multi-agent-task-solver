@@ -1,3 +1,5 @@
+using System.Diagnostics;
+using MultiAgentTaskSolver.Core;
 using MultiAgentTaskSolver.Core.Abstractions;
 using MultiAgentTaskSolver.Core.Models;
 using MultiAgentTaskSolver.Infrastructure.Gateway;
@@ -7,23 +9,22 @@ namespace MultiAgentTaskSolver.Infrastructure.Configuration;
 public sealed class GatewayBackedModelCatalog : IModelCatalog
 {
     private const string OpenAiProviderId = "openai";
-    private const string OpenAiSecretKey = "providers:openai:bearer";
 
     private readonly JsonModelCatalog _fallbackCatalog;
     private readonly IAppSettingsStore _appSettingsStore;
     private readonly ISecretStore _secretStore;
-    private readonly OpenAiGatewayAdapter _openAiGatewayAdapter;
+    private readonly IProviderAdapter _openAiAdapter;
 
     public GatewayBackedModelCatalog(
         string configDirectoryPath,
         IAppSettingsStore appSettingsStore,
         ISecretStore secretStore,
-        OpenAiGatewayAdapter openAiGatewayAdapter)
+        IProviderAdapter openAiAdapter)
     {
         _fallbackCatalog = new JsonModelCatalog(configDirectoryPath);
         _appSettingsStore = appSettingsStore;
         _secretStore = secretStore;
-        _openAiGatewayAdapter = openAiGatewayAdapter;
+        _openAiAdapter = openAiAdapter;
     }
 
     public async Task<IReadOnlyList<ModelRef>> GetModelsAsync(string providerId, CancellationToken cancellationToken = default)
@@ -54,7 +55,7 @@ public sealed class GatewayBackedModelCatalog : IModelCatalog
             return null;
         }
 
-        var bearerToken = await _secretStore.GetAsync(OpenAiSecretKey, cancellationToken);
+        var bearerToken = await _secretStore.GetAsync(WellKnownSecretKeys.OpenAiBearerToken, cancellationToken);
         if (string.IsNullOrWhiteSpace(bearerToken))
         {
             return null;
@@ -69,23 +70,16 @@ public sealed class GatewayBackedModelCatalog : IModelCatalog
                 BaseUrl = settings.OpenAiGatewayBaseUrl,
             };
 
-            var liveModelIds = await _openAiGatewayAdapter.GetModelsAsync(provider, bearerToken, cancellationToken);
+            var liveModelIds = await _openAiAdapter.GetModelsAsync(provider, bearerToken, cancellationToken);
             return MapLiveOpenAiModels(liveModelIds, fallbackModels);
         }
-        catch (GatewayApiException)
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
-            return null;
+            throw;
         }
-        catch (HttpRequestException)
+        catch (Exception ex) when (ex is GatewayApiException or HttpRequestException or TaskCanceledException or InvalidOperationException)
         {
-            return null;
-        }
-        catch (TaskCanceledException)
-        {
-            return null;
-        }
-        catch (InvalidOperationException)
-        {
+            Debug.WriteLine($"Live model fetch fell back to local catalog: {ex.GetType().Name}: {ex.Message}");
             return null;
         }
     }

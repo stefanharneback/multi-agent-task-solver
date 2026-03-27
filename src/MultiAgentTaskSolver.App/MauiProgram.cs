@@ -38,7 +38,7 @@ public static class MauiProgram
                 Path.Combine(AppContext.BaseDirectory, "config", "providers"),
                 serviceProvider.GetRequiredService<IAppSettingsStore>(),
                 serviceProvider.GetRequiredService<ISecretStore>(),
-                serviceProvider.GetRequiredService<OpenAiGatewayAdapter>()));
+                serviceProvider.GetRequiredService<IProviderAdapter>()));
         builder.Services.AddSingleton<ITaskReviewWorkflow, TaskReviewWorkflow>();
         builder.Services.AddSingleton<IAppNavigationService, ShellNavigationService>();
         builder.Services.AddSingleton<IFilePickerService, MauiFilePickerService>();

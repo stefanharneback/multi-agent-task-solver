@@ -150,7 +150,6 @@ public sealed class OpenAiGatewayAdapter : IProviderAdapter
         using var formData = new MultipartFormDataContent();
         formData.Add(new StringContent(request.ModelId, Encoding.UTF8), "model");
 
-        Stream? stream = null;
         if (!string.IsNullOrWhiteSpace(request.AudioUrl))
         {
             formData.Add(new StringContent(request.AudioUrl, Encoding.UTF8), "audio_url");
@@ -162,7 +161,7 @@ public sealed class OpenAiGatewayAdapter : IProviderAdapter
                 throw new FileNotFoundException("Transcription source file was not found.", request.FilePath);
             }
 
-            stream = File.OpenRead(request.FilePath);
+            var stream = File.OpenRead(request.FilePath);
             var streamContent = new StreamContent(stream);
             streamContent.Headers.ContentType = MediaTypeHeaderValue.Parse(GuessMediaType(request.FilePath));
             formData.Add(streamContent, "file", Path.GetFileName(request.FilePath));
@@ -177,11 +176,6 @@ public sealed class OpenAiGatewayAdapter : IProviderAdapter
         var stopwatch = Stopwatch.StartNew();
         using var response = await _httpClient.SendAsync(message, cancellationToken);
         stopwatch.Stop();
-
-        if (stream is not null)
-        {
-            await stream.DisposeAsync();
-        }
 
         var body = await response.Content.ReadAsStringAsync(cancellationToken);
         if (!response.IsSuccessStatusCode)

@@ -6,6 +6,11 @@ public interface IProviderAdapter
 {
     string ProviderId { get; }
 
+    Task<IReadOnlyList<string>> GetModelsAsync(
+        ProviderRef provider,
+        string bearerToken,
+        CancellationToken cancellationToken = default);
+
     Task<ProviderTextResponse> SendTextAsync(
         ProviderRef provider,
         LlmRequest request,

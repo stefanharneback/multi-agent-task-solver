@@ -23,6 +23,10 @@ public abstract partial class ViewModelBase : ObservableObject
             IsBusy = true;
             await action();
         }
+        catch (OperationCanceledException)
+        {
+            // Respect cancellation without treating it as an error.
+        }
         catch (Exception ex)
         {
             ErrorMessage = ex.Message;

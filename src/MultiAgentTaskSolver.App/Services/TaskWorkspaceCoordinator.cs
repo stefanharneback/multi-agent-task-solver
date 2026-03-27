@@ -1,3 +1,4 @@
+using MultiAgentTaskSolver.Core;
 using MultiAgentTaskSolver.Core.Abstractions;
 using MultiAgentTaskSolver.Core.Models;
 
@@ -5,7 +6,6 @@ namespace MultiAgentTaskSolver.App.Services;
 
 public sealed class TaskWorkspaceCoordinator : ITaskWorkspaceCoordinator
 {
-    private const string OpenAiSecretKey = "providers:openai:bearer";
 
     private readonly ITaskWorkspaceStore _taskWorkspaceStore;
     private readonly IAppSettingsStore _appSettingsStore;
@@ -41,12 +41,12 @@ public sealed class TaskWorkspaceCoordinator : ITaskWorkspaceCoordinator
     {
         Directory.CreateDirectory(settings.WorkspaceRootPath);
         await _appSettingsStore.SaveAsync(settings, cancellationToken);
-        await _secretStore.SetAsync(OpenAiSecretKey, openAiBearerToken, cancellationToken);
+        await _secretStore.SetAsync(WellKnownSecretKeys.OpenAiBearerToken, openAiBearerToken, cancellationToken);
     }
 
     public Task<string?> GetOpenAiBearerTokenAsync(CancellationToken cancellationToken = default)
     {
-        return _secretStore.GetAsync(OpenAiSecretKey, cancellationToken);
+        return _secretStore.GetAsync(WellKnownSecretKeys.OpenAiBearerToken, cancellationToken);
     }
 
     public async Task<IReadOnlyList<TaskManifest>> ListTasksAsync(CancellationToken cancellationToken = default)
@@ -118,16 +118,17 @@ public sealed class TaskWorkspaceCoordinator : ITaskWorkspaceCoordinator
     {
         var settings = await GetSettingsAsync(cancellationToken);
 
-        return providerId.ToLowerInvariant() switch
+        if (string.Equals(providerId, "openai", StringComparison.OrdinalIgnoreCase))
         {
-            "openai" => new ProviderRef
+            return new ProviderRef
             {
                 ProviderId = "openai",
                 DisplayName = "OpenAI via Gateway",
                 BaseUrl = settings.OpenAiGatewayBaseUrl,
-            },
-            _ => throw new InvalidOperationException($"Unknown provider '{providerId}'."),
-        };
+            };
+        }
+
+        throw new InvalidOperationException($"Unknown provider '{providerId}'.");
     }
 
     public IProviderAdapter GetProviderAdapter(string providerId)
@@ -147,11 +148,9 @@ public sealed class TaskWorkspaceCoordinator : ITaskWorkspaceCoordinator
         var model = await _modelCatalog.GetModelAsync(request.ProviderId, request.ModelId, cancellationToken)
             ?? throw new InvalidOperationException($"Model '{request.ModelId}' is not known for provider '{request.ProviderId}'.");
 
-        var bearerToken = request.ProviderId.ToLowerInvariant() switch
-        {
-            "openai" => await GetOpenAiBearerTokenAsync(cancellationToken),
-            _ => null,
-        };
+        var bearerToken = string.Equals(request.ProviderId, "openai", StringComparison.OrdinalIgnoreCase)
+            ? await GetOpenAiBearerTokenAsync(cancellationToken)
+            : null;
 
         if (string.IsNullOrWhiteSpace(bearerToken))
         {

@@ -158,6 +158,14 @@ public sealed class TaskReviewWorkflowTests : IDisposable
     {
         public string ProviderId => "openai";
 
+        public Task<IReadOnlyList<string>> GetModelsAsync(
+            ProviderRef provider,
+            string bearerToken,
+            CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException();
+        }
+
         public Task<ProviderTextResponse> SendTextAsync(
             ProviderRef provider,
             LlmRequest request,
@@ -225,6 +233,14 @@ public sealed class TaskReviewWorkflowTests : IDisposable
 
         public string ProviderId => "openai";
 
+        public Task<IReadOnlyList<string>> GetModelsAsync(
+            ProviderRef provider,
+            string bearerToken,
+            CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException();
+        }
+
         public async Task<ProviderTextResponse> SendTextAsync(
             ProviderRef provider,
             LlmRequest request,
@@ -257,6 +273,14 @@ public sealed class TaskReviewWorkflowTests : IDisposable
     private sealed class FailingProviderAdapter : MultiAgentTaskSolver.Core.Abstractions.IProviderAdapter
     {
         public string ProviderId => "openai";
+
+        public Task<IReadOnlyList<string>> GetModelsAsync(
+            ProviderRef provider,
+            string bearerToken,
+            CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException();
+        }
 
         public Task<ProviderTextResponse> SendTextAsync(
             ProviderRef provider,
