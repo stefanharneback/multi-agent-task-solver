@@ -18,10 +18,6 @@ jobs:
   analyze:
     if: ${{ !github.event.repository.private || vars.ENABLE_CODEQL == 'true' }}
     runs-on: windows-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        language: ["csharp"]
 
     steps:
       - name: Checkout
@@ -35,19 +31,20 @@ jobs:
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v4
         with:
-          languages: ${{ matrix.language }}
+          languages: csharp
           queries: security-extended,security-and-quality
 
-      - name: Install MAUI workload
-        run: dotnet workload restore
+      - name: Restore non-MAUI projects
+        run: |
+          dotnet restore src/MultiAgentTaskSolver.Core/MultiAgentTaskSolver.Core.csproj
+          dotnet restore src/MultiAgentTaskSolver.Infrastructure/MultiAgentTaskSolver.Infrastructure.csproj
 
-      - name: Restore
-        run: dotnet restore MultiAgentTaskSolver.sln
-
-      - name: Build
-        run: dotnet build MultiAgentTaskSolver.sln --configuration Release --no-restore -p:PublishReadyToRun=false
+      - name: Build non-MAUI projects
+        run: |
+          dotnet build src/MultiAgentTaskSolver.Core/MultiAgentTaskSolver.Core.csproj --configuration Release --no-restore
+          dotnet build src/MultiAgentTaskSolver.Infrastructure/MultiAgentTaskSolver.Infrastructure.csproj --configuration Release --no-restore
 
       - name: Analyze
         uses: github/codeql-action/analyze@v4
         with:
-          category: "/language:${{ matrix.language }}"
+          category: "/language:csharp"
