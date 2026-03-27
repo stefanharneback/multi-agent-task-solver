@@ -78,21 +78,21 @@ jobs:
           dotnet package list --project MultiAgentTaskSolver.sln --vulnerable --include-transitive --format json --no-restore | Set-Content artifacts/package-audit.json -Encoding utf8
 
       - name: Upload test results
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: test-results
           path: artifacts/test-results/**
           if-no-files-found: error
 
       - name: Upload coverage report
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: coverage-report
           path: artifacts/coverage/**
           if-no-files-found: error
 
       - name: Upload dependency audit
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: package-audit
           path: artifacts/package-audit.json
