@@ -30,4 +30,13 @@ public static class TaskWorkflowStateMachine
             _ => currentState,
         };
     }
+
+    public static TaskLifecycleState FailTaskReview(TaskLifecycleState currentState, TaskLifecycleState previousState)
+    {
+        return currentState switch
+        {
+            TaskLifecycleState.UnderReview => previousState,
+            _ => currentState,
+        };
+    }
 }

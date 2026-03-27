@@ -107,5 +107,11 @@ public sealed class TaskManifestTests
         Assert.Equal(TaskLifecycleState.UnderReview, TaskWorkflowStateMachine.StartTaskReview(TaskLifecycleState.Draft));
         Assert.Equal(TaskLifecycleState.ReviewReady, TaskWorkflowStateMachine.CompleteTaskReview(TaskLifecycleState.UnderReview));
         Assert.Equal(TaskLifecycleState.Draft, TaskWorkflowStateMachine.FailTaskReview(TaskLifecycleState.UnderReview));
+        Assert.Equal(
+            TaskLifecycleState.ReviewReady,
+            TaskWorkflowStateMachine.FailTaskReview(TaskLifecycleState.UnderReview, TaskLifecycleState.ReviewReady));
+        Assert.Equal(
+            TaskLifecycleState.NeedsRework,
+            TaskWorkflowStateMachine.FailTaskReview(TaskLifecycleState.UnderReview, TaskLifecycleState.NeedsRework));
     }
 }

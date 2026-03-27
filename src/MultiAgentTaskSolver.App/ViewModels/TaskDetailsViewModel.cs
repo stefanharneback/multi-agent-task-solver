@@ -221,7 +221,7 @@ public sealed partial class TaskDetailsViewModel : ViewModelBase
         }
 
         SelectedReviewModel = SelectReviewModel(snapshot.Manifest, ReviewModels, SelectedReviewModel);
-        PopulateLatestReview(snapshot.Manifest);
+        await PopulateLatestReviewAsync(snapshot);
     }
 
     private Task ImportFilesCoreAsync(IEnumerable<string> filePaths)
@@ -283,14 +283,61 @@ public sealed partial class TaskDetailsViewModel : ViewModelBase
         return reviewModels.FirstOrDefault();
     }
 
-    private void PopulateLatestReview(TaskManifest manifest)
+    private async Task PopulateLatestReviewAsync(TaskWorkspaceSnapshot snapshot)
     {
-        var latestReview = manifest.Runs
+        var latestReview = snapshot.Manifest.Runs
             .Where(static run => run.Kind == TaskRunKind.TaskReview)
             .OrderByDescending(static run => run.Sequence)
             .FirstOrDefault();
 
         LatestReviewSummary = latestReview?.Summary ?? string.Empty;
-        LatestReviewOutput = latestReview?.Summary ?? string.Empty;
+        LatestReviewOutput = await LoadLatestReviewOutputAsync(snapshot, latestReview);
+    }
+
+    private static async Task<string> LoadLatestReviewOutputAsync(TaskWorkspaceSnapshot snapshot, RunManifest? latestReview)
+    {
+        var latestStep = latestReview?.Steps
+            .OrderByDescending(static step => step.Attempt)
+            .FirstOrDefault();
+
+        if (latestStep is null || string.IsNullOrWhiteSpace(latestStep.RelativeDirectory))
+        {
+            return latestReview?.Summary ?? string.Empty;
+        }
+
+        var responsePath = Path.Combine(
+            snapshot.TaskRootPath,
+            latestStep.RelativeDirectory.Replace('/', Path.DirectorySeparatorChar),
+            latestStep.ResponsePath);
+
+        if (!File.Exists(responsePath))
+        {
+            return latestReview?.Summary ?? string.Empty;
+        }
+
+        var responseMarkdown = await File.ReadAllTextAsync(responsePath);
+        if (string.IsNullOrWhiteSpace(responseMarkdown))
+        {
+            return string.Empty;
+        }
+
+        const string outputHeading = "# Output";
+        const string rawResponseHeading = "\n## Raw Response";
+        var outputStart = responseMarkdown.IndexOf(outputHeading, StringComparison.Ordinal);
+        if (outputStart < 0)
+        {
+            return responseMarkdown.Trim();
+        }
+
+        var contentStart = outputStart + outputHeading.Length;
+        var rawResponseStart = responseMarkdown.IndexOf(rawResponseHeading, contentStart, StringComparison.Ordinal);
+        var outputText = rawResponseStart >= 0
+            ? responseMarkdown[contentStart..rawResponseStart]
+            : responseMarkdown[contentStart..];
+
+        var normalizedOutput = outputText.Trim();
+        return string.Equals(normalizedOutput, "_No output text returned._", StringComparison.Ordinal)
+            ? string.Empty
+            : normalizedOutput;
     }
 }

@@ -22,6 +22,43 @@ public sealed class OpenAiGatewayAdapter : IProviderAdapter
 
     public string ProviderId => "openai";
 
+    public async Task<IReadOnlyList<string>> GetModelsAsync(
+        ProviderRef provider,
+        string bearerToken,
+        CancellationToken cancellationToken = default)
+    {
+        using var message = CreateAuthorizedRequest(HttpMethod.Get, provider, "/v1/models", bearerToken);
+        using var response = await _httpClient.SendAsync(message, cancellationToken);
+        var body = await response.Content.ReadAsStringAsync(cancellationToken);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            throw new GatewayApiException(response.StatusCode, $"Gateway request failed with status {(int)response.StatusCode}.", body);
+        }
+
+        try
+        {
+            using var json = JsonDocument.Parse(body);
+            if (!json.RootElement.TryGetProperty("models", out var modelsElement)
+                || modelsElement.ValueKind != JsonValueKind.Array)
+            {
+                throw new InvalidOperationException("Gateway models payload did not contain a models array.");
+            }
+
+            return modelsElement
+                .EnumerateArray()
+                .Where(static item => item.ValueKind == JsonValueKind.String)
+                .Select(static item => item.GetString())
+                .Where(static item => !string.IsNullOrWhiteSpace(item))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToArray()!;
+        }
+        catch (JsonException error)
+        {
+            throw new InvalidOperationException("Gateway models payload could not be parsed.", error);
+        }
+    }
+
     public async Task<ProviderTextResponse> SendTextAsync(
         ProviderRef provider,
         LlmRequest request,
@@ -197,6 +234,7 @@ public sealed class OpenAiGatewayAdapter : IProviderAdapter
 
             if (root.TryGetProperty("output", out var outputElement) && outputElement.ValueKind == JsonValueKind.Array)
             {
+                var chunks = new List<string>();
                 foreach (var outputItem in outputElement.EnumerateArray())
                 {
                     if (!outputItem.TryGetProperty("content", out var contentElement)
@@ -207,12 +245,24 @@ public sealed class OpenAiGatewayAdapter : IProviderAdapter
 
                     foreach (var contentItem in contentElement.EnumerateArray())
                     {
-                        if (contentItem.TryGetProperty("text", out var textElement)
+                        if (contentItem.TryGetProperty("type", out var typeElement)
+                            && typeElement.ValueKind == JsonValueKind.String
+                            && typeElement.GetString() == "output_text"
+                            && contentItem.TryGetProperty("text", out var textElement)
                             && textElement.ValueKind == JsonValueKind.String)
                         {
-                            return textElement.GetString();
+                            var text = textElement.GetString();
+                            if (!string.IsNullOrWhiteSpace(text))
+                            {
+                                chunks.Add(text.Trim());
+                            }
                         }
                     }
+                }
+
+                if (chunks.Count > 0)
+                {
+                    return string.Join(Environment.NewLine, chunks);
                 }
             }
         }

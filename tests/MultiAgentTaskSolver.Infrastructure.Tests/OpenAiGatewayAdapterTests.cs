@@ -163,6 +163,73 @@ public sealed class OpenAiGatewayAdapterTests
         Assert.Equal(0.0021m, items[0].TotalCostUsd);
     }
 
+    [Fact]
+    public async Task GetModelsAsyncParsesGatewayModelIds()
+    {
+        HttpRequestMessage? capturedRequest = null;
+        var payload = """
+        {
+          "models": ["gpt-5.4-mini", "whisper-1"],
+          "unrestricted": false
+        }
+        """;
+
+        var adapter = CreateAdapter(request =>
+        {
+            capturedRequest = request;
+            return new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent(payload, Encoding.UTF8, "application/json"),
+            };
+        });
+
+        var models = await adapter.GetModelsAsync(CreateProvider(), "client-secret");
+
+        Assert.NotNull(capturedRequest);
+        Assert.Equal("/v1/models", capturedRequest!.RequestUri?.AbsolutePath);
+        Assert.Equal("Bearer", capturedRequest.Headers.Authorization?.Scheme);
+        Assert.Equal("client-secret", capturedRequest.Headers.Authorization?.Parameter);
+        Assert.Equal(["gpt-5.4-mini", "whisper-1"], models);
+    }
+
+    [Fact]
+    public async Task SendTextAsyncJoinsAllNestedOutputTextSegments()
+    {
+        var responseJson = """
+        {
+          "output": [
+            {
+              "content": [
+                { "type": "output_text", "text": "Line 1" },
+                { "type": "output_text", "text": "Line 2" }
+              ]
+            },
+            {
+              "content": [
+                { "type": "output_text", "text": "Line 3" }
+              ]
+            }
+          ]
+        }
+        """;
+
+        var adapter = CreateAdapter(_ => new HttpResponseMessage(HttpStatusCode.OK)
+        {
+            Content = new StringContent(responseJson, Encoding.UTF8, "application/json"),
+        });
+
+        var response = await adapter.SendTextAsync(
+            CreateProvider(),
+            new LlmRequest
+            {
+                ModelId = "gpt-5.4-mini",
+                InputText = "hello",
+            },
+            "client-secret");
+
+        Assert.Equal("Line 1" + Environment.NewLine + "Line 2" + Environment.NewLine + "Line 3", response.OutputText);
+    }
+
     private static OpenAiGatewayAdapter CreateAdapter(Func<HttpRequestMessage, HttpResponseMessage> responder)
     {
         var handler = new StubHandler(responder);

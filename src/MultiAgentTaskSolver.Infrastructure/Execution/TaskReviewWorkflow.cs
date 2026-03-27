@@ -155,7 +155,7 @@ public sealed class TaskReviewWorkflow : ITaskReviewWorkflow
                 UpdatedAtUtc = completedAtUtc,
             };
 
-            await _taskWorkspaceStore.SaveTaskAsync(workspaceRootPath, updatedManifest, snapshot.TaskMarkdown, cancellationToken);
+            await _taskWorkspaceStore.SaveTaskAsync(workspaceRootPath, updatedManifest, latestSnapshot.TaskMarkdown, cancellationToken);
 
             return new TaskReviewResult
             {
@@ -208,11 +208,11 @@ public sealed class TaskReviewWorkflow : ITaskReviewWorkflow
 
             var revertedManifest = latestSnapshot.Manifest with
             {
-                Status = TaskWorkflowStateMachine.FailTaskReview(reviewManifest.Status),
+                Status = TaskWorkflowStateMachine.FailTaskReview(reviewManifest.Status, snapshot.Manifest.Status),
                 UpdatedAtUtc = failedAtUtc,
             };
 
-            await _taskWorkspaceStore.SaveTaskAsync(workspaceRootPath, revertedManifest, snapshot.TaskMarkdown, cancellationToken);
+            await _taskWorkspaceStore.SaveTaskAsync(workspaceRootPath, revertedManifest, latestSnapshot.TaskMarkdown, cancellationToken);
             throw;
         }
     }

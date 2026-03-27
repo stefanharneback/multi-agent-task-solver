@@ -35,7 +35,7 @@ MAUI App
   +- Infrastructure
        |- filesystem task workspace store
        |- review workflow, prompt assembly, and file-reference resolution
-       |- JSON-backed model catalog
+       |- gateway-backed model catalog with local JSON fallback metadata
        |- OpenAI gateway client and usage normalization
 ```
 
@@ -74,7 +74,7 @@ tests/
   MultiAgentTaskSolver.Core.Tests/
   MultiAgentTaskSolver.Infrastructure.Tests/
 config/
-  providers/openai.models.json          seeded OpenAI model metadata
+  providers/openai.models.json          fallback OpenAI model metadata
 docs/
   ai-workflow.md
   agent-loop.md
@@ -131,7 +131,7 @@ The first integrated provider is `openai-api-service`. This app currently assume
 - `GET /v1/usage`
 - `POST /v1/whisper`
 
-Model discovery is seeded locally from `config/providers/openai.models.json` in this milestone.
+Model discovery for OpenAI now uses the live gateway `GET /v1/models` endpoint when the gateway base URL and bearer token are configured. `config/providers/openai.models.json` remains as fallback metadata and as the source for richer display/capability hints when live model IDs are returned.
 
 ## Security notes
 

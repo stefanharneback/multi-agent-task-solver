@@ -28,13 +28,17 @@ public static class MauiProgram
         builder.Services.AddSingleton<IAppSettingsStore, JsonAppSettingsStore>();
         builder.Services.AddSingleton<ISecretStore, SecureStorageSecretStore>();
         builder.Services.AddSingleton<ITaskWorkspaceStore, FileSystemTaskWorkspaceStore>();
-        builder.Services.AddSingleton<IModelCatalog>(_ =>
-            new JsonModelCatalog(Path.Combine(AppContext.BaseDirectory, "config", "providers")));
         builder.Services.AddSingleton<IUsageNormalizer, OpenAiUsageNormalizer>();
         builder.Services.AddSingleton<IArtifactReferenceResolver, ArtifactReferenceResolver>();
         builder.Services.AddSingleton<IReviewPromptFactory, ReviewPromptFactory>();
         builder.Services.AddHttpClient<OpenAiGatewayAdapter>().AddStandardResilienceHandler();
         builder.Services.AddTransient<IProviderAdapter>(serviceProvider => serviceProvider.GetRequiredService<OpenAiGatewayAdapter>());
+        builder.Services.AddSingleton<IModelCatalog>(serviceProvider =>
+            new GatewayBackedModelCatalog(
+                Path.Combine(AppContext.BaseDirectory, "config", "providers"),
+                serviceProvider.GetRequiredService<IAppSettingsStore>(),
+                serviceProvider.GetRequiredService<ISecretStore>(),
+                serviceProvider.GetRequiredService<OpenAiGatewayAdapter>()));
         builder.Services.AddSingleton<ITaskReviewWorkflow, TaskReviewWorkflow>();
         builder.Services.AddSingleton<IAppNavigationService, ShellNavigationService>();
         builder.Services.AddSingleton<IFilePickerService, MauiFilePickerService>();

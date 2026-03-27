@@ -134,6 +134,72 @@ public sealed class TaskDetailsViewModelTests
     }
 
     [Fact]
+    public async Task LoadAsyncReadsLatestReviewOutputFromResponseMarkdown()
+    {
+        var coordinator = new FakeTaskWorkspaceCoordinator();
+        coordinator.ModelsByProvider["openai"] = [TestData.CreateTextModel("gpt-5", "GPT-5")];
+        var taskRootPath = Path.Combine(Path.GetTempPath(), "mats-task-details-tests", Guid.NewGuid().ToString("N"));
+        var responseDirectoryPath = Path.Combine(taskRootPath, "runs", "0001-task-review", "01-task-review");
+        Directory.CreateDirectory(responseDirectoryPath);
+        await File.WriteAllTextAsync(
+            Path.Combine(responseDirectoryPath, "response.md"),
+            """
+            # Output
+            Detailed review output from file.
+
+            ## Raw Response
+            ```json
+            {"output_text":"Detailed review output from file."}
+            ```
+            """);
+
+        coordinator.Snapshots["task-001"] = TestData.CreateSnapshot(
+            "task-001",
+            "Task",
+            "Summary",
+            TaskLifecycleState.ReviewReady,
+            runs:
+            [
+                new RunManifest
+                {
+                    Id = "run-001",
+                    Kind = TaskRunKind.TaskReview,
+                    Status = TaskRunStatus.Completed,
+                    Sequence = 1,
+                    Summary = "Short summary.",
+                    Steps =
+                    [
+                        new StepManifest
+                        {
+                            Id = "step-001",
+                            RelativeDirectory = "runs/0001-task-review/01-task-review",
+                            ResponsePath = "response.md",
+                        },
+                    ],
+                },
+            ]) with
+        {
+            TaskRootPath = taskRootPath,
+        };
+
+        var viewModel = new TaskDetailsViewModel(coordinator, new FakeNavigationService(), new FakeFilePickerService());
+
+        try
+        {
+            await viewModel.LoadAsync("task-001");
+            Assert.Equal("Detailed review output from file.", viewModel.LatestReviewOutput);
+            Assert.Equal("Short summary.", viewModel.LatestReviewSummary);
+        }
+        finally
+        {
+            if (Directory.Exists(taskRootPath))
+            {
+                Directory.Delete(taskRootPath, recursive: true);
+            }
+        }
+    }
+
+    [Fact]
     public async Task OpenRunHistoryAsyncNavigatesForLoadedTask()
     {
         var coordinator = new FakeTaskWorkspaceCoordinator();

@@ -45,6 +45,15 @@
                 <Label AutomationId="LatestReviewSummaryLabel" Text="{Binding LatestReviewSummary}" />
             </Border>
 
+            <Label AutomationId="LatestReviewOutputHeadingLabel" Text="Latest review output" FontAttributes="Bold" FontSize="18" />
+            <Border Padding="10" StrokeThickness="1">
+                <Editor
+                    AutomationId="LatestReviewOutputEditor"
+                    AutoSize="TextChanges"
+                    IsReadOnly="True"
+                    Text="{Binding LatestReviewOutput}" />
+            </Border>
+
             <Label AutomationId="ImportFilesHeadingLabel" Text="Import files" FontAttributes="Bold" FontSize="18" />
 
             <Picker AutomationId="ImportDestinationPicker" ItemsSource="{Binding ImportDestinations}" SelectedItem="{Binding SelectedImportDestination}" />
