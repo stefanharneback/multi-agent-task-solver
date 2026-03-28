@@ -75,8 +75,12 @@ public sealed class OpenAiGatewayAdapter : IProviderAdapter
             ["model"] = request.ModelId,
             ["input"] = request.InputText,
             ["stream"] = request.Stream,
-            ["include"] = request.Include,
         };
+
+        if (request.Include is { Count: > 0 })
+        {
+            payload["include"] = request.Include;
+        }
 
         if (!string.IsNullOrWhiteSpace(request.Instructions))
         {

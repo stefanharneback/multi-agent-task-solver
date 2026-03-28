@@ -89,7 +89,7 @@ public sealed record LlmRequest
 
     public bool Stream { get; init; }
 
-    public IReadOnlyList<string> Include { get; init; } = ["output_text"];
+    public IReadOnlyList<string> Include { get; init; } = [];
 
     public IReadOnlyDictionary<string, string>? Metadata { get; init; }
 }
