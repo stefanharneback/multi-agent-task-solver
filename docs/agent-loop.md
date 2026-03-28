@@ -4,9 +4,10 @@ This document defines the planned orchestration contract for the review, worker,
 
 ## Current implementation note
 
-- The repository currently implements the `task-review` run kind only.
+- The repository currently implements the `task-review` and review-gate `user-decision` run kinds.
 - The current path resolves referenced `@alias` artifacts, assembles a review prompt, calls the configured provider, and persists prompt, response, and usage artifacts.
-- User approval and revise decisions are not implemented yet, so `review-ready` currently means the review output exists and the task is ready for a future approval step.
+- Review output can now be explicitly approved for worker execution or sent back to `draft`, with the user decision preserved as its own immutable run.
+- Worker and critic execution are still not implemented, so `work-approved` is currently the terminal state for the Milestone 1 slice.
 
 ## Roles
 

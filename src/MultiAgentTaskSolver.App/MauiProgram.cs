@@ -40,6 +40,7 @@ public static class MauiProgram
                 serviceProvider.GetRequiredService<ISecretStore>(),
                 serviceProvider.GetRequiredService<IProviderAdapter>()));
         builder.Services.AddSingleton<ITaskReviewWorkflow, TaskReviewWorkflow>();
+        builder.Services.AddSingleton<IUserDecisionWorkflow, UserDecisionWorkflow>();
         builder.Services.AddSingleton<IAppNavigationService, ShellNavigationService>();
         builder.Services.AddSingleton<IFilePickerService, MauiFilePickerService>();
         builder.Services.AddSingleton<IFolderPickerService, MauiFolderPickerService>();

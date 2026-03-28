@@ -112,6 +112,16 @@ public enum TaskStepStatus
     Cancelled,
 }
 
+[JsonConverter(typeof(JsonStringEnumConverter))]
+public enum ReviewDecision
+{
+    [JsonStringEnumMemberName("approve")]
+    Approve,
+
+    [JsonStringEnumMemberName("revise")]
+    Revise,
+}
+
 public sealed record StepArtifactsPayload
 {
     public string PromptMarkdown { get; init; } = string.Empty;
@@ -188,4 +198,30 @@ public sealed record TaskReviewResult
     public IReadOnlyList<string> MissingAliases { get; init; } = [];
 
     public UsageRecord? Usage { get; init; }
+}
+
+public sealed record ReviewDecisionRequest
+{
+    public ReviewDecision Decision { get; init; } = ReviewDecision.Approve;
+
+    public string Notes { get; init; } = string.Empty;
+}
+
+public sealed record ReviewDecisionResult
+{
+    public string TaskId { get; init; } = string.Empty;
+
+    public string RunId { get; init; } = string.Empty;
+
+    public string StepId { get; init; } = string.Empty;
+
+    public ReviewDecision Decision { get; init; }
+
+    public TaskLifecycleState TaskStatus { get; init; }
+
+    public string OutputText { get; init; } = string.Empty;
+
+    public string Summary { get; init; } = string.Empty;
+
+    public string PromptVersion { get; init; } = string.Empty;
 }

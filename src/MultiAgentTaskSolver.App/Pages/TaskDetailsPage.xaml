@@ -54,6 +54,17 @@
                     Text="{Binding LatestReviewOutput}" />
             </Border>
 
+            <Label
+                AutomationId="ReviewDecisionHeadingLabel"
+                FontAttributes="Bold"
+                FontSize="18"
+                IsVisible="{Binding CanApplyReviewDecision}"
+                Text="Review decision" />
+            <HorizontalStackLayout IsVisible="{Binding CanApplyReviewDecision}" Spacing="12">
+                <Button AutomationId="ApproveReviewButton" Text="Approve" Command="{Binding ApproveReviewCommand}" />
+                <Button AutomationId="ReviseReviewButton" Text="Revise Task" Command="{Binding ReviseReviewCommand}" />
+            </HorizontalStackLayout>
+
             <Label AutomationId="ImportFilesHeadingLabel" Text="Import files" FontAttributes="Bold" FontSize="18" />
 
             <Picker AutomationId="ImportDestinationPicker" ItemsSource="{Binding ImportDestinations}" SelectedItem="{Binding SelectedImportDestination}" />

@@ -26,6 +26,8 @@ public sealed partial class TaskDetailsViewModel : ViewModelBase
         ImportPickedFilesCommand = new AsyncRelayCommand(ImportPickedFilesAsync);
         OpenRunHistoryCommand = new AsyncRelayCommand(OpenRunHistoryAsync);
         RunTaskReviewCommand = new AsyncRelayCommand(RunTaskReviewAsync);
+        ApproveReviewCommand = new AsyncRelayCommand(ApproveReviewAsync);
+        ReviseReviewCommand = new AsyncRelayCommand(ReviseReviewAsync);
     }
 
     public ObservableCollection<string> ImportDestinations { get; } = [];
@@ -43,6 +45,10 @@ public sealed partial class TaskDetailsViewModel : ViewModelBase
     public IAsyncRelayCommand OpenRunHistoryCommand { get; }
 
     public IAsyncRelayCommand RunTaskReviewCommand { get; }
+
+    public IAsyncRelayCommand ApproveReviewCommand { get; }
+
+    public IAsyncRelayCommand ReviseReviewCommand { get; }
 
     [CommunityToolkit.Mvvm.ComponentModel.ObservableProperty]
     public partial string TaskId { get; set; } = string.Empty;
@@ -73,6 +79,9 @@ public sealed partial class TaskDetailsViewModel : ViewModelBase
 
     [CommunityToolkit.Mvvm.ComponentModel.ObservableProperty]
     public partial string LatestReviewOutput { get; set; } = string.Empty;
+
+    [CommunityToolkit.Mvvm.ComponentModel.ObservableProperty]
+    public partial bool CanApplyReviewDecision { get; set; }
 
     public Task LoadAsync(string taskId)
     {
@@ -170,6 +179,16 @@ public sealed partial class TaskDetailsViewModel : ViewModelBase
         });
     }
 
+    public Task ApproveReviewAsync()
+    {
+        return ApplyReviewDecisionAsync(ReviewDecision.Approve);
+    }
+
+    public Task ReviseReviewAsync()
+    {
+        return ApplyReviewDecisionAsync(ReviewDecision.Revise);
+    }
+
     private async Task LoadCoreAsync(string taskId)
     {
         var snapshot = await _coordinator.LoadTaskAsync(taskId);
@@ -222,6 +241,8 @@ public sealed partial class TaskDetailsViewModel : ViewModelBase
 
         SelectedReviewModel = SelectReviewModel(snapshot.Manifest, ReviewModels, SelectedReviewModel);
         await PopulateLatestReviewAsync(snapshot);
+        CanApplyReviewDecision = snapshot.Manifest.Status == TaskLifecycleState.ReviewReady
+            && snapshot.Manifest.Runs.Any(static run => run.Kind == TaskRunKind.TaskReview);
     }
 
     private Task ImportFilesCoreAsync(IEnumerable<string> filePaths)
@@ -292,6 +313,31 @@ public sealed partial class TaskDetailsViewModel : ViewModelBase
 
         LatestReviewSummary = latestReview?.Summary ?? string.Empty;
         LatestReviewOutput = await LoadLatestReviewOutputAsync(snapshot, latestReview);
+    }
+
+    private Task ApplyReviewDecisionAsync(ReviewDecision decision)
+    {
+        return RunBusyAsync(async () =>
+        {
+            if (string.IsNullOrWhiteSpace(TaskId))
+            {
+                throw new InvalidOperationException("Load a task before recording a review decision.");
+            }
+
+            if (_manifest?.Status != TaskLifecycleState.ReviewReady)
+            {
+                throw new InvalidOperationException("Run a completed task review before approving or revising the task.");
+            }
+
+            await _coordinator.ApplyReviewDecisionAsync(
+                new ReviewDecisionRequest
+                {
+                    Decision = decision,
+                },
+                TaskId);
+
+            await LoadCoreAsync(TaskId);
+        });
     }
 
     private static async Task<string> LoadLatestReviewOutputAsync(TaskWorkspaceSnapshot snapshot, RunManifest? latestReview)

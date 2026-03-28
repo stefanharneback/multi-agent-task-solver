@@ -13,10 +13,11 @@ This repository currently delivers the foundation slice:
 - explicit task, run, and step workflow states
 - task file-reference resolution for `@alias` references
 - a first task-review execution path with persisted prompt, response, and usage artifacts
+- an explicit review approval or revise gate with persisted `user-decision` runs
 - a MAUI shell for tasks, task details, flow/history, and settings
 - app-level automated tests for MAUI viewmodels and navigation/picker seams
 
-The full review -> worker -> critic execution loop is not implemented yet. The current execution slice covers only the task-review agent path.
+The full review -> worker -> critic execution loop is not implemented yet. The current execution slice covers the task-review path plus the user approval gate that stops at `work-approved`.
 The next milestones and extension points are tracked in `docs/roadmap.md`.
 
 ## Architecture

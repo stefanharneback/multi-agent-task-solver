@@ -33,9 +33,9 @@ This roadmap defines the next major milestones for the repository. Update it whe
   - review prompt assembly
   - persisted task-review runs with `step.json`, `prompt.md`, `response.md`, and `usage.json`
   - MAUI task-details entry point for running a review
+  - explicit approve or revise decision UI with persisted `user-decision` runs
   - MAUI flow/history view for task progress, run timeline, and nested step history
 - Remaining scope:
-  - explicit user approval or revise decision UI
   - manual smoke coverage for the MAUI review path
 - Scope:
   - review-agent run kind

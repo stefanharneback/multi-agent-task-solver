@@ -33,6 +33,8 @@ public interface ITaskWorkspaceCoordinator
     Task<ProviderRef> GetProviderAsync(string providerId, CancellationToken cancellationToken = default);
 
     Task<TaskReviewResult> RunTaskReviewAsync(TaskReviewRequest request, string taskId, CancellationToken cancellationToken = default);
+
+    Task<ReviewDecisionResult> ApplyReviewDecisionAsync(ReviewDecisionRequest request, string taskId, CancellationToken cancellationToken = default);
 }
 
 public interface IAppNavigationService

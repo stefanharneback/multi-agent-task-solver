@@ -114,4 +114,11 @@ public sealed class TaskManifestTests
             TaskLifecycleState.NeedsRework,
             TaskWorkflowStateMachine.FailTaskReview(TaskLifecycleState.UnderReview, TaskLifecycleState.NeedsRework));
     }
+
+    [Fact]
+    public void ReviewDecisionTransitionsMoveBetweenReviewReadyApprovedAndDraft()
+    {
+        Assert.Equal(TaskLifecycleState.WorkApproved, TaskWorkflowStateMachine.ApproveReviewedTask(TaskLifecycleState.ReviewReady));
+        Assert.Equal(TaskLifecycleState.Draft, TaskWorkflowStateMachine.ReviseReviewedTask(TaskLifecycleState.ReviewReady));
+    }
 }

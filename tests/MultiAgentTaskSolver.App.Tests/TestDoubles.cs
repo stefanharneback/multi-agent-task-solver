@@ -27,6 +27,8 @@ internal sealed class FakeTaskWorkspaceCoordinator : ITaskWorkspaceCoordinator
 
     public List<(TaskReviewRequest Request, string TaskId)> ReviewRequests { get; } = [];
 
+    public List<(ReviewDecisionRequest Request, string TaskId)> ReviewDecisionRequests { get; } = [];
+
     public List<(AppSettings Settings, string? BearerToken)> SavedSettings { get; } = [];
 
     public Func<CreateTaskRequest, TaskWorkspaceSnapshot>? CreateTaskHandler { get; set; }
@@ -34,6 +36,8 @@ internal sealed class FakeTaskWorkspaceCoordinator : ITaskWorkspaceCoordinator
     public Func<string, TaskWorkspaceSnapshot?>? LoadTaskHandler { get; set; }
 
     public Func<TaskReviewRequest, string, TaskReviewResult>? RunTaskReviewHandler { get; set; }
+
+    public Func<ReviewDecisionRequest, string, ReviewDecisionResult>? ApplyReviewDecisionHandler { get; set; }
 
     public Task<AppSettings> GetSettingsAsync(CancellationToken cancellationToken = default)
     {
@@ -170,6 +174,32 @@ internal sealed class FakeTaskWorkspaceCoordinator : ITaskWorkspaceCoordinator
             Summary = "Review completed.",
             OutputText = "Review completed.",
             PromptVersion = "task-review-v1",
+        });
+    }
+
+    public Task<ReviewDecisionResult> ApplyReviewDecisionAsync(ReviewDecisionRequest request, string taskId, CancellationToken cancellationToken = default)
+    {
+        ReviewDecisionRequests.Add((request, taskId));
+
+        if (ApplyReviewDecisionHandler is not null)
+        {
+            return Task.FromResult(ApplyReviewDecisionHandler(request, taskId));
+        }
+
+        return Task.FromResult(new ReviewDecisionResult
+        {
+            TaskId = taskId,
+            RunId = "run-002",
+            StepId = "step-002",
+            Decision = request.Decision,
+            TaskStatus = request.Decision == ReviewDecision.Approve ? TaskLifecycleState.WorkApproved : TaskLifecycleState.Draft,
+            Summary = request.Decision == ReviewDecision.Approve
+                ? "Task approved for worker execution."
+                : "Task returned to draft for revision.",
+            OutputText = request.Decision == ReviewDecision.Approve
+                ? "Task approved for worker execution."
+                : "Task returned to draft for revision.",
+            PromptVersion = "user-decision-v1",
         });
     }
 }

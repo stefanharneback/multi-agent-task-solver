@@ -39,4 +39,22 @@ public static class TaskWorkflowStateMachine
             _ => currentState,
         };
     }
+
+    public static TaskLifecycleState ApproveReviewedTask(TaskLifecycleState currentState)
+    {
+        return currentState switch
+        {
+            TaskLifecycleState.ReviewReady => TaskLifecycleState.WorkApproved,
+            _ => throw new InvalidOperationException($"Task approval cannot start from '{currentState.GetDisplayName()}'."),
+        };
+    }
+
+    public static TaskLifecycleState ReviseReviewedTask(TaskLifecycleState currentState)
+    {
+        return currentState switch
+        {
+            TaskLifecycleState.ReviewReady => TaskLifecycleState.Draft,
+            _ => throw new InvalidOperationException($"Task revision cannot start from '{currentState.GetDisplayName()}'."),
+        };
+    }
 }

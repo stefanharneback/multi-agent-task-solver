@@ -35,6 +35,7 @@ public sealed class TaskDetailsViewModelTests
         Assert.Single(viewModel.Artifacts);
         Assert.Single(viewModel.ReviewModels);
         Assert.Equal("gpt-5", viewModel.SelectedReviewModel?.ModelId);
+        Assert.False(viewModel.CanApplyReviewDecision);
     }
 
     [Fact]
@@ -131,6 +132,163 @@ public sealed class TaskDetailsViewModelTests
         Assert.Equal("Needs clearer acceptance criteria.", viewModel.LatestReviewSummary);
         Assert.Equal("Detailed review output.", viewModel.LatestReviewOutput);
         Assert.Single(coordinator.ReviewRequests);
+        Assert.False(viewModel.CanApplyReviewDecision);
+    }
+
+    [Fact]
+    public async Task ApproveReviewAsyncReloadsLatestTaskState()
+    {
+        var coordinator = new FakeTaskWorkspaceCoordinator();
+        coordinator.ModelsByProvider["openai"] = [TestData.CreateTextModel("gpt-5", "GPT-5")];
+        coordinator.Snapshots["task-001"] = TestData.CreateSnapshot(
+            "task-001",
+            "Task",
+            "Summary",
+            TaskLifecycleState.ReviewReady,
+            runs:
+            [
+                new RunManifest
+                {
+                    Id = "run-001",
+                    Kind = TaskRunKind.TaskReview,
+                    Status = TaskRunStatus.Completed,
+                    Sequence = 1,
+                    Summary = "Looks ready.",
+                    StartedAtUtc = new DateTimeOffset(2026, 3, 26, 10, 0, 0, TimeSpan.Zero),
+                    CompletedAtUtc = new DateTimeOffset(2026, 3, 26, 10, 1, 0, TimeSpan.Zero),
+                },
+            ]);
+        coordinator.LoadTaskHandler = taskId =>
+        {
+            if (coordinator.ReviewDecisionRequests.Count == 0)
+            {
+                return coordinator.Snapshots[taskId];
+            }
+
+            return TestData.CreateSnapshot(
+                taskId,
+                "Task",
+                "Summary",
+                TaskLifecycleState.WorkApproved,
+                runs:
+                [
+                    new RunManifest
+                    {
+                        Id = "run-001",
+                        Kind = TaskRunKind.TaskReview,
+                        Status = TaskRunStatus.Completed,
+                        Sequence = 1,
+                        Summary = "Looks ready.",
+                    },
+                    new RunManifest
+                    {
+                        Id = "run-002",
+                        Kind = TaskRunKind.UserDecision,
+                        Status = TaskRunStatus.Completed,
+                        Sequence = 2,
+                        Summary = "Task approved for worker execution.",
+                    },
+                ]);
+        };
+        coordinator.ApplyReviewDecisionHandler = (request, taskId) => new ReviewDecisionResult
+        {
+            TaskId = taskId,
+            RunId = "run-002",
+            StepId = "step-002",
+            Decision = request.Decision,
+            TaskStatus = TaskLifecycleState.WorkApproved,
+            Summary = "Task approved for worker execution.",
+            OutputText = "Task approved for worker execution.",
+            PromptVersion = "user-decision-v1",
+        };
+
+        var viewModel = new TaskDetailsViewModel(coordinator, new FakeNavigationService(), new FakeFilePickerService());
+        await viewModel.LoadAsync("task-001");
+
+        Assert.True(viewModel.CanApplyReviewDecision);
+
+        await viewModel.ApproveReviewAsync();
+
+        Assert.Equal("Work Approved", viewModel.TaskStatusText);
+        Assert.Single(coordinator.ReviewDecisionRequests);
+        Assert.Equal(ReviewDecision.Approve, coordinator.ReviewDecisionRequests[0].Request.Decision);
+        Assert.False(viewModel.CanApplyReviewDecision);
+    }
+
+    [Fact]
+    public async Task ReviseReviewAsyncReloadsTaskAsDraft()
+    {
+        var coordinator = new FakeTaskWorkspaceCoordinator();
+        coordinator.ModelsByProvider["openai"] = [TestData.CreateTextModel("gpt-5", "GPT-5")];
+        coordinator.Snapshots["task-001"] = TestData.CreateSnapshot(
+            "task-001",
+            "Task",
+            "Summary",
+            TaskLifecycleState.ReviewReady,
+            runs:
+            [
+                new RunManifest
+                {
+                    Id = "run-001",
+                    Kind = TaskRunKind.TaskReview,
+                    Status = TaskRunStatus.Completed,
+                    Sequence = 1,
+                    Summary = "Needs sharper acceptance criteria.",
+                },
+            ]);
+        coordinator.LoadTaskHandler = taskId =>
+        {
+            if (coordinator.ReviewDecisionRequests.Count == 0)
+            {
+                return coordinator.Snapshots[taskId];
+            }
+
+            return TestData.CreateSnapshot(
+                taskId,
+                "Task",
+                "Summary",
+                TaskLifecycleState.Draft,
+                runs:
+                [
+                    new RunManifest
+                    {
+                        Id = "run-001",
+                        Kind = TaskRunKind.TaskReview,
+                        Status = TaskRunStatus.Completed,
+                        Sequence = 1,
+                        Summary = "Needs sharper acceptance criteria.",
+                    },
+                    new RunManifest
+                    {
+                        Id = "run-002",
+                        Kind = TaskRunKind.UserDecision,
+                        Status = TaskRunStatus.Completed,
+                        Sequence = 2,
+                        Summary = "Task returned to draft for revision.",
+                    },
+                ]);
+        };
+        coordinator.ApplyReviewDecisionHandler = (request, taskId) => new ReviewDecisionResult
+        {
+            TaskId = taskId,
+            RunId = "run-002",
+            StepId = "step-002",
+            Decision = request.Decision,
+            TaskStatus = TaskLifecycleState.Draft,
+            Summary = "Task returned to draft for revision.",
+            OutputText = "Task returned to draft for revision.",
+            PromptVersion = "user-decision-v1",
+        };
+
+        var viewModel = new TaskDetailsViewModel(coordinator, new FakeNavigationService(), new FakeFilePickerService());
+        await viewModel.LoadAsync("task-001");
+
+        await viewModel.ReviseReviewAsync();
+
+        Assert.Equal("Draft", viewModel.TaskStatusText);
+        Assert.Single(coordinator.ReviewDecisionRequests);
+        Assert.Equal(ReviewDecision.Revise, coordinator.ReviewDecisionRequests[0].Request.Decision);
+        Assert.False(viewModel.CanApplyReviewDecision);
     }
 
     [Fact]

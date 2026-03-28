@@ -126,3 +126,12 @@ public interface ITaskReviewWorkflow
         string bearerToken,
         CancellationToken cancellationToken = default);
 }
+
+public interface IUserDecisionWorkflow
+{
+    Task<ReviewDecisionResult> RunAsync(
+        string workspaceRootPath,
+        TaskWorkspaceSnapshot snapshot,
+        ReviewDecisionRequest request,
+        CancellationToken cancellationToken = default);
+}

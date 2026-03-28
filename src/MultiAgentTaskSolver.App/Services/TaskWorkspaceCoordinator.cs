@@ -12,6 +12,7 @@ public sealed class TaskWorkspaceCoordinator : ITaskWorkspaceCoordinator
     private readonly ISecretStore _secretStore;
     private readonly IModelCatalog _modelCatalog;
     private readonly ITaskReviewWorkflow _taskReviewWorkflow;
+    private readonly IUserDecisionWorkflow _userDecisionWorkflow;
     private readonly Dictionary<string, IProviderAdapter> _providerAdapters;
 
     public TaskWorkspaceCoordinator(
@@ -20,6 +21,7 @@ public sealed class TaskWorkspaceCoordinator : ITaskWorkspaceCoordinator
         ISecretStore secretStore,
         IModelCatalog modelCatalog,
         ITaskReviewWorkflow taskReviewWorkflow,
+        IUserDecisionWorkflow userDecisionWorkflow,
         IEnumerable<IProviderAdapter> providerAdapters)
     {
         _taskWorkspaceStore = taskWorkspaceStore;
@@ -27,6 +29,7 @@ public sealed class TaskWorkspaceCoordinator : ITaskWorkspaceCoordinator
         _secretStore = secretStore;
         _modelCatalog = modelCatalog;
         _taskReviewWorkflow = taskReviewWorkflow;
+        _userDecisionWorkflow = userDecisionWorkflow;
         _providerAdapters = providerAdapters.ToDictionary(adapter => adapter.ProviderId, StringComparer.OrdinalIgnoreCase);
     }
 
@@ -163,6 +166,19 @@ public sealed class TaskWorkspaceCoordinator : ITaskWorkspaceCoordinator
             provider,
             model,
             bearerToken,
+            cancellationToken);
+    }
+
+    public async Task<ReviewDecisionResult> ApplyReviewDecisionAsync(ReviewDecisionRequest request, string taskId, CancellationToken cancellationToken = default)
+    {
+        var settings = await GetSettingsAsync(cancellationToken);
+        var snapshot = await _taskWorkspaceStore.LoadTaskAsync(settings.WorkspaceRootPath, taskId, cancellationToken)
+            ?? throw new InvalidOperationException($"Task '{taskId}' was not found.");
+
+        return await _userDecisionWorkflow.RunAsync(
+            settings.WorkspaceRootPath,
+            snapshot,
+            request,
             cancellationToken);
     }
 }
