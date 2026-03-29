@@ -15,6 +15,7 @@ This repository currently delivers the foundation slice:
 - a first task-review execution path with persisted prompt, response, and usage artifacts
 - an explicit review approval or revise gate with persisted `user-decision` runs
 - a first worker execution path with persisted run artifacts and markdown output under `outputs/`
+- task details usage summaries for the latest review/worker runs plus per-task token, duration, and cost rollups from saved `usage.json` artifacts
 - a MAUI shell for tasks, task details, flow/history, and settings
 - app-level automated tests for MAUI viewmodels and navigation/picker seams
 

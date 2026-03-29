@@ -108,6 +108,8 @@ public sealed class OpenAiGatewayAdapter : IProviderAdapter
         var gatewayRequestId = response.Headers.TryGetValues("x-request-id", out var values)
             ? values.FirstOrDefault()
             : null;
+        var usage = _usageNormalizer.TryNormalizeTextResponse(provider.ProviderId, request.ModelId, body, stopwatch.Elapsed, gatewayRequestId);
+        usage = await TryEnrichUsageAsync(provider, bearerToken, gatewayRequestId, usage, cancellationToken);
 
         return new ProviderTextResponse
         {
@@ -115,7 +117,7 @@ public sealed class OpenAiGatewayAdapter : IProviderAdapter
             ModelId = request.ModelId,
             OutputText = ExtractOutputText(body),
             RawResponseBody = body,
-            Usage = _usageNormalizer.TryNormalizeTextResponse(provider.ProviderId, request.ModelId, body, stopwatch.Elapsed, gatewayRequestId),
+            Usage = usage,
             GatewayRequestId = gatewayRequestId,
             HttpStatusCode = (int)response.StatusCode,
             IsStreamingResponse = request.Stream,
@@ -190,6 +192,8 @@ public sealed class OpenAiGatewayAdapter : IProviderAdapter
         var gatewayRequestId = response.Headers.TryGetValues("x-request-id", out var values)
             ? values.FirstOrDefault()
             : null;
+        var usage = _usageNormalizer.TryNormalizeTextResponse(provider.ProviderId, request.ModelId, body, stopwatch.Elapsed, gatewayRequestId);
+        usage = await TryEnrichUsageAsync(provider, bearerToken, gatewayRequestId, usage, cancellationToken);
 
         return new TranscriptionResponse
         {
@@ -197,7 +201,7 @@ public sealed class OpenAiGatewayAdapter : IProviderAdapter
             ModelId = request.ModelId,
             TranscriptText = ExtractTranscriptText(body),
             RawResponseBody = body,
-            Usage = _usageNormalizer.TryNormalizeTextResponse(provider.ProviderId, request.ModelId, body, stopwatch.Elapsed, gatewayRequestId),
+            Usage = usage,
             GatewayRequestId = gatewayRequestId,
         };
     }
@@ -230,6 +234,48 @@ public sealed class OpenAiGatewayAdapter : IProviderAdapter
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(baseUrl);
         return baseUrl[^1] == '/' ? baseUrl : $"{baseUrl}/";
+    }
+
+    private async Task<UsageRecord?> TryEnrichUsageAsync(
+        ProviderRef provider,
+        string bearerToken,
+        string? gatewayRequestId,
+        UsageRecord? usage,
+        CancellationToken cancellationToken)
+    {
+        if (usage is null
+            || usage.TotalCostUsd is not null
+            || string.IsNullOrWhiteSpace(gatewayRequestId))
+        {
+            return usage;
+        }
+
+        try
+        {
+            var usageHistory = await GetUsageAsync(
+                provider,
+                bearerToken,
+                new UsageQuery
+                {
+                    Limit = 10,
+                },
+                cancellationToken);
+
+            var ledgerUsage = usageHistory.FirstOrDefault(item =>
+                string.Equals(item.SourceRequestId, gatewayRequestId, StringComparison.OrdinalIgnoreCase));
+
+            return ledgerUsage?.TotalCostUsd is decimal totalCostUsd
+                ? usage with
+                {
+                    SourceRequestId = ledgerUsage.SourceRequestId,
+                    TotalCostUsd = totalCostUsd,
+                }
+                : usage;
+        }
+        catch (Exception) when (!cancellationToken.IsCancellationRequested)
+        {
+            return usage;
+        }
     }
 
     private static TimeoutException CreateTimeoutException(string operationDescription, Exception innerException)

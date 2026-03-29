@@ -77,6 +77,9 @@ public sealed partial class TaskDetailsViewModel : ViewModelBase
     public partial string TaskStatusText { get; set; } = string.Empty;
 
     [CommunityToolkit.Mvvm.ComponentModel.ObservableProperty]
+    public partial string TaskUsageSummaryText { get; set; } = "Usage not recorded.";
+
+    [CommunityToolkit.Mvvm.ComponentModel.ObservableProperty]
     public partial ModelEntryViewModel? SelectedReviewModel { get; set; }
 
     [CommunityToolkit.Mvvm.ComponentModel.ObservableProperty]
@@ -270,6 +273,7 @@ public sealed partial class TaskDetailsViewModel : ViewModelBase
         Summary = snapshot.Manifest.Summary;
         TaskMarkdown = snapshot.TaskMarkdown;
         TaskStatusText = snapshot.Manifest.Status.GetDisplayName();
+        TaskUsageSummaryText = await LoadTaskUsageSummaryTextAsync(snapshot);
 
         ImportDestinations.Clear();
         foreach (var destination in GetImportDestinations(snapshot.Manifest))
@@ -521,5 +525,14 @@ public sealed partial class TaskDetailsViewModel : ViewModelBase
 
         var usage = await WorkflowArtifactReader.LoadUsageRecordAsync(snapshot.TaskRootPath, latestStep);
         return WorkflowArtifactReader.BuildUsageText(usage);
+    }
+
+    private static async Task<string> LoadTaskUsageSummaryTextAsync(TaskWorkspaceSnapshot snapshot)
+    {
+        var usages = await WorkflowArtifactReader.LoadUsageRecordsAsync(
+            snapshot.TaskRootPath,
+            snapshot.Manifest.Runs.SelectMany(static run => run.Steps));
+
+        return WorkflowArtifactReader.BuildUsageText(WorkflowArtifactReader.AggregateUsage(usages));
     }
 }

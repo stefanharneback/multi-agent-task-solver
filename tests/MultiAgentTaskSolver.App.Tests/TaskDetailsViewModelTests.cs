@@ -40,6 +40,7 @@ public sealed class TaskDetailsViewModelTests
         Assert.True(viewModel.CanRunTaskReview);
         Assert.False(viewModel.CanApplyReviewDecision);
         Assert.False(viewModel.CanRunWorker);
+        Assert.Equal("Usage not recorded.", viewModel.TaskUsageSummaryText);
         Assert.Equal("Usage not recorded.", viewModel.LatestReviewUsageText);
         Assert.Equal("Usage not recorded.", viewModel.LatestWorkerUsageText);
     }
@@ -488,6 +489,102 @@ public sealed class TaskDetailsViewModelTests
             Assert.Equal("Worker produced a first draft.", viewModel.LatestWorkerSummary);
             Assert.Equal("## Outcome Summary\nDraft complete.\n\n## Deliverable\nFirst worker output.", viewModel.LatestWorkerOutput);
             Assert.Equal("30 total tokens | 20 input | 10 output | 750 ms | $0.0042", viewModel.LatestWorkerUsageText);
+        }
+        finally
+        {
+            if (Directory.Exists(taskRootPath))
+            {
+                Directory.Delete(taskRootPath, recursive: true);
+            }
+        }
+    }
+
+    [Fact]
+    public async Task LoadAsyncBuildsTaskUsageSummaryAcrossSavedSteps()
+    {
+        var coordinator = new FakeTaskWorkspaceCoordinator();
+        coordinator.ModelsByProvider["openai"] = [TestData.CreateTextModel("gpt-5", "GPT-5")];
+        var taskRootPath = Path.Combine(Path.GetTempPath(), "mats-task-usage-tests", Guid.NewGuid().ToString("N"));
+        var reviewDirectoryPath = Path.Combine(taskRootPath, "runs", "0001-task-review", "01-task-review");
+        var workerDirectoryPath = Path.Combine(taskRootPath, "runs", "0003-worker", "01-worker");
+        Directory.CreateDirectory(reviewDirectoryPath);
+        Directory.CreateDirectory(workerDirectoryPath);
+        await File.WriteAllTextAsync(
+            Path.Combine(reviewDirectoryPath, "usage.json"),
+            """
+            {
+              "providerId": "openai",
+              "modelId": "gpt-5",
+              "inputTokens": 12,
+              "outputTokens": 6,
+              "totalTokens": 18,
+              "durationMs": 140
+            }
+            """);
+        await File.WriteAllTextAsync(
+            Path.Combine(workerDirectoryPath, "usage.json"),
+            """
+            {
+              "providerId": "openai",
+              "modelId": "gpt-5",
+              "inputTokens": 20,
+              "outputTokens": 10,
+              "cachedInputTokens": 4,
+              "reasoningTokens": 2,
+              "totalTokens": 30,
+              "durationMs": 320,
+              "totalCostUsd": 0.0042
+            }
+            """);
+
+        coordinator.Snapshots["task-001"] = TestData.CreateSnapshot(
+            "task-001",
+            "Task",
+            "Summary",
+            TaskLifecycleState.Working,
+            runs:
+            [
+                new RunManifest
+                {
+                    Id = "run-001",
+                    Kind = TaskRunKind.TaskReview,
+                    Status = TaskRunStatus.Completed,
+                    Sequence = 1,
+                    Steps =
+                    [
+                        new StepManifest
+                        {
+                            Id = "step-review-001",
+                            RelativeDirectory = "runs/0001-task-review/01-task-review",
+                        },
+                    ],
+                },
+                new RunManifest
+                {
+                    Id = "run-003",
+                    Kind = TaskRunKind.Worker,
+                    Status = TaskRunStatus.Completed,
+                    Sequence = 3,
+                    Steps =
+                    [
+                        new StepManifest
+                        {
+                            Id = "step-worker-001",
+                            RelativeDirectory = "runs/0003-worker/01-worker",
+                        },
+                    ],
+                },
+            ]) with
+        {
+            TaskRootPath = taskRootPath,
+        };
+
+        var viewModel = new TaskDetailsViewModel(coordinator, new FakeNavigationService(), new FakeFilePickerService());
+
+        try
+        {
+            await viewModel.LoadAsync("task-001");
+            Assert.Equal("48 total tokens | 32 input | 16 output | 4 cached | 2 reasoning | 460 ms | $0.0042", viewModel.TaskUsageSummaryText);
         }
         finally
         {

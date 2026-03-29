@@ -97,7 +97,9 @@ This roadmap defines the next major milestones for the repository. Update it whe
 ## Milestone 4
 
 - Name: evaluation and reporting
-- Status: not started
+- Status: in progress
+- Current slice delivered:
+  - task-details token, duration, and cost rollups from saved `usage.json` artifacts
 - Scope:
   - run summary artifacts
   - cost and token rollups

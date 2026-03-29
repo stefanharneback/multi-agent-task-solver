@@ -11,6 +11,7 @@
         <VerticalStackLayout Padding="20" Spacing="14">
             <Label AutomationId="TaskRootPathLabel" Text="{Binding TaskRootPath}" FontAttributes="Italic" />
             <Label AutomationId="TaskStatusLabel" Text="{Binding TaskStatusText}" FontAttributes="Bold" />
+            <Label AutomationId="TaskUsageSummaryLabel" FontSize="12" Text="{Binding TaskUsageSummaryText}" />
 
             <Entry AutomationId="TaskTitleEntry" Placeholder="Title" Text="{Binding Title}" />
 
