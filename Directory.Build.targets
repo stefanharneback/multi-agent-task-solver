@@ -1,0 +1,13 @@
+<Project>
+  <Target
+    Name="PrecleanMauiResizetizer"
+    BeforeTargets="_CleanResizetizer"
+    Condition="'$(OS)' == 'Windows_NT' and '$(_ResizetizerIntermediateOutputRoot)' != '' and Exists('$(_ResizetizerIntermediateOutputRoot)')">
+    <Exec
+      Command="attrib -R &quot;$(_ResizetizerIntermediateOutputRoot)*&quot; /S /D"
+      IgnoreExitCode="true" />
+    <Exec
+      Command="rmdir /S /Q &quot;$(_ResizetizerIntermediateOutputRoot)&quot;"
+      IgnoreExitCode="true" />
+  </Target>
+</Project>

@@ -15,7 +15,7 @@
 
             <Editor
                 AutomationId="CreateTaskSummaryEditor"
-                AutoSize="TextChanges"
+                AutoSize="Disabled"
                 HeightRequest="80"
                 Placeholder="Short summary"
                 Text="{Binding Summary}" />
@@ -27,7 +27,7 @@
 
             <Editor
                 AutomationId="CreateTaskMarkdownEditor"
-                AutoSize="TextChanges"
+                AutoSize="Disabled"
                 HeightRequest="320"
                 Text="{Binding TaskMarkdown}" />
 

@@ -16,14 +16,14 @@
 
             <Editor
                 AutomationId="TaskSummaryEditor"
-                AutoSize="TextChanges"
+                AutoSize="Disabled"
                 HeightRequest="80"
                 Placeholder="Summary"
                 Text="{Binding Summary}" />
 
             <Editor
                 AutomationId="TaskMarkdownEditor"
-                AutoSize="TextChanges"
+                AutoSize="Disabled"
                 HeightRequest="260"
                 Text="{Binding TaskMarkdown}" />
 
@@ -55,7 +55,8 @@
             <Border Padding="10" StrokeThickness="1">
                 <Editor
                     AutomationId="LatestReviewOutputEditor"
-                    AutoSize="TextChanges"
+                    AutoSize="Disabled"
+                    HeightRequest="200"
                     IsReadOnly="True"
                     Text="{Binding LatestReviewOutput}" />
             </Border>
@@ -94,7 +95,8 @@
             <Border Padding="10" StrokeThickness="1">
                 <Editor
                     AutomationId="LatestWorkerOutputEditor"
-                    AutoSize="TextChanges"
+                    AutoSize="Disabled"
+                    HeightRequest="200"
                     IsReadOnly="True"
                     Text="{Binding LatestWorkerOutput}" />
             </Border>
@@ -107,13 +109,16 @@
             <Label AutomationId="TaskDetailsErrorLabel" Text="{Binding ErrorMessage}" TextColor="IndianRed" />
 
             <Label AutomationId="ArtifactsHeadingLabel" Text="Artifacts" FontAttributes="Bold" FontSize="18" />
-            <CollectionView AutomationId="ArtifactsCollectionView" ItemsSource="{Binding Artifacts}">
-                <CollectionView.EmptyView>
+            <VerticalStackLayout
+                AutomationId="ArtifactsCollectionView"
+                Spacing="8"
+                BindableLayout.ItemsSource="{Binding Artifacts}">
+                <BindableLayout.EmptyView>
                     <Label Text="No imported artifacts yet." />
-                </CollectionView.EmptyView>
-                <CollectionView.ItemTemplate>
+                </BindableLayout.EmptyView>
+                <BindableLayout.ItemTemplate>
                     <DataTemplate x:DataType="viewModels:ArtifactEntryViewModel">
-                        <Border Padding="10" Margin="0,0,0,8" StrokeThickness="1">
+                        <Border Padding="10" StrokeThickness="1">
                             <VerticalStackLayout Spacing="4">
                                 <Label Text="{Binding Alias}" FontAttributes="Bold" />
                                 <Label Text="{Binding RelativePath}" />
@@ -122,17 +127,23 @@
                             </VerticalStackLayout>
                         </Border>
                     </DataTemplate>
-                </CollectionView.ItemTemplate>
-            </CollectionView>
+                </BindableLayout.ItemTemplate>
+            </VerticalStackLayout>
 
             <Label AutomationId="FolderTreeHeadingLabel" Text="Folder tree" FontAttributes="Bold" FontSize="18" />
-            <CollectionView AutomationId="FolderTreeCollectionView" ItemsSource="{Binding TreeEntries}">
-                <CollectionView.ItemTemplate>
+            <VerticalStackLayout
+                AutomationId="FolderTreeCollectionView"
+                Spacing="4"
+                BindableLayout.ItemsSource="{Binding TreeEntries}">
+                <BindableLayout.EmptyView>
+                    <Label Text="No task files yet." />
+                </BindableLayout.EmptyView>
+                <BindableLayout.ItemTemplate>
                     <DataTemplate x:DataType="viewModels:TaskTreeEntryViewModel">
                         <Label Text="{Binding DisplayName}" FontFamily="OpenSansRegular" />
                     </DataTemplate>
-                </CollectionView.ItemTemplate>
-            </CollectionView>
+                </BindableLayout.ItemTemplate>
+            </VerticalStackLayout>
         </VerticalStackLayout>
     </ScrollView>
 </ContentPage>

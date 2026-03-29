@@ -7,8 +7,12 @@
     x:DataType="viewModels:RunHistoryViewModel"
     Title="Flow &amp; History">
 
-    <ScrollView>
-        <VerticalStackLayout Padding="20" Spacing="18">
+    <CollectionView
+        AutomationId="RunHistoryCollectionView"
+        ItemsSource="{Binding Runs}"
+        SelectionMode="None">
+        <CollectionView.Header>
+            <VerticalStackLayout Padding="20" Spacing="18">
             <Label AutomationId="RunHistoryTaskTitleLabel" Text="{Binding TaskTitle}" FontAttributes="Bold" FontSize="24" />
             <Label AutomationId="RunHistoryTaskStatusLabel" Text="{Binding TaskStatusText}" FontAttributes="Bold" />
             <Label AutomationId="RunHistoryNarrativeLabel" Text="{Binding ProgressNarrative}" />
@@ -64,59 +68,57 @@
             </ScrollView>
 
             <Label AutomationId="RunHistoryTimelineHeadingLabel" Text="Run timeline" FontAttributes="Bold" FontSize="18" />
-            <VerticalStackLayout
-                AutomationId="RunHistoryCollectionView"
-                Spacing="14"
-                BindableLayout.ItemsSource="{Binding Runs}">
-                <BindableLayout.EmptyView>
-                    <Label Text="No runs yet." />
-                </BindableLayout.EmptyView>
-                <BindableLayout.ItemTemplate>
-                    <DataTemplate x:DataType="viewModels:RunHistoryEntryViewModel">
-                        <Border Padding="12">
-                            <VerticalStackLayout Spacing="8">
-                                <HorizontalStackLayout Spacing="8">
-                                    <Label Text="{Binding SequenceText}" FontAttributes="Bold" />
-                                    <Label Text="{Binding Status}" />
-                                </HorizontalStackLayout>
-
-                                <Label Text="{Binding Title}" FontAttributes="Bold" FontSize="18" />
-                                <Label Text="{Binding KindText}" FontSize="12" />
-                                <Label Text="{Binding TimingText}" FontSize="12" />
-                                <Label Text="{Binding DurationText}" FontSize="12" />
-                                <Label Text="{Binding ModelText}" FontSize="12" />
-                                <Label Text="{Binding ReferencedAliasesText}" FontSize="12" />
-                                <Label Text="{Binding StepCountText}" FontSize="12" />
-                                <Label Text="{Binding Summary}" />
-
-                                <Label Text="Steps" FontAttributes="Bold" FontSize="16" />
-                                <VerticalStackLayout Spacing="10" BindableLayout.ItemsSource="{Binding Steps}">
-                                    <BindableLayout.ItemTemplate>
-                                        <DataTemplate x:DataType="viewModels:StepHistoryEntryViewModel">
-                                            <Border Padding="10" Margin="12,0,0,0">
-                                                <VerticalStackLayout Spacing="4">
-                                                    <HorizontalStackLayout Spacing="8">
-                                                        <Label Text="{Binding SequenceText}" FontAttributes="Bold" />
-                                                        <Label Text="{Binding Status}" />
-                                                    </HorizontalStackLayout>
-                                                    <Label Text="{Binding Title}" FontAttributes="Bold" />
-                                                    <Label Text="{Binding ModelText}" FontSize="12" />
-                                                    <Label Text="{Binding ProviderText}" FontSize="12" />
-                                                    <Label Text="{Binding TimingText}" FontSize="12" />
-                                                    <Label Text="{Binding PromptVersionText}" FontSize="12" />
-                                                    <Label Text="{Binding ReferencedAliasesText}" FontSize="12" />
-                                                    <Label Text="{Binding UsageText}" FontSize="12" />
-                                                    <Label Text="{Binding Summary}" />
-                                                </VerticalStackLayout>
-                                            </Border>
-                                        </DataTemplate>
-                                    </BindableLayout.ItemTemplate>
-                                </VerticalStackLayout>
-                            </VerticalStackLayout>
-                        </Border>
-                    </DataTemplate>
-                </BindableLayout.ItemTemplate>
             </VerticalStackLayout>
-        </VerticalStackLayout>
-    </ScrollView>
+        </CollectionView.Header>
+
+        <CollectionView.EmptyView>
+            <Label Margin="20,0,20,20" Text="No runs yet." />
+        </CollectionView.EmptyView>
+
+        <CollectionView.ItemTemplate>
+            <DataTemplate x:DataType="viewModels:RunHistoryEntryViewModel">
+                <Border Margin="20,0,20,14" Padding="12">
+                    <VerticalStackLayout Spacing="8">
+                        <HorizontalStackLayout Spacing="8">
+                            <Label Text="{Binding SequenceText}" FontAttributes="Bold" />
+                            <Label Text="{Binding Status}" />
+                        </HorizontalStackLayout>
+
+                        <Label Text="{Binding Title}" FontAttributes="Bold" FontSize="18" />
+                        <Label Text="{Binding KindText}" FontSize="12" />
+                        <Label Text="{Binding TimingText}" FontSize="12" />
+                        <Label Text="{Binding DurationText}" FontSize="12" />
+                        <Label Text="{Binding ModelText}" FontSize="12" />
+                        <Label Text="{Binding ReferencedAliasesText}" FontSize="12" />
+                        <Label Text="{Binding StepCountText}" FontSize="12" />
+                        <Label Text="{Binding Summary}" />
+
+                        <Label Text="Steps" FontAttributes="Bold" FontSize="16" />
+                        <VerticalStackLayout Spacing="10" BindableLayout.ItemsSource="{Binding Steps}">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate x:DataType="viewModels:StepHistoryEntryViewModel">
+                                    <Border Padding="10" Margin="12,0,0,0">
+                                        <VerticalStackLayout Spacing="4">
+                                            <HorizontalStackLayout Spacing="8">
+                                                <Label Text="{Binding SequenceText}" FontAttributes="Bold" />
+                                                <Label Text="{Binding Status}" />
+                                            </HorizontalStackLayout>
+                                            <Label Text="{Binding Title}" FontAttributes="Bold" />
+                                            <Label Text="{Binding ModelText}" FontSize="12" />
+                                            <Label Text="{Binding ProviderText}" FontSize="12" />
+                                            <Label Text="{Binding TimingText}" FontSize="12" />
+                                            <Label Text="{Binding PromptVersionText}" FontSize="12" />
+                                            <Label Text="{Binding ReferencedAliasesText}" FontSize="12" />
+                                            <Label Text="{Binding UsageText}" FontSize="12" />
+                                            <Label Text="{Binding Summary}" />
+                                        </VerticalStackLayout>
+                                    </Border>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </VerticalStackLayout>
+                    </VerticalStackLayout>
+                </Border>
+            </DataTemplate>
+        </CollectionView.ItemTemplate>
+    </CollectionView>
 </ContentPage>

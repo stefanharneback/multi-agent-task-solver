@@ -41,6 +41,7 @@ public static class MauiProgram
             {
                 options.TotalRequestTimeout.Timeout = TimeSpan.FromMinutes(10);
                 options.AttemptTimeout.Timeout = TimeSpan.FromMinutes(10);
+                options.CircuitBreaker.SamplingDuration = TimeSpan.FromMinutes(20);
                 options.Retry.DisableForUnsafeHttpMethods();
             });
         builder.Services.AddTransient<IProviderAdapter>(serviceProvider => serviceProvider.GetRequiredService<OpenAiGatewayAdapter>());
