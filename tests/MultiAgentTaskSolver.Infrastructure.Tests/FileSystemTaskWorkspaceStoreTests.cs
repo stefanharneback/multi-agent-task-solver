@@ -212,6 +212,54 @@ public sealed class FileSystemTaskWorkspaceStoreTests : IDisposable
         Assert.Contains("\"totalTokens\": 12", await File.ReadAllTextAsync(Path.Combine(taskFolderPath, "runs", "0001-task-review", "01-task-review", "usage.json")), StringComparison.Ordinal);
     }
 
+    [Fact]
+    public async Task SaveOutputArtifactAsyncWritesTextUnderOutputsFolder()
+    {
+        var store = new FileSystemTaskWorkspaceStore();
+        var snapshot = await store.CreateTaskAsync(_tempRootPath, new CreateTaskRequest
+        {
+            Title = "Worker output",
+            Summary = "Persist worker output safely.",
+            TaskMarkdown = "# Task",
+        });
+
+        await store.SaveOutputArtifactAsync(
+            _tempRootPath,
+            snapshot.Manifest.Id,
+            new OutputArtifactPayload
+            {
+                RelativePath = "outputs/0001-worker/worker-output.md",
+                Content = "# Output",
+            });
+
+        var outputPath = Path.Combine(_tempRootPath, snapshot.Manifest.FolderName, "outputs", "0001-worker", "worker-output.md");
+        Assert.Equal("# Output", await File.ReadAllTextAsync(outputPath));
+    }
+
+    [Fact]
+    public async Task SaveOutputArtifactAsyncRejectsEscapeOutsideOutputsFolder()
+    {
+        var store = new FileSystemTaskWorkspaceStore();
+        var snapshot = await store.CreateTaskAsync(_tempRootPath, new CreateTaskRequest
+        {
+            Title = "Worker output",
+            Summary = "Persist worker output safely.",
+            TaskMarkdown = "# Task",
+        });
+
+        await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+        {
+            await store.SaveOutputArtifactAsync(
+                _tempRootPath,
+                snapshot.Manifest.Id,
+                new OutputArtifactPayload
+                {
+                    RelativePath = "../escaped/output.md",
+                    Content = "# Output",
+                });
+        });
+    }
+
     public void Dispose()
     {
         if (Directory.Exists(_tempRootPath))

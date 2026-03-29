@@ -34,8 +34,14 @@ public sealed class TaskDetailsViewModelTests
         Assert.Equal("Task", viewModel.Title);
         Assert.Single(viewModel.Artifacts);
         Assert.Single(viewModel.ReviewModels);
+        Assert.Single(viewModel.WorkerModels);
         Assert.Equal("gpt-5", viewModel.SelectedReviewModel?.ModelId);
+        Assert.Equal("gpt-5", viewModel.SelectedWorkerModel?.ModelId);
+        Assert.True(viewModel.CanRunTaskReview);
         Assert.False(viewModel.CanApplyReviewDecision);
+        Assert.False(viewModel.CanRunWorker);
+        Assert.Equal("Usage not recorded.", viewModel.LatestReviewUsageText);
+        Assert.Equal("Usage not recorded.", viewModel.LatestWorkerUsageText);
     }
 
     [Fact]
@@ -121,6 +127,15 @@ public sealed class TaskDetailsViewModelTests
             Summary = "Needs clearer acceptance criteria.",
             OutputText = "Detailed review output.",
             PromptVersion = "task-review-v1",
+            Usage = new UsageRecord
+            {
+                ProviderId = "openai",
+                ModelId = request.ModelId,
+                InputTokens = 12,
+                OutputTokens = 6,
+                TotalTokens = 18,
+                DurationMs = 140,
+            },
         };
 
         var viewModel = new TaskDetailsViewModel(coordinator, new FakeNavigationService(), new FakeFilePickerService());
@@ -131,6 +146,7 @@ public sealed class TaskDetailsViewModelTests
         Assert.Equal("Under Review", viewModel.TaskStatusText);
         Assert.Equal("Needs clearer acceptance criteria.", viewModel.LatestReviewSummary);
         Assert.Equal("Detailed review output.", viewModel.LatestReviewOutput);
+        Assert.Equal("18 total tokens | 12 input | 6 output | 140 ms", viewModel.LatestReviewUsageText);
         Assert.Single(coordinator.ReviewRequests);
         Assert.False(viewModel.CanApplyReviewDecision);
     }
@@ -212,7 +228,9 @@ public sealed class TaskDetailsViewModelTests
         Assert.Equal("Work Approved", viewModel.TaskStatusText);
         Assert.Single(coordinator.ReviewDecisionRequests);
         Assert.Equal(ReviewDecision.Approve, coordinator.ReviewDecisionRequests[0].Request.Decision);
+        Assert.False(viewModel.CanRunTaskReview);
         Assert.False(viewModel.CanApplyReviewDecision);
+        Assert.True(viewModel.CanRunWorker);
     }
 
     [Fact]
@@ -288,7 +306,196 @@ public sealed class TaskDetailsViewModelTests
         Assert.Equal("Draft", viewModel.TaskStatusText);
         Assert.Single(coordinator.ReviewDecisionRequests);
         Assert.Equal(ReviewDecision.Revise, coordinator.ReviewDecisionRequests[0].Request.Decision);
+        Assert.True(viewModel.CanRunTaskReview);
         Assert.False(viewModel.CanApplyReviewDecision);
+        Assert.False(viewModel.CanRunWorker);
+    }
+
+    [Fact]
+    public async Task RunWorkerAsyncReloadsLatestWorkerState()
+    {
+        var coordinator = new FakeTaskWorkspaceCoordinator();
+        coordinator.ModelsByProvider["openai"] = [TestData.CreateTextModel("gpt-5", "GPT-5")];
+        coordinator.Snapshots["task-001"] = TestData.CreateSnapshot(
+            "task-001",
+            "Task",
+            "Summary",
+            TaskLifecycleState.WorkApproved,
+            runs:
+            [
+                new RunManifest
+                {
+                    Id = "run-review-001",
+                    Kind = TaskRunKind.TaskReview,
+                    Status = TaskRunStatus.Completed,
+                    Sequence = 1,
+                    Summary = "Looks ready.",
+                },
+                new RunManifest
+                {
+                    Id = "run-decision-001",
+                    Kind = TaskRunKind.UserDecision,
+                    Status = TaskRunStatus.Completed,
+                    Sequence = 2,
+                    Summary = "Task approved for worker execution.",
+                },
+            ]);
+        coordinator.LoadTaskHandler = taskId =>
+        {
+            if (coordinator.WorkerRequests.Count == 0)
+            {
+                return coordinator.Snapshots[taskId];
+            }
+
+            return TestData.CreateSnapshot(
+                taskId,
+                "Task",
+                "Summary",
+                TaskLifecycleState.Working,
+                runs:
+                [
+                    new RunManifest
+                    {
+                        Id = "run-review-001",
+                        Kind = TaskRunKind.TaskReview,
+                        Status = TaskRunStatus.Completed,
+                        Sequence = 1,
+                        Summary = "Looks ready.",
+                    },
+                    new RunManifest
+                    {
+                        Id = "run-decision-001",
+                        Kind = TaskRunKind.UserDecision,
+                        Status = TaskRunStatus.Completed,
+                        Sequence = 2,
+                        Summary = "Task approved for worker execution.",
+                    },
+                    new RunManifest
+                    {
+                        Id = "run-worker-001",
+                        Kind = TaskRunKind.Worker,
+                        Status = TaskRunStatus.Completed,
+                        Sequence = 3,
+                        Summary = "Worker produced a first draft.",
+                    },
+                ]);
+        };
+        coordinator.RunWorkerHandler = (request, taskId) => new TaskWorkerResult
+        {
+            TaskId = taskId,
+            RunId = "run-worker-001",
+            StepId = "step-worker-001",
+            TaskStatus = TaskLifecycleState.Working,
+            Summary = "Worker produced a first draft.",
+            OutputText = "## Outcome Summary\nDraft complete.",
+            PromptVersion = "worker-v1",
+            OutputArtifactPaths = ["outputs/0003-worker/worker-output.md"],
+            Usage = new UsageRecord
+            {
+                ProviderId = "openai",
+                ModelId = request.ModelId,
+                InputTokens = 20,
+                OutputTokens = 10,
+                TotalTokens = 30,
+                DurationMs = 320,
+                TotalCostUsd = 0.0042m,
+            },
+        };
+
+        var viewModel = new TaskDetailsViewModel(coordinator, new FakeNavigationService(), new FakeFilePickerService());
+        await viewModel.LoadAsync("task-001");
+
+        Assert.False(viewModel.CanRunTaskReview);
+        Assert.True(viewModel.CanRunWorker);
+
+        await viewModel.RunWorkerAsync();
+
+        Assert.Equal("Working", viewModel.TaskStatusText);
+        Assert.Single(coordinator.WorkerRequests);
+        Assert.Equal("Worker produced a first draft.", viewModel.LatestWorkerSummary);
+        Assert.Equal("## Outcome Summary\nDraft complete.", viewModel.LatestWorkerOutput);
+        Assert.Equal("30 total tokens | 20 input | 10 output | 320 ms | $0.0042", viewModel.LatestWorkerUsageText);
+        Assert.False(viewModel.CanRunTaskReview);
+    }
+
+    [Fact]
+    public async Task LoadAsyncReadsLatestWorkerOutputFromOutputArtifact()
+    {
+        var coordinator = new FakeTaskWorkspaceCoordinator();
+        coordinator.ModelsByProvider["openai"] = [TestData.CreateTextModel("gpt-5", "GPT-5")];
+        var taskRootPath = Path.Combine(Path.GetTempPath(), "mats-task-details-worker-tests", Guid.NewGuid().ToString("N"));
+        var outputDirectoryPath = Path.Combine(taskRootPath, "outputs", "0003-worker");
+        var runDirectoryPath = Path.Combine(taskRootPath, "runs", "0003-worker", "01-worker");
+        Directory.CreateDirectory(outputDirectoryPath);
+        Directory.CreateDirectory(runDirectoryPath);
+        await File.WriteAllTextAsync(
+            Path.Combine(outputDirectoryPath, "worker-output.md"),
+            """
+            ## Outcome Summary
+            Draft complete.
+
+            ## Deliverable
+            First worker output.
+            """);
+        await File.WriteAllTextAsync(
+            Path.Combine(runDirectoryPath, "usage.json"),
+            """
+            {
+              "providerId": "openai",
+              "modelId": "gpt-5",
+              "inputTokens": 20,
+              "outputTokens": 10,
+              "totalTokens": 30,
+              "durationMs": 750,
+              "totalCostUsd": 0.0042
+            }
+            """);
+
+        coordinator.Snapshots["task-001"] = TestData.CreateSnapshot(
+            "task-001",
+            "Task",
+            "Summary",
+            TaskLifecycleState.Working,
+            runs:
+            [
+                new RunManifest
+                {
+                    Id = "run-003",
+                    Kind = TaskRunKind.Worker,
+                    Status = TaskRunStatus.Completed,
+                    Sequence = 3,
+                    Summary = "Worker produced a first draft.",
+                    Steps =
+                    [
+                        new StepManifest
+                        {
+                            Id = "step-003",
+                            RelativeDirectory = "runs/0003-worker/01-worker",
+                            OutputArtifactPaths = ["outputs/0003-worker/worker-output.md"],
+                        },
+                    ],
+                },
+            ]) with
+        {
+            TaskRootPath = taskRootPath,
+        };
+
+        var viewModel = new TaskDetailsViewModel(coordinator, new FakeNavigationService(), new FakeFilePickerService());
+
+        try
+        {
+            await viewModel.LoadAsync("task-001");
+            Assert.Equal("Worker produced a first draft.", viewModel.LatestWorkerSummary);
+            Assert.Equal("## Outcome Summary\nDraft complete.\n\n## Deliverable\nFirst worker output.", viewModel.LatestWorkerOutput);
+            Assert.Equal("30 total tokens | 20 input | 10 output | 750 ms | $0.0042", viewModel.LatestWorkerUsageText);
+        }
+        finally
+        {
+            if (Directory.Exists(taskRootPath))
+            {
+                Directory.Delete(taskRootPath, recursive: true);
+            }
+        }
     }
 
     [Fact]
@@ -309,6 +516,18 @@ public sealed class TaskDetailsViewModelTests
             ```json
             {"output_text":"Detailed review output from file."}
             ```
+            """);
+        await File.WriteAllTextAsync(
+            Path.Combine(responseDirectoryPath, "usage.json"),
+            """
+            {
+              "providerId": "openai",
+              "modelId": "gpt-5",
+              "inputTokens": 12,
+              "outputTokens": 6,
+              "totalTokens": 18,
+              "durationMs": 140
+            }
             """);
 
         coordinator.Snapshots["task-001"] = TestData.CreateSnapshot(
@@ -347,6 +566,7 @@ public sealed class TaskDetailsViewModelTests
             await viewModel.LoadAsync("task-001");
             Assert.Equal("Detailed review output from file.", viewModel.LatestReviewOutput);
             Assert.Equal("Short summary.", viewModel.LatestReviewSummary);
+            Assert.Equal("18 total tokens | 12 input | 6 output | 140 ms", viewModel.LatestReviewUsageText);
         }
         finally
         {

@@ -101,6 +101,8 @@ public sealed record StepManifest
 
     public IReadOnlyList<string> ReferencedArtifactAliases { get; init; } = [];
 
+    public IReadOnlyList<string> OutputArtifactPaths { get; init; } = [];
+
     public DateTimeOffset StartedAtUtc { get; init; }
 
     public DateTimeOffset? CompletedAtUtc { get; init; }

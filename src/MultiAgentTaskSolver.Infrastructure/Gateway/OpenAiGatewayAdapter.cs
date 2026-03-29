@@ -28,7 +28,7 @@ public sealed class OpenAiGatewayAdapter : IProviderAdapter
         CancellationToken cancellationToken = default)
     {
         using var message = CreateAuthorizedRequest(HttpMethod.Get, provider, "/v1/models", bearerToken);
-        using var response = await _httpClient.SendAsync(message, cancellationToken);
+        using var response = await SendAsync(message, "loading available models", cancellationToken);
         var body = await response.Content.ReadAsStringAsync(cancellationToken);
 
         if (!response.IsSuccessStatusCode)
@@ -96,7 +96,7 @@ public sealed class OpenAiGatewayAdapter : IProviderAdapter
         message.Content = JsonContent.Create(payload, options: JsonDefaults.SerializerOptions);
 
         var stopwatch = Stopwatch.StartNew();
-        using var response = await _httpClient.SendAsync(message, cancellationToken);
+        using var response = await SendAsync(message, $"sending a text request to model '{request.ModelId}'", cancellationToken);
         stopwatch.Stop();
 
         var body = await response.Content.ReadAsStringAsync(cancellationToken);
@@ -131,7 +131,7 @@ public sealed class OpenAiGatewayAdapter : IProviderAdapter
         var path = $"/v1/usage?limit={query.Limit}&offset={query.Offset}";
 
         using var message = CreateAuthorizedRequest(HttpMethod.Get, provider, path, bearerToken);
-        using var response = await _httpClient.SendAsync(message, cancellationToken);
+        using var response = await SendAsync(message, "loading usage history", cancellationToken);
         var body = await response.Content.ReadAsStringAsync(cancellationToken);
 
         if (!response.IsSuccessStatusCode)
@@ -178,7 +178,7 @@ public sealed class OpenAiGatewayAdapter : IProviderAdapter
         message.Content = formData;
 
         var stopwatch = Stopwatch.StartNew();
-        using var response = await _httpClient.SendAsync(message, cancellationToken);
+        using var response = await SendAsync(message, $"transcribing audio with model '{request.ModelId}'", cancellationToken);
         stopwatch.Stop();
 
         var body = await response.Content.ReadAsStringAsync(cancellationToken);
@@ -211,10 +211,43 @@ public sealed class OpenAiGatewayAdapter : IProviderAdapter
         return message;
     }
 
+    private async Task<HttpResponseMessage> SendAsync(
+        HttpRequestMessage message,
+        string operationDescription,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            return await _httpClient.SendAsync(message, cancellationToken);
+        }
+        catch (Exception ex) when (IsGatewayTimeout(ex, cancellationToken))
+        {
+            throw CreateTimeoutException(operationDescription, ex);
+        }
+    }
+
     private static string EnsureTrailingSlash(string baseUrl)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(baseUrl);
         return baseUrl[^1] == '/' ? baseUrl : $"{baseUrl}/";
+    }
+
+    private static TimeoutException CreateTimeoutException(string operationDescription, Exception innerException)
+    {
+        return new TimeoutException(
+            $"Gateway request timed out while {operationDescription}. The configured timeout may be too short for this model.",
+            innerException);
+    }
+
+    private static bool IsGatewayTimeout(Exception exception, CancellationToken cancellationToken)
+    {
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return false;
+        }
+
+        return exception is TaskCanceledException
+            || string.Equals(exception.GetType().FullName, "Polly.Timeout.TimeoutRejectedException", StringComparison.Ordinal);
     }
 
     private static string? ExtractOutputText(string rawPayload)

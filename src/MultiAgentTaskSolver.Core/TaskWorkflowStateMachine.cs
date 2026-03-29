@@ -57,4 +57,31 @@ public static class TaskWorkflowStateMachine
             _ => throw new InvalidOperationException($"Task revision cannot start from '{currentState.GetDisplayName()}'."),
         };
     }
+
+    public static TaskLifecycleState StartWorker(TaskLifecycleState currentState)
+    {
+        return currentState switch
+        {
+            TaskLifecycleState.WorkApproved or TaskLifecycleState.Working or TaskLifecycleState.NeedsRework => TaskLifecycleState.Working,
+            _ => throw new InvalidOperationException($"Worker execution cannot start from '{currentState.GetDisplayName()}'."),
+        };
+    }
+
+    public static TaskLifecycleState CompleteWorker(TaskLifecycleState currentState)
+    {
+        return currentState switch
+        {
+            TaskLifecycleState.Working => TaskLifecycleState.Working,
+            _ => throw new InvalidOperationException($"Worker execution cannot complete from '{currentState.GetDisplayName()}'."),
+        };
+    }
+
+    public static TaskLifecycleState FailWorker(TaskLifecycleState currentState, TaskLifecycleState previousState)
+    {
+        return currentState switch
+        {
+            TaskLifecycleState.Working => previousState,
+            _ => currentState,
+        };
+    }
 }

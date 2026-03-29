@@ -54,12 +54,19 @@ This roadmap defines the next major milestones for the repository. Update it whe
 ## Milestone 2
 
 - Name: worker execution loop
-- Status: not started
+- Status: in progress
+- Current slice delivered:
+  - worker-agent run kind
+  - persisted worker runs with `step.json`, `prompt.md`, `response.md`, and `usage.json`
+  - markdown output artifact creation under `outputs/`
+  - MAUI task-details entry point for running a worker and inspecting the latest worker output
 - Scope:
   - worker-agent run kind
   - output artifact creation under `outputs/`
   - iteration support after review approval
   - cost, duration, and model capture per worker step
+- Remaining scope:
+  - manual smoke for worker execution and output inspection
 - Required tests:
   - output artifact persistence and references
   - retry or re-run behavior without overwriting history

@@ -38,6 +38,7 @@ public sealed record StepHistoryEntryViewModel(
     string TimingText,
     string PromptVersionText,
     string ReferencedAliasesText,
+    string UsageText,
     string Summary);
 
 public sealed record RunHistoryEntryViewModel(

@@ -121,4 +121,12 @@ public sealed class TaskManifestTests
         Assert.Equal(TaskLifecycleState.WorkApproved, TaskWorkflowStateMachine.ApproveReviewedTask(TaskLifecycleState.ReviewReady));
         Assert.Equal(TaskLifecycleState.Draft, TaskWorkflowStateMachine.ReviseReviewedTask(TaskLifecycleState.ReviewReady));
     }
+
+    [Fact]
+    public void WorkerTransitionsMoveBetweenApprovedWorkingAndRevertOnFailure()
+    {
+        Assert.Equal(TaskLifecycleState.Working, TaskWorkflowStateMachine.StartWorker(TaskLifecycleState.WorkApproved));
+        Assert.Equal(TaskLifecycleState.Working, TaskWorkflowStateMachine.CompleteWorker(TaskLifecycleState.Working));
+        Assert.Equal(TaskLifecycleState.WorkApproved, TaskWorkflowStateMachine.FailWorker(TaskLifecycleState.Working, TaskLifecycleState.WorkApproved));
+    }
 }

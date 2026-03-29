@@ -268,6 +268,24 @@ public sealed class FileSystemTaskWorkspaceStore : ITaskWorkspaceStore
         await WriteJsonFileAsync(usagePath, payload.Usage, cancellationToken);
     }
 
+    public async Task SaveOutputArtifactAsync(
+        string workspaceRootPath,
+        string taskId,
+        OutputArtifactPayload payload,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(payload.RelativePath);
+
+        var taskRootPath = await GetRequiredTaskRootPathAsync(workspaceRootPath, taskId, cancellationToken);
+        var outputsRootPath = EnsureDirectoryWithinTaskRoot(taskRootPath, TaskFolderConventions.OutputsFolderName);
+        var normalizedRelativePath = payload.RelativePath.Replace('/', Path.DirectorySeparatorChar);
+        var outputPath = EnsureDirectoryWithinTaskRoot(taskRootPath, normalizedRelativePath);
+        EnsurePathWithinRoot(outputsRootPath, outputPath, "Output artifact path escaped the outputs folder.");
+
+        Directory.CreateDirectory(Path.GetDirectoryName(outputPath)!);
+        await File.WriteAllTextAsync(outputPath, payload.Content ?? string.Empty, cancellationToken);
+    }
+
     private static async Task<TaskWorkspaceSnapshot> LoadSnapshotAsync(string taskRootPath, CancellationToken cancellationToken)
     {
         var manifestPath = Path.Combine(taskRootPath, TaskFolderConventions.TaskManifestFileName);

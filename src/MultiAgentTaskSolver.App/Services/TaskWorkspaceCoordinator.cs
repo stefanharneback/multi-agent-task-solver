@@ -12,6 +12,7 @@ public sealed class TaskWorkspaceCoordinator : ITaskWorkspaceCoordinator
     private readonly ISecretStore _secretStore;
     private readonly IModelCatalog _modelCatalog;
     private readonly ITaskReviewWorkflow _taskReviewWorkflow;
+    private readonly ITaskWorkerWorkflow _taskWorkerWorkflow;
     private readonly IUserDecisionWorkflow _userDecisionWorkflow;
     private readonly Dictionary<string, IProviderAdapter> _providerAdapters;
 
@@ -21,6 +22,7 @@ public sealed class TaskWorkspaceCoordinator : ITaskWorkspaceCoordinator
         ISecretStore secretStore,
         IModelCatalog modelCatalog,
         ITaskReviewWorkflow taskReviewWorkflow,
+        ITaskWorkerWorkflow taskWorkerWorkflow,
         IUserDecisionWorkflow userDecisionWorkflow,
         IEnumerable<IProviderAdapter> providerAdapters)
     {
@@ -29,6 +31,7 @@ public sealed class TaskWorkspaceCoordinator : ITaskWorkspaceCoordinator
         _secretStore = secretStore;
         _modelCatalog = modelCatalog;
         _taskReviewWorkflow = taskReviewWorkflow;
+        _taskWorkerWorkflow = taskWorkerWorkflow;
         _userDecisionWorkflow = userDecisionWorkflow;
         _providerAdapters = providerAdapters.ToDictionary(adapter => adapter.ProviderId, StringComparer.OrdinalIgnoreCase);
     }
@@ -161,6 +164,34 @@ public sealed class TaskWorkspaceCoordinator : ITaskWorkspaceCoordinator
         }
 
         return await _taskReviewWorkflow.RunAsync(
+            settings.WorkspaceRootPath,
+            snapshot,
+            provider,
+            model,
+            bearerToken,
+            cancellationToken);
+    }
+
+    public async Task<TaskWorkerResult> RunWorkerAsync(TaskWorkerRequest request, string taskId, CancellationToken cancellationToken = default)
+    {
+        var settings = await GetSettingsAsync(cancellationToken);
+        var snapshot = await _taskWorkspaceStore.LoadTaskAsync(settings.WorkspaceRootPath, taskId, cancellationToken)
+            ?? throw new InvalidOperationException($"Task '{taskId}' was not found.");
+
+        var provider = await GetProviderAsync(request.ProviderId, cancellationToken);
+        var model = await _modelCatalog.GetModelAsync(request.ProviderId, request.ModelId, cancellationToken)
+            ?? throw new InvalidOperationException($"Model '{request.ModelId}' is not known for provider '{request.ProviderId}'.");
+
+        var bearerToken = string.Equals(request.ProviderId, "openai", StringComparison.OrdinalIgnoreCase)
+            ? await GetOpenAiBearerTokenAsync(cancellationToken)
+            : null;
+
+        if (string.IsNullOrWhiteSpace(bearerToken))
+        {
+            throw new InvalidOperationException($"No client bearer token is configured for provider '{request.ProviderId}'.");
+        }
+
+        return await _taskWorkerWorkflow.RunAsync(
             settings.WorkspaceRootPath,
             snapshot,
             provider,

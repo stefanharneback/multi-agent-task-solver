@@ -14,10 +14,11 @@ This repository currently delivers the foundation slice:
 - task file-reference resolution for `@alias` references
 - a first task-review execution path with persisted prompt, response, and usage artifacts
 - an explicit review approval or revise gate with persisted `user-decision` runs
+- a first worker execution path with persisted run artifacts and markdown output under `outputs/`
 - a MAUI shell for tasks, task details, flow/history, and settings
 - app-level automated tests for MAUI viewmodels and navigation/picker seams
 
-The full review -> worker -> critic execution loop is not implemented yet. The current execution slice covers the task-review path plus the user approval gate that stops at `work-approved`.
+The full review -> worker -> critic execution loop is not implemented yet. The current execution slice covers the task-review path, the user approval gate, and a first worker run that persists output and leaves the task in `working` until the critique loop lands.
 The next milestones and extension points are tracked in `docs/roadmap.md`.
 
 ## Architecture
@@ -35,7 +36,7 @@ MAUI App
   |
   +- Infrastructure
        |- filesystem task workspace store
-       |- review workflow, prompt assembly, and file-reference resolution
+       |- review and worker workflows, prompt assembly, and file-reference resolution
        |- gateway-backed model catalog with local JSON fallback metadata
        |- OpenAI gateway client and usage normalization
 ```

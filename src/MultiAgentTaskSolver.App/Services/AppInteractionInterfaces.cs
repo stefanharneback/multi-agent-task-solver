@@ -34,6 +34,8 @@ public interface ITaskWorkspaceCoordinator
 
     Task<TaskReviewResult> RunTaskReviewAsync(TaskReviewRequest request, string taskId, CancellationToken cancellationToken = default);
 
+    Task<TaskWorkerResult> RunWorkerAsync(TaskWorkerRequest request, string taskId, CancellationToken cancellationToken = default);
+
     Task<ReviewDecisionResult> ApplyReviewDecisionAsync(ReviewDecisionRequest request, string taskId, CancellationToken cancellationToken = default);
 }
 

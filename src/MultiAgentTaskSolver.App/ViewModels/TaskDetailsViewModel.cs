@@ -26,6 +26,7 @@ public sealed partial class TaskDetailsViewModel : ViewModelBase
         ImportPickedFilesCommand = new AsyncRelayCommand(ImportPickedFilesAsync);
         OpenRunHistoryCommand = new AsyncRelayCommand(OpenRunHistoryAsync);
         RunTaskReviewCommand = new AsyncRelayCommand(RunTaskReviewAsync);
+        RunWorkerCommand = new AsyncRelayCommand(RunWorkerAsync);
         ApproveReviewCommand = new AsyncRelayCommand(ApproveReviewAsync);
         ReviseReviewCommand = new AsyncRelayCommand(ReviseReviewAsync);
     }
@@ -38,6 +39,8 @@ public sealed partial class TaskDetailsViewModel : ViewModelBase
 
     public ObservableCollection<ModelEntryViewModel> ReviewModels { get; } = [];
 
+    public ObservableCollection<ModelEntryViewModel> WorkerModels { get; } = [];
+
     public IAsyncRelayCommand SaveCommand { get; }
 
     public IAsyncRelayCommand ImportPickedFilesCommand { get; }
@@ -45,6 +48,8 @@ public sealed partial class TaskDetailsViewModel : ViewModelBase
     public IAsyncRelayCommand OpenRunHistoryCommand { get; }
 
     public IAsyncRelayCommand RunTaskReviewCommand { get; }
+
+    public IAsyncRelayCommand RunWorkerCommand { get; }
 
     public IAsyncRelayCommand ApproveReviewCommand { get; }
 
@@ -75,13 +80,34 @@ public sealed partial class TaskDetailsViewModel : ViewModelBase
     public partial ModelEntryViewModel? SelectedReviewModel { get; set; }
 
     [CommunityToolkit.Mvvm.ComponentModel.ObservableProperty]
+    public partial ModelEntryViewModel? SelectedWorkerModel { get; set; }
+
+    [CommunityToolkit.Mvvm.ComponentModel.ObservableProperty]
     public partial string LatestReviewSummary { get; set; } = string.Empty;
 
     [CommunityToolkit.Mvvm.ComponentModel.ObservableProperty]
     public partial string LatestReviewOutput { get; set; } = string.Empty;
 
     [CommunityToolkit.Mvvm.ComponentModel.ObservableProperty]
+    public partial string LatestReviewUsageText { get; set; } = "Usage not recorded.";
+
+    [CommunityToolkit.Mvvm.ComponentModel.ObservableProperty]
+    public partial string LatestWorkerSummary { get; set; } = string.Empty;
+
+    [CommunityToolkit.Mvvm.ComponentModel.ObservableProperty]
+    public partial string LatestWorkerOutput { get; set; } = string.Empty;
+
+    [CommunityToolkit.Mvvm.ComponentModel.ObservableProperty]
+    public partial string LatestWorkerUsageText { get; set; } = "Usage not recorded.";
+
+    [CommunityToolkit.Mvvm.ComponentModel.ObservableProperty]
     public partial bool CanApplyReviewDecision { get; set; }
+
+    [CommunityToolkit.Mvvm.ComponentModel.ObservableProperty]
+    public partial bool CanRunTaskReview { get; set; }
+
+    [CommunityToolkit.Mvvm.ComponentModel.ObservableProperty]
+    public partial bool CanRunWorker { get; set; }
 
     public Task LoadAsync(string taskId)
     {
@@ -160,6 +186,11 @@ public sealed partial class TaskDetailsViewModel : ViewModelBase
                 throw new InvalidOperationException("Load a task before running review.");
             }
 
+            if (!CanRunTaskReview)
+            {
+                throw new InvalidOperationException("Task review is only available while the task is draft, review-ready, or needs rework.");
+            }
+
             if (SelectedReviewModel is null)
             {
                 throw new InvalidOperationException("Select a review model before running review.");
@@ -176,6 +207,41 @@ public sealed partial class TaskDetailsViewModel : ViewModelBase
             await LoadCoreAsync(TaskId);
             LatestReviewSummary = result.Summary;
             LatestReviewOutput = result.OutputText;
+            LatestReviewUsageText = WorkflowArtifactReader.BuildUsageText(result.Usage);
+        });
+    }
+
+    public Task RunWorkerAsync()
+    {
+        return RunBusyAsync(async () =>
+        {
+            if (string.IsNullOrWhiteSpace(TaskId))
+            {
+                throw new InvalidOperationException("Load a task before running worker.");
+            }
+
+            if (!CanRunWorker)
+            {
+                throw new InvalidOperationException("Worker execution is only available after the task has been approved for work.");
+            }
+
+            if (SelectedWorkerModel is null)
+            {
+                throw new InvalidOperationException("Select a worker model before running worker.");
+            }
+
+            var result = await _coordinator.RunWorkerAsync(
+                new TaskWorkerRequest
+                {
+                    ProviderId = "openai",
+                    ModelId = SelectedWorkerModel.ModelId,
+                },
+                TaskId);
+
+            await LoadCoreAsync(TaskId);
+            LatestWorkerSummary = result.Summary;
+            LatestWorkerOutput = result.OutputText;
+            LatestWorkerUsageText = WorkflowArtifactReader.BuildUsageText(result.Usage);
         });
     }
 
@@ -233,16 +299,37 @@ public sealed partial class TaskDetailsViewModel : ViewModelBase
                 $"{artifact.SizeBytes:n0} bytes"));
         }
 
+        var textModels = await _coordinator.GetTextModelsAsync("openai");
+
         ReviewModels.Clear();
-        foreach (var model in await _coordinator.GetTextModelsAsync("openai"))
+        foreach (var model in textModels)
         {
             ReviewModels.Add(new ModelEntryViewModel(model.ModelId, model.DisplayName, model.Description));
         }
 
-        SelectedReviewModel = SelectReviewModel(snapshot.Manifest, ReviewModels, SelectedReviewModel);
+        SelectedReviewModel = SelectModelForRunKind(snapshot.Manifest, TaskRunKind.TaskReview, ReviewModels, SelectedReviewModel);
         await PopulateLatestReviewAsync(snapshot);
+
+        WorkerModels.Clear();
+        foreach (var model in textModels)
+        {
+            WorkerModels.Add(new ModelEntryViewModel(model.ModelId, model.DisplayName, model.Description));
+        }
+
+        SelectedWorkerModel = SelectModelForRunKind(
+            snapshot.Manifest,
+            TaskRunKind.Worker,
+            WorkerModels,
+            SelectedWorkerModel,
+            SelectedReviewModel?.ModelId);
+        await PopulateLatestWorkerAsync(snapshot);
+
+        CanRunTaskReview = snapshot.Manifest.Status is TaskLifecycleState.Draft
+            or TaskLifecycleState.ReviewReady
+            or TaskLifecycleState.NeedsRework;
         CanApplyReviewDecision = snapshot.Manifest.Status == TaskLifecycleState.ReviewReady
             && snapshot.Manifest.Runs.Any(static run => run.Kind == TaskRunKind.TaskReview);
+        CanRunWorker = snapshot.Manifest.Status is TaskLifecycleState.WorkApproved or TaskLifecycleState.Working or TaskLifecycleState.NeedsRework;
     }
 
     private Task ImportFilesCoreAsync(IEnumerable<string> filePaths)
@@ -278,13 +365,15 @@ public sealed partial class TaskDetailsViewModel : ViewModelBase
         return flattened;
     }
 
-    private static ModelEntryViewModel? SelectReviewModel(
+    private static ModelEntryViewModel? SelectModelForRunKind(
         TaskManifest manifest,
+        TaskRunKind runKind,
         IEnumerable<ModelEntryViewModel> reviewModels,
-        ModelEntryViewModel? currentSelection)
+        ModelEntryViewModel? currentSelection,
+        string? fallbackModelId = null)
     {
         var latestReviewModelId = manifest.Runs
-            .Where(static run => run.Kind == TaskRunKind.TaskReview)
+            .Where(run => run.Kind == runKind)
             .OrderByDescending(static run => run.Sequence)
             .SelectMany(static run => run.Steps)
             .Select(static step => step.Model.ModelId)
@@ -301,6 +390,11 @@ public sealed partial class TaskDetailsViewModel : ViewModelBase
             return currentSelection;
         }
 
+        if (!string.IsNullOrWhiteSpace(fallbackModelId))
+        {
+            return reviewModels.FirstOrDefault(model => string.Equals(model.ModelId, fallbackModelId, StringComparison.OrdinalIgnoreCase));
+        }
+
         return reviewModels.FirstOrDefault();
     }
 
@@ -312,7 +406,20 @@ public sealed partial class TaskDetailsViewModel : ViewModelBase
             .FirstOrDefault();
 
         LatestReviewSummary = latestReview?.Summary ?? string.Empty;
-        LatestReviewOutput = await LoadLatestReviewOutputAsync(snapshot, latestReview);
+        LatestReviewOutput = await LoadLatestRunOutputAsync(snapshot, latestReview);
+        LatestReviewUsageText = await LoadLatestRunUsageTextAsync(snapshot, latestReview);
+    }
+
+    private async Task PopulateLatestWorkerAsync(TaskWorkspaceSnapshot snapshot)
+    {
+        var latestWorker = snapshot.Manifest.Runs
+            .Where(static run => run.Kind == TaskRunKind.Worker)
+            .OrderByDescending(static run => run.Sequence)
+            .FirstOrDefault();
+
+        LatestWorkerSummary = latestWorker?.Summary ?? string.Empty;
+        LatestWorkerOutput = await LoadLatestRunOutputAsync(snapshot, latestWorker);
+        LatestWorkerUsageText = await LoadLatestRunUsageTextAsync(snapshot, latestWorker);
     }
 
     private Task ApplyReviewDecisionAsync(ReviewDecision decision)
@@ -340,13 +447,32 @@ public sealed partial class TaskDetailsViewModel : ViewModelBase
         });
     }
 
-    private static async Task<string> LoadLatestReviewOutputAsync(TaskWorkspaceSnapshot snapshot, RunManifest? latestReview)
+    private static async Task<string> LoadLatestRunOutputAsync(TaskWorkspaceSnapshot snapshot, RunManifest? latestReview)
     {
         var latestStep = latestReview?.Steps
             .OrderByDescending(static step => step.Attempt)
             .FirstOrDefault();
 
-        if (latestStep is null || string.IsNullOrWhiteSpace(latestStep.RelativeDirectory))
+        if (latestStep is null)
+        {
+            return latestReview?.Summary ?? string.Empty;
+        }
+
+        var outputArtifactPath = latestStep.OutputArtifactPaths.FirstOrDefault(static path => !string.IsNullOrWhiteSpace(path));
+        if (!string.IsNullOrWhiteSpace(outputArtifactPath))
+        {
+            var fullOutputPath = Path.Combine(snapshot.TaskRootPath, outputArtifactPath.Replace('/', Path.DirectorySeparatorChar));
+            if (File.Exists(fullOutputPath))
+            {
+                var outputContent = await File.ReadAllTextAsync(fullOutputPath);
+                if (!string.IsNullOrWhiteSpace(outputContent))
+                {
+                    return outputContent.Trim();
+                }
+            }
+        }
+
+        if (string.IsNullOrWhiteSpace(latestStep.RelativeDirectory))
         {
             return latestReview?.Summary ?? string.Empty;
         }
@@ -385,5 +511,15 @@ public sealed partial class TaskDetailsViewModel : ViewModelBase
         return string.Equals(normalizedOutput, "_No output text returned._", StringComparison.Ordinal)
             ? string.Empty
             : normalizedOutput;
+    }
+
+    private static async Task<string> LoadLatestRunUsageTextAsync(TaskWorkspaceSnapshot snapshot, RunManifest? latestRun)
+    {
+        var latestStep = latestRun?.Steps
+            .OrderByDescending(static step => step.Attempt)
+            .FirstOrDefault();
+
+        var usage = await WorkflowArtifactReader.LoadUsageRecordAsync(snapshot.TaskRootPath, latestStep);
+        return WorkflowArtifactReader.BuildUsageText(usage);
     }
 }

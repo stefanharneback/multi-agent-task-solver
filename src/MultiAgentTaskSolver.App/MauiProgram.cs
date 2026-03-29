@@ -1,4 +1,5 @@
 using CommunityToolkit.Maui;
+using Microsoft.Extensions.Http.Resilience;
 using Microsoft.Extensions.Logging;
 using MultiAgentTaskSolver.App.Pages;
 using MultiAgentTaskSolver.App.Services;
@@ -31,7 +32,17 @@ public static class MauiProgram
         builder.Services.AddSingleton<IUsageNormalizer, OpenAiUsageNormalizer>();
         builder.Services.AddSingleton<IArtifactReferenceResolver, ArtifactReferenceResolver>();
         builder.Services.AddSingleton<IReviewPromptFactory, ReviewPromptFactory>();
-        builder.Services.AddHttpClient<OpenAiGatewayAdapter>().AddStandardResilienceHandler();
+        builder.Services.AddSingleton<IWorkerPromptFactory, WorkerPromptFactory>();
+        builder.Services.AddHttpClient<OpenAiGatewayAdapter>(static client =>
+            {
+                client.Timeout = TimeSpan.FromMinutes(11);
+            })
+            .AddStandardResilienceHandler(static options =>
+            {
+                options.TotalRequestTimeout.Timeout = TimeSpan.FromMinutes(10);
+                options.AttemptTimeout.Timeout = TimeSpan.FromMinutes(10);
+                options.Retry.DisableForUnsafeHttpMethods();
+            });
         builder.Services.AddTransient<IProviderAdapter>(serviceProvider => serviceProvider.GetRequiredService<OpenAiGatewayAdapter>());
         builder.Services.AddSingleton<IModelCatalog>(serviceProvider =>
             new GatewayBackedModelCatalog(
@@ -40,6 +51,7 @@ public static class MauiProgram
                 serviceProvider.GetRequiredService<ISecretStore>(),
                 serviceProvider.GetRequiredService<IProviderAdapter>()));
         builder.Services.AddSingleton<ITaskReviewWorkflow, TaskReviewWorkflow>();
+        builder.Services.AddSingleton<ITaskWorkerWorkflow, TaskWorkerWorkflow>();
         builder.Services.AddSingleton<IUserDecisionWorkflow, UserDecisionWorkflow>();
         builder.Services.AddSingleton<IAppNavigationService, ShellNavigationService>();
         builder.Services.AddSingleton<IFilePickerService, MauiFilePickerService>();

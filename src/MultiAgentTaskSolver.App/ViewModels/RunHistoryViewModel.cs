@@ -35,37 +35,39 @@ public sealed partial class RunHistoryViewModel : ViewModelBase
 
     public Task LoadAsync(string taskId)
     {
-        return RunBusyAsync(async () =>
+        return RunBusyAsync(() => LoadCoreAsync(taskId));
+    }
+
+    private async Task LoadCoreAsync(string taskId)
+    {
+        var snapshot = await _coordinator.LoadTaskAsync(taskId);
+        if (snapshot is null)
         {
-            var snapshot = await _coordinator.LoadTaskAsync(taskId);
-            if (snapshot is null)
-            {
-                throw new InvalidOperationException($"Task '{taskId}' was not found.");
-            }
+            throw new InvalidOperationException($"Task '{taskId}' was not found.");
+        }
 
-            TaskId = snapshot.Manifest.Id;
-            TaskTitle = snapshot.Manifest.Title;
-            TaskStatusText = snapshot.Manifest.Status.GetDisplayName();
-            ProgressNarrative = BuildProgressNarrative(snapshot.Manifest);
+        TaskId = snapshot.Manifest.Id;
+        TaskTitle = snapshot.Manifest.Title;
+        TaskStatusText = snapshot.Manifest.Status.GetDisplayName();
+        ProgressNarrative = BuildProgressNarrative(snapshot.Manifest);
 
-            SummaryMetrics.Clear();
-            foreach (var metric in BuildSummaryMetrics(snapshot.Manifest))
-            {
-                SummaryMetrics.Add(metric);
-            }
+        SummaryMetrics.Clear();
+        foreach (var metric in BuildSummaryMetrics(snapshot.Manifest))
+        {
+            SummaryMetrics.Add(metric);
+        }
 
-            FlowStages.Clear();
-            foreach (var stage in BuildFlowStages(snapshot.Manifest))
-            {
-                FlowStages.Add(stage);
-            }
+        FlowStages.Clear();
+        foreach (var stage in BuildFlowStages(snapshot.Manifest))
+        {
+            FlowStages.Add(stage);
+        }
 
-            Runs.Clear();
-            foreach (var run in snapshot.Manifest.Runs.OrderByDescending(static run => run.Sequence))
-            {
-                Runs.Add(BuildRunEntry(run));
-            }
-        });
+        Runs.Clear();
+        foreach (var run in snapshot.Manifest.Runs.OrderByDescending(static run => run.Sequence))
+        {
+            Runs.Add(await BuildRunEntryAsync(snapshot, run));
+        }
     }
 
     private static IReadOnlyList<FlowSummaryMetricViewModel> BuildSummaryMetrics(TaskManifest manifest)
@@ -145,7 +147,7 @@ public sealed partial class RunHistoryViewModel : ViewModelBase
         return $"Latest progress: {latestRun.Kind.GetDisplayName()} is {latestRun.Status.GetDisplayName().ToLowerInvariant()} and last changed at {completedAt}.";
     }
 
-    private static RunHistoryEntryViewModel BuildRunEntry(RunManifest run)
+    private static async Task<RunHistoryEntryViewModel> BuildRunEntryAsync(TaskWorkspaceSnapshot snapshot, RunManifest run)
     {
         var title = string.IsNullOrWhiteSpace(run.Title) ? run.Kind.GetDisplayName() : run.Title;
         var durationText = run.CompletedAtUtc is null
@@ -153,6 +155,12 @@ public sealed partial class RunHistoryViewModel : ViewModelBase
             : $"{Math.Max(1, (int)Math.Round((run.CompletedAtUtc.Value - run.StartedAtUtc).TotalMinutes, MidpointRounding.AwayFromZero))} min";
         var modelText = BuildModelText(run);
         var referencedAliasesText = BuildReferencedAliasesText(run);
+        var steps = new List<StepHistoryEntryViewModel>(run.Steps.Count);
+
+        foreach (var step in run.Steps)
+        {
+            steps.Add(await BuildStepEntryAsync(snapshot, step));
+        }
 
         return new RunHistoryEntryViewModel(
             run.Id,
@@ -166,10 +174,10 @@ public sealed partial class RunHistoryViewModel : ViewModelBase
             referencedAliasesText,
             $"{run.Steps.Count} step(s)",
             string.IsNullOrWhiteSpace(run.Summary) ? "No run summary yet." : run.Summary,
-            run.Steps.Select(BuildStepEntry).ToArray());
+            steps);
     }
 
-    private static StepHistoryEntryViewModel BuildStepEntry(StepManifest step)
+    private static async Task<StepHistoryEntryViewModel> BuildStepEntryAsync(TaskWorkspaceSnapshot snapshot, StepManifest step)
     {
         var modelLabel = string.IsNullOrWhiteSpace(step.Model.DisplayName) ? step.Model.ModelId : step.Model.DisplayName;
         var providerLabel = string.IsNullOrWhiteSpace(step.Provider.DisplayName) ? step.Provider.ProviderId : step.Provider.DisplayName;
@@ -177,6 +185,8 @@ public sealed partial class RunHistoryViewModel : ViewModelBase
         var referencedAliasesText = step.ReferencedArtifactAliases.Count == 0
             ? "No referenced artifacts"
             : string.Join(", ", step.ReferencedArtifactAliases.Select(static alias => $"@{alias.TrimStart('@')}"));
+        var usage = await WorkflowArtifactReader.LoadUsageRecordAsync(snapshot.TaskRootPath, step);
+        var usageText = WorkflowArtifactReader.BuildUsageText(usage);
 
         return new StepHistoryEntryViewModel(
             $"Attempt {step.Attempt}",
@@ -187,6 +197,7 @@ public sealed partial class RunHistoryViewModel : ViewModelBase
             BuildTimingText(step.StartedAtUtc, step.CompletedAtUtc),
             promptVersionText,
             referencedAliasesText,
+            usageText,
             string.IsNullOrWhiteSpace(step.Summary) ? "No step summary yet." : step.Summary);
     }
 

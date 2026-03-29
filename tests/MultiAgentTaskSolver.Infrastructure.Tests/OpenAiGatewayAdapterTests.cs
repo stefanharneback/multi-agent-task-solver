@@ -230,6 +230,27 @@ public sealed class OpenAiGatewayAdapterTests
         Assert.Equal("Line 1" + Environment.NewLine + "Line 2" + Environment.NewLine + "Line 3", response.OutputText);
     }
 
+    [Fact]
+    public async Task SendTextAsyncThrowsTimeoutExceptionWhenGatewayTimesOut()
+    {
+        var adapter = CreateAdapter(_ => throw new TaskCanceledException("request timed out"));
+
+        var exception = await Assert.ThrowsAsync<TimeoutException>(async () =>
+        {
+            await adapter.SendTextAsync(
+                CreateProvider(),
+                new LlmRequest
+                {
+                    ModelId = "gpt-5.4-pro",
+                    InputText = "hello",
+                },
+                "client-secret");
+        });
+
+        Assert.Contains("timed out", exception.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("gpt-5.4-pro", exception.Message, StringComparison.Ordinal);
+    }
+
     private static OpenAiGatewayAdapter CreateAdapter(Func<HttpRequestMessage, HttpResponseMessage> responder)
     {
         var handler = new StubHandler(responder);

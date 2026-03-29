@@ -27,6 +27,8 @@ internal sealed class FakeTaskWorkspaceCoordinator : ITaskWorkspaceCoordinator
 
     public List<(TaskReviewRequest Request, string TaskId)> ReviewRequests { get; } = [];
 
+    public List<(TaskWorkerRequest Request, string TaskId)> WorkerRequests { get; } = [];
+
     public List<(ReviewDecisionRequest Request, string TaskId)> ReviewDecisionRequests { get; } = [];
 
     public List<(AppSettings Settings, string? BearerToken)> SavedSettings { get; } = [];
@@ -36,6 +38,8 @@ internal sealed class FakeTaskWorkspaceCoordinator : ITaskWorkspaceCoordinator
     public Func<string, TaskWorkspaceSnapshot?>? LoadTaskHandler { get; set; }
 
     public Func<TaskReviewRequest, string, TaskReviewResult>? RunTaskReviewHandler { get; set; }
+
+    public Func<TaskWorkerRequest, string, TaskWorkerResult>? RunWorkerHandler { get; set; }
 
     public Func<ReviewDecisionRequest, string, ReviewDecisionResult>? ApplyReviewDecisionHandler { get; set; }
 
@@ -174,6 +178,47 @@ internal sealed class FakeTaskWorkspaceCoordinator : ITaskWorkspaceCoordinator
             Summary = "Review completed.",
             OutputText = "Review completed.",
             PromptVersion = "task-review-v1",
+            Usage = new UsageRecord
+            {
+                ProviderId = "openai",
+                ModelId = request.ModelId,
+                InputTokens = 12,
+                OutputTokens = 6,
+                TotalTokens = 18,
+                DurationMs = 140,
+            },
+        });
+    }
+
+    public Task<TaskWorkerResult> RunWorkerAsync(TaskWorkerRequest request, string taskId, CancellationToken cancellationToken = default)
+    {
+        WorkerRequests.Add((request, taskId));
+
+        if (RunWorkerHandler is not null)
+        {
+            return Task.FromResult(RunWorkerHandler(request, taskId));
+        }
+
+        return Task.FromResult(new TaskWorkerResult
+        {
+            TaskId = taskId,
+            RunId = "run-worker-001",
+            StepId = "step-worker-001",
+            TaskStatus = TaskLifecycleState.Working,
+            Summary = "Worker completed.",
+            OutputText = "Worker completed.",
+            PromptVersion = "worker-v1",
+            OutputArtifactPaths = ["outputs/0003-worker/worker-output.md"],
+            Usage = new UsageRecord
+            {
+                ProviderId = "openai",
+                ModelId = request.ModelId,
+                InputTokens = 20,
+                OutputTokens = 10,
+                TotalTokens = 30,
+                DurationMs = 320,
+                TotalCostUsd = 0.0042m,
+            },
         });
     }
 

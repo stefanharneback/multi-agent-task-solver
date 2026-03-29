@@ -105,6 +105,7 @@
                                                     <Label Text="{Binding TimingText}" FontSize="12" />
                                                     <Label Text="{Binding PromptVersionText}" FontSize="12" />
                                                     <Label Text="{Binding ReferencedAliasesText}" FontSize="12" />
+                                                    <Label Text="{Binding UsageText}" FontSize="12" />
                                                     <Label Text="{Binding Summary}" />
                                                 </VerticalStackLayout>
                                             </Border>

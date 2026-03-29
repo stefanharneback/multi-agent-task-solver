@@ -35,15 +35,21 @@
             <Label AutomationId="TaskReviewHeadingLabel" Text="Task review agent" FontAttributes="Bold" FontSize="18" />
             <Picker
                 AutomationId="TaskReviewModelPicker"
+                IsEnabled="{Binding CanRunTaskReview}"
                 ItemDisplayBinding="{Binding DisplayName}"
                 ItemsSource="{Binding ReviewModels}"
                 SelectedItem="{Binding SelectedReviewModel}" />
-            <Button AutomationId="RunTaskReviewButton" Text="Run Task Review" Command="{Binding RunTaskReviewCommand}" />
+            <Button
+                AutomationId="RunTaskReviewButton"
+                Command="{Binding RunTaskReviewCommand}"
+                IsEnabled="{Binding CanRunTaskReview}"
+                Text="Run Task Review" />
 
             <Label AutomationId="LatestReviewHeadingLabel" Text="Latest review summary" FontAttributes="Bold" FontSize="18" />
             <Border Padding="10" StrokeThickness="1">
                 <Label AutomationId="LatestReviewSummaryLabel" Text="{Binding LatestReviewSummary}" />
             </Border>
+            <Label AutomationId="LatestReviewUsageLabel" FontSize="12" Text="{Binding LatestReviewUsageText}" />
 
             <Label AutomationId="LatestReviewOutputHeadingLabel" Text="Latest review output" FontAttributes="Bold" FontSize="18" />
             <Border Padding="10" StrokeThickness="1">
@@ -64,6 +70,34 @@
                 <Button AutomationId="ApproveReviewButton" Text="Approve" Command="{Binding ApproveReviewCommand}" />
                 <Button AutomationId="ReviseReviewButton" Text="Revise Task" Command="{Binding ReviseReviewCommand}" />
             </HorizontalStackLayout>
+
+            <Label AutomationId="WorkerHeadingLabel" Text="Worker agent" FontAttributes="Bold" FontSize="18" />
+            <Picker
+                AutomationId="WorkerModelPicker"
+                IsEnabled="{Binding CanRunWorker}"
+                ItemDisplayBinding="{Binding DisplayName}"
+                ItemsSource="{Binding WorkerModels}"
+                SelectedItem="{Binding SelectedWorkerModel}" />
+            <Button
+                AutomationId="RunWorkerButton"
+                Command="{Binding RunWorkerCommand}"
+                IsEnabled="{Binding CanRunWorker}"
+                Text="Run Worker" />
+
+            <Label AutomationId="LatestWorkerHeadingLabel" Text="Latest worker summary" FontAttributes="Bold" FontSize="18" />
+            <Border Padding="10" StrokeThickness="1">
+                <Label AutomationId="LatestWorkerSummaryLabel" Text="{Binding LatestWorkerSummary}" />
+            </Border>
+            <Label AutomationId="LatestWorkerUsageLabel" FontSize="12" Text="{Binding LatestWorkerUsageText}" />
+
+            <Label AutomationId="LatestWorkerOutputHeadingLabel" Text="Latest worker output" FontAttributes="Bold" FontSize="18" />
+            <Border Padding="10" StrokeThickness="1">
+                <Editor
+                    AutomationId="LatestWorkerOutputEditor"
+                    AutoSize="TextChanges"
+                    IsReadOnly="True"
+                    Text="{Binding LatestWorkerOutput}" />
+            </Border>
 
             <Label AutomationId="ImportFilesHeadingLabel" Text="Import files" FontAttributes="Bold" FontSize="18" />
 
