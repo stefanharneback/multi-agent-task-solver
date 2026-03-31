@@ -16,13 +16,13 @@ public sealed class TaskWorkspaceHomeView : ContentView
         _workspaceRootLabel = new Label
         {
             AutomationId = "WorkspaceRootLabel",
-            FontAttributes = FontAttributes.Italic
+            Style = TryGetStyle("ItalicBodyStyle")
         };
 
         _errorLabel = new Label
         {
             AutomationId = "TaskListErrorLabel",
-            TextColor = Color.FromArgb("#B5544E")
+            Style = TryGetStyle("ErrorLabelStyle")
         };
 
         var createTaskButton = new Button
@@ -136,8 +136,7 @@ public sealed class TaskWorkspaceHomeView : ContentView
                         new Label
                         {
                             Text = task.Title,
-                            FontAttributes = FontAttributes.Bold,
-                            FontSize = 18
+                            Style = TryGetStyle("CardTitleStyle")
                         },
                         new Label
                         {

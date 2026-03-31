@@ -13,12 +13,12 @@
         SelectionMode="None">
         <CollectionView.Header>
             <VerticalStackLayout Padding="20" Spacing="18">
-            <Label AutomationId="RunHistoryTaskTitleLabel" Text="{Binding TaskTitle}" FontAttributes="Bold" FontSize="24" />
-            <Label AutomationId="RunHistoryTaskStatusLabel" Text="{Binding TaskStatusText}" FontAttributes="Bold" />
+            <Label AutomationId="RunHistoryTaskTitleLabel" Style="{StaticResource PageHeadingStyle}" Text="{Binding TaskTitle}" />
+            <Label AutomationId="RunHistoryTaskStatusLabel" Style="{StaticResource StatusLabelStyle}" Text="{Binding TaskStatusText}" />
             <Label AutomationId="RunHistoryNarrativeLabel" Text="{Binding ProgressNarrative}" />
-            <Label AutomationId="RunHistoryErrorLabel" Text="{Binding ErrorMessage}" TextColor="{StaticResource Error}" />
+            <Label AutomationId="RunHistoryErrorLabel" Style="{StaticResource ErrorLabelStyle}" Text="{Binding ErrorMessage}" />
 
-            <Label AutomationId="RunHistorySummaryHeadingLabel" Text="Progress snapshot" FontAttributes="Bold" FontSize="18" />
+            <Label AutomationId="RunHistorySummaryHeadingLabel" Style="{StaticResource SectionHeadingStyle}" Text="Progress snapshot" />
             <FlexLayout
                 AutomationId="RunHistorySummaryMetrics"
                 Direction="Row"
@@ -28,16 +28,16 @@
                     <DataTemplate x:DataType="viewModels:FlowSummaryMetricViewModel">
                         <Border Padding="12" Margin="0,0,12,12" MinimumWidthRequest="180">
                             <VerticalStackLayout Spacing="4">
-                                <Label Text="{Binding Label}" FontSize="12" />
-                                <Label Text="{Binding Value}" FontAttributes="Bold" FontSize="20" />
-                                <Label Text="{Binding Detail}" FontSize="12" />
+                                <Label Style="{StaticResource CaptionLabelStyle}" Text="{Binding Label}" />
+                                <Label Style="{StaticResource MetricValueStyle}" Text="{Binding Value}" />
+                                <Label Style="{StaticResource CaptionLabelStyle}" Text="{Binding Detail}" />
                             </VerticalStackLayout>
                         </Border>
                     </DataTemplate>
                 </BindableLayout.ItemTemplate>
             </FlexLayout>
 
-            <Label AutomationId="RunHistoryFlowHeadingLabel" Text="Task flow" FontAttributes="Bold" FontSize="18" />
+            <Label AutomationId="RunHistoryFlowHeadingLabel" Style="{StaticResource SectionHeadingStyle}" Text="Task flow" />
             <ScrollView Orientation="Horizontal">
                 <HorizontalStackLayout
                     AutomationId="RunHistoryFlowStages"
@@ -48,18 +48,18 @@
                             <Border Padding="12" WidthRequest="230">
                                 <Border.Triggers>
                                     <DataTrigger TargetType="Border" Binding="{Binding IsCurrent}" Value="True">
-                                        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Secondary}, Dark={StaticResource Gray600}}" />
+                                        <Setter Property="BackgroundColor" Value="{StaticResource StageCurrentBackground}" />
                                         <Setter Property="Stroke" Value="{StaticResource Primary}" />
                                     </DataTrigger>
                                     <DataTrigger TargetType="Border" Binding="{Binding IsCompleted}" Value="True">
-                                        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray900}}" />
+                                        <Setter Property="BackgroundColor" Value="{StaticResource StageCompletedBackground}" />
                                     </DataTrigger>
                                 </Border.Triggers>
 
                                 <VerticalStackLayout Spacing="6">
-                                    <Label Text="{Binding Title}" FontAttributes="Bold" />
-                                    <Label Text="{Binding StateText}" FontSize="12" />
-                                    <Label Text="{Binding Detail}" FontSize="12" />
+                                    <Label Style="{StaticResource BodyStrongStyle}" Text="{Binding Title}" />
+                                    <Label Style="{StaticResource CaptionLabelStyle}" Text="{Binding StateText}" />
+                                    <Label Style="{StaticResource CaptionLabelStyle}" Text="{Binding Detail}" />
                                 </VerticalStackLayout>
                             </Border>
                         </DataTemplate>
@@ -67,7 +67,7 @@
                 </HorizontalStackLayout>
             </ScrollView>
 
-            <Label AutomationId="RunHistoryTimelineHeadingLabel" Text="Run timeline" FontAttributes="Bold" FontSize="18" />
+            <Label AutomationId="RunHistoryTimelineHeadingLabel" Style="{StaticResource SectionHeadingStyle}" Text="Run timeline" />
             </VerticalStackLayout>
         </CollectionView.Header>
 
@@ -80,36 +80,36 @@
                 <Border Margin="20,0,20,14" Padding="12">
                     <VerticalStackLayout Spacing="8">
                         <HorizontalStackLayout Spacing="8">
-                            <Label Text="{Binding SequenceText}" FontAttributes="Bold" />
+                            <Label Style="{StaticResource BodyStrongStyle}" Text="{Binding SequenceText}" />
                             <Label Text="{Binding Status}" />
                         </HorizontalStackLayout>
 
-                        <Label Text="{Binding Title}" FontAttributes="Bold" FontSize="18" />
-                        <Label Text="{Binding KindText}" FontSize="12" />
-                        <Label Text="{Binding TimingText}" FontSize="12" />
-                        <Label Text="{Binding DurationText}" FontSize="12" />
-                        <Label Text="{Binding ModelText}" FontSize="12" />
-                        <Label Text="{Binding ReferencedAliasesText}" FontSize="12" />
-                        <Label Text="{Binding StepCountText}" FontSize="12" />
+                        <Label Style="{StaticResource CardTitleStyle}" Text="{Binding Title}" />
+                        <Label Style="{StaticResource CaptionLabelStyle}" Text="{Binding KindText}" />
+                        <Label Style="{StaticResource CaptionLabelStyle}" Text="{Binding TimingText}" />
+                        <Label Style="{StaticResource CaptionLabelStyle}" Text="{Binding DurationText}" />
+                        <Label Style="{StaticResource CaptionLabelStyle}" Text="{Binding ModelText}" />
+                        <Label Style="{StaticResource CaptionLabelStyle}" Text="{Binding ReferencedAliasesText}" />
+                        <Label Style="{StaticResource CaptionLabelStyle}" Text="{Binding StepCountText}" />
                         <Label Text="{Binding Summary}" />
 
-                        <Label Text="Steps" FontAttributes="Bold" FontSize="16" />
+                        <Label Style="{StaticResource SubsectionHeadingStyle}" Text="Steps" />
                         <VerticalStackLayout Spacing="10" BindableLayout.ItemsSource="{Binding Steps}">
                             <BindableLayout.ItemTemplate>
                                 <DataTemplate x:DataType="viewModels:StepHistoryEntryViewModel">
                                     <Border Padding="10" Margin="12,0,0,0">
                                         <VerticalStackLayout Spacing="4">
                                             <HorizontalStackLayout Spacing="8">
-                                                <Label Text="{Binding SequenceText}" FontAttributes="Bold" />
+                                                <Label Style="{StaticResource BodyStrongStyle}" Text="{Binding SequenceText}" />
                                                 <Label Text="{Binding Status}" />
                                             </HorizontalStackLayout>
-                                            <Label Text="{Binding Title}" FontAttributes="Bold" />
-                                            <Label Text="{Binding ModelText}" FontSize="12" />
-                                            <Label Text="{Binding ProviderText}" FontSize="12" />
-                                            <Label Text="{Binding TimingText}" FontSize="12" />
-                                            <Label Text="{Binding PromptVersionText}" FontSize="12" />
-                                            <Label Text="{Binding ReferencedAliasesText}" FontSize="12" />
-                                            <Label Text="{Binding UsageText}" FontSize="12" />
+                                            <Label Style="{StaticResource BodyStrongStyle}" Text="{Binding Title}" />
+                                            <Label Style="{StaticResource CaptionLabelStyle}" Text="{Binding ModelText}" />
+                                            <Label Style="{StaticResource CaptionLabelStyle}" Text="{Binding ProviderText}" />
+                                            <Label Style="{StaticResource CaptionLabelStyle}" Text="{Binding TimingText}" />
+                                            <Label Style="{StaticResource CaptionLabelStyle}" Text="{Binding PromptVersionText}" />
+                                            <Label Style="{StaticResource CaptionLabelStyle}" Text="{Binding ReferencedAliasesText}" />
+                                            <Label Style="{StaticResource CaptionLabelStyle}" Text="{Binding UsageText}" />
                                             <Label Text="{Binding Summary}" />
                                         </VerticalStackLayout>
                                     </Border>

@@ -60,7 +60,7 @@ public sealed class SettingsHomeView : ContentView
         var errorLabel = new Label
         {
             AutomationId = "SettingsErrorLabel",
-            TextColor = Color.FromArgb("#B5544E")
+            Style = TryGetStyle("ErrorLabelStyle")
         };
         errorLabel.SetBinding(Label.TextProperty, nameof(SettingsViewModel.ErrorMessage));
 
@@ -187,7 +187,7 @@ public sealed class SettingsHomeView : ContentView
                         new Label
                         {
                             Text = model.DisplayName,
-                            FontAttributes = FontAttributes.Bold
+                            Style = TryGetStyle("BodyStrongStyle")
                         },
                         new Label
                         {

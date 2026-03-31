@@ -10,52 +10,101 @@
 
     <Style TargetType="Shell" ApplyToDerivedTypes="True">
         <Setter Property="Shell.BackgroundColor" Value="{StaticResource Surface}" />
-        <Setter Property="Shell.ForegroundColor" Value="{StaticResource Black}" />
-        <Setter Property="Shell.TitleColor" Value="{StaticResource Black}" />
-        <Setter Property="Shell.UnselectedColor" Value="{StaticResource Gray500}" />
-        <Setter Property="Shell.DisabledColor" Value="{StaticResource Gray400}" />
+        <Setter Property="Shell.ForegroundColor" Value="{StaticResource TextPrimary}" />
+        <Setter Property="Shell.TitleColor" Value="{StaticResource TextPrimary}" />
+        <Setter Property="Shell.UnselectedColor" Value="{StaticResource TextMuted}" />
+        <Setter Property="Shell.DisabledColor" Value="{StaticResource Gray500}" />
         <Setter Property="Shell.NavBarHasShadow" Value="False" />
     </Style>
 
     <Style TargetType="Label">
         <Setter Property="FontFamily" Value="OpenSansRegular" />
         <Setter Property="FontSize" Value="14" />
-        <Setter Property="TextColor" Value="{StaticResource Black}" />
+        <Setter Property="TextColor" Value="{StaticResource TextPrimary}" />
     </Style>
 
     <Style TargetType="Label" x:Key="PageHeadingStyle">
-        <Setter Property="FontAttributes" Value="Bold" />
+        <Setter Property="FontFamily" Value="OpenSansSemibold" />
         <Setter Property="FontSize" Value="26" />
-        <Setter Property="TextColor" Value="{StaticResource MidnightBlue}" />
+        <Setter Property="TextColor" Value="{StaticResource TextPrimary}" />
     </Style>
 
     <Style TargetType="Label" x:Key="SectionHeadingStyle">
-        <Setter Property="FontAttributes" Value="Bold" />
+        <Setter Property="FontFamily" Value="OpenSansSemibold" />
         <Setter Property="FontSize" Value="18" />
-        <Setter Property="TextColor" Value="{StaticResource Black}" />
+        <Setter Property="TextColor" Value="{StaticResource TextPrimary}" />
+    </Style>
+
+    <Style TargetType="Label" x:Key="SubsectionHeadingStyle">
+        <Setter Property="FontFamily" Value="OpenSansSemibold" />
+        <Setter Property="FontSize" Value="16" />
+        <Setter Property="TextColor" Value="{StaticResource TextPrimary}" />
+    </Style>
+
+    <Style TargetType="Label" x:Key="CardTitleStyle">
+        <Setter Property="FontFamily" Value="OpenSansSemibold" />
+        <Setter Property="FontSize" Value="18" />
+        <Setter Property="TextColor" Value="{StaticResource TextPrimary}" />
+    </Style>
+
+    <Style TargetType="Label" x:Key="BodyStrongStyle">
+        <Setter Property="FontFamily" Value="OpenSansSemibold" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="TextColor" Value="{StaticResource TextPrimary}" />
+    </Style>
+
+    <Style TargetType="Label" x:Key="ItalicBodyStyle">
+        <Setter Property="FontFamily" Value="OpenSansRegular" />
+        <Setter Property="FontAttributes" Value="Italic" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="TextColor" Value="{StaticResource TextSecondary}" />
+    </Style>
+
+    <Style TargetType="Label" x:Key="StatusLabelStyle">
+        <Setter Property="FontFamily" Value="OpenSansSemibold" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="TextColor" Value="{StaticResource PrimaryDark}" />
+    </Style>
+
+    <Style TargetType="Label" x:Key="CaptionLabelStyle">
+        <Setter Property="FontFamily" Value="OpenSansRegular" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="TextColor" Value="{StaticResource TextMuted}" />
+    </Style>
+
+    <Style TargetType="Label" x:Key="MetricValueStyle">
+        <Setter Property="FontFamily" Value="OpenSansSemibold" />
+        <Setter Property="FontSize" Value="20" />
+        <Setter Property="TextColor" Value="{StaticResource TextPrimary}" />
+    </Style>
+
+    <Style TargetType="Label" x:Key="ErrorLabelStyle">
+        <Setter Property="FontFamily" Value="OpenSansRegular" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="TextColor" Value="{StaticResource Error}" />
     </Style>
 
     <Style TargetType="Label" x:Key="FormFieldTitle">
-        <Setter Property="FontAttributes" Value="Bold" />
+        <Setter Property="FontFamily" Value="OpenSansSemibold" />
         <Setter Property="FontSize" Value="14" />
-        <Setter Property="TextColor" Value="{StaticResource Black}" />
+        <Setter Property="TextColor" Value="{StaticResource TextPrimary}" />
     </Style>
 
     <Style TargetType="Label" x:Key="FormFieldHint">
         <Setter Property="FontSize" Value="12" />
-        <Setter Property="TextColor" Value="{StaticResource Gray500}" />
+        <Setter Property="TextColor" Value="{StaticResource TextMuted}" />
     </Style>
 
     <Style TargetType="Border">
         <Setter Property="BackgroundColor" Value="{StaticResource Surface}" />
-        <Setter Property="Stroke" Value="{StaticResource Gray200Brush}" />
+        <Setter Property="Stroke" Value="{StaticResource OutlineBrush}" />
         <Setter Property="StrokeThickness" Value="1" />
         <Setter Property="StrokeShape" Value="RoundRectangle 14" />
     </Style>
 
     <Style TargetType="Border" x:Key="SurfaceCardStyle">
-        <Setter Property="BackgroundColor" Value="{StaticResource Surface}" />
-        <Setter Property="Stroke" Value="{StaticResource Gray200Brush}" />
+        <Setter Property="BackgroundColor" Value="{StaticResource SurfaceRaised}" />
+        <Setter Property="Stroke" Value="{StaticResource OutlineBrush}" />
         <Setter Property="StrokeThickness" Value="1" />
         <Setter Property="StrokeShape" Value="RoundRectangle 14" />
     </Style>
@@ -70,7 +119,7 @@
 
     <Style TargetType="Border" x:Key="EditorResizeHandleStyle">
         <Setter Property="BackgroundColor" Value="{StaticResource SurfaceTint}" />
-        <Setter Property="Stroke" Value="{StaticResource FieldBorderBrush}" />
+        <Setter Property="Stroke" Value="{StaticResource OutlineStrongBrush}" />
         <Setter Property="StrokeThickness" Value="1" />
         <Setter Property="StrokeShape" Value="RoundRectangle 12" />
         <Setter Property="Padding" Value="10,6" />
@@ -78,24 +127,24 @@
     </Style>
 
     <Style TargetType="Entry" x:Key="FormEntryStyle">
-        <Setter Property="TextColor" Value="{StaticResource Black}" />
+        <Setter Property="TextColor" Value="{StaticResource TextPrimary}" />
         <Setter Property="BackgroundColor" Value="{StaticResource FieldBackground}" />
-        <Setter Property="PlaceholderColor" Value="{StaticResource Gray500}" />
+        <Setter Property="PlaceholderColor" Value="{StaticResource TextMuted}" />
         <Setter Property="MinimumHeightRequest" Value="44" />
         <Setter Property="FontSize" Value="14" />
     </Style>
 
     <Style TargetType="Editor" x:Key="FormEditorStyle">
-        <Setter Property="TextColor" Value="{StaticResource Black}" />
+        <Setter Property="TextColor" Value="{StaticResource TextPrimary}" />
         <Setter Property="BackgroundColor" Value="Transparent" />
-        <Setter Property="PlaceholderColor" Value="{StaticResource Gray500}" />
+        <Setter Property="PlaceholderColor" Value="{StaticResource TextMuted}" />
         <Setter Property="MinimumHeightRequest" Value="72" />
         <Setter Property="FontSize" Value="14" />
     </Style>
 
     <Style TargetType="Picker" x:Key="FormPickerStyle">
-        <Setter Property="TextColor" Value="{StaticResource Black}" />
-        <Setter Property="TitleColor" Value="{StaticResource Gray500}" />
+        <Setter Property="TextColor" Value="{StaticResource TextPrimary}" />
+        <Setter Property="TitleColor" Value="{StaticResource TextMuted}" />
         <Setter Property="BackgroundColor" Value="{StaticResource FieldBackground}" />
         <Setter Property="MinimumHeightRequest" Value="44" />
         <Setter Property="FontSize" Value="14" />
@@ -111,9 +160,9 @@
     </Style>
 
     <Style TargetType="Button" x:Key="SecondaryActionButtonStyle">
-        <Setter Property="TextColor" Value="{StaticResource Black}" />
+        <Setter Property="TextColor" Value="{StaticResource TextPrimary}" />
         <Setter Property="BackgroundColor" Value="{StaticResource SurfaceRaised}" />
-        <Setter Property="BorderColor" Value="{StaticResource FieldBorder}" />
+        <Setter Property="BorderColor" Value="{StaticResource OutlineStrong}" />
         <Setter Property="BorderWidth" Value="1" />
         <Setter Property="CornerRadius" Value="10" />
         <Setter Property="Padding" Value="14,10" />
@@ -122,9 +171,9 @@
     </Style>
 
     <Style TargetType="Button" x:Key="InfoButtonStyle">
-        <Setter Property="TextColor" Value="{StaticResource Primary}" />
+        <Setter Property="TextColor" Value="{StaticResource PrimaryDark}" />
         <Setter Property="BackgroundColor" Value="Transparent" />
-        <Setter Property="BorderColor" Value="{StaticResource Gray300}" />
+        <Setter Property="BorderColor" Value="{StaticResource OutlineStrong}" />
         <Setter Property="BorderWidth" Value="1" />
         <Setter Property="CornerRadius" Value="14" />
         <Setter Property="Padding" Value="0" />
@@ -136,9 +185,9 @@
     </Style>
 
     <Style TargetType="Button" x:Key="MiniButtonStyle">
-        <Setter Property="TextColor" Value="{StaticResource Gray900}" />
+        <Setter Property="TextColor" Value="{StaticResource TextPrimary}" />
         <Setter Property="BackgroundColor" Value="{StaticResource SurfaceRaised}" />
-        <Setter Property="BorderColor" Value="{StaticResource FieldBorder}" />
+        <Setter Property="BorderColor" Value="{StaticResource OutlineStrong}" />
         <Setter Property="BorderWidth" Value="1" />
         <Setter Property="CornerRadius" Value="8" />
         <Setter Property="Padding" Value="8,4" />
@@ -149,7 +198,7 @@
     </Style>
 
     <Style TargetType="BoxView" x:Key="EditorResizeGripStyle">
-        <Setter Property="Color" Value="{StaticResource Primary}" />
+        <Setter Property="Color" Value="{StaticResource PrimaryDark}" />
         <Setter Property="WidthRequest" Value="14" />
         <Setter Property="HeightRequest" Value="2" />
         <Setter Property="Opacity" Value="0.75" />

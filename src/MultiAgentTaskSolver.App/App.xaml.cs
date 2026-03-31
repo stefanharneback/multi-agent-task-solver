@@ -16,6 +16,7 @@ public partial class App : Application
     {
         // Loading the merged dictionaries through App.xaml caused a WinUI startup crash.
         // Instantiate the compiled dictionaries directly instead.
+        UserAppTheme = AppTheme.Dark;
         Resources = new ResourceDictionary();
         Resources.MergedDictionaries.Add(new MultiAgentTaskSolver.App.Resources.Styles.Colors());
         Resources.MergedDictionaries.Add(new MultiAgentTaskSolver.App.Resources.Styles.AppStyles());

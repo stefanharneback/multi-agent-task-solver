@@ -18,14 +18,14 @@ public sealed class TaskWorkspaceHomePage : ContentPage
         _workspaceRootLabel = new Label
         {
             AutomationId = "WorkspaceRootLabel",
-            FontAttributes = FontAttributes.Italic
+            Style = TryGetStyle("ItalicBodyStyle")
         };
         _workspaceRootLabel.SetBinding(Label.TextProperty, nameof(TaskListViewModel.WorkspaceRootPath));
 
         _errorLabel = new Label
         {
             AutomationId = "TaskListErrorLabel",
-            TextColor = Color.FromArgb("#B5544E")
+            Style = TryGetStyle("ErrorLabelStyle")
         };
         _errorLabel.SetBinding(Label.TextProperty, nameof(TaskListViewModel.ErrorMessage));
 
@@ -139,8 +139,7 @@ public sealed class TaskWorkspaceHomePage : ContentPage
                         new Label
                         {
                             Text = task.Title,
-                            FontAttributes = FontAttributes.Bold,
-                            FontSize = 18
+                            Style = TryGetStyle("CardTitleStyle")
                         },
                         new Label
                         {

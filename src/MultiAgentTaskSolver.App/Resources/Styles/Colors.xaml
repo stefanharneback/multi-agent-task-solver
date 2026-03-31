@@ -6,34 +6,42 @@
 
     <!-- Note: For Android please see also Platforms\Android\Resources\values\colors.xml -->
 
-    <Color x:Key="Primary">#2F6C63</Color>
-    <Color x:Key="PrimaryDark">#214E48</Color>
-    <Color x:Key="PrimaryDarkText">#F7F3EB</Color>
-    <Color x:Key="Secondary">#DCE9E3</Color>
-    <Color x:Key="SecondaryDarkText">#5E7E77</Color>
-    <Color x:Key="Tertiary">#9A7B4F</Color>
+    <Color x:Key="Primary">#512BD4</Color>
+    <Color x:Key="PrimaryDark">#AC99EA</Color>
+    <Color x:Key="PrimaryDarkText">#F5F1FF</Color>
+    <Color x:Key="Secondary">#211A32</Color>
+    <Color x:Key="SecondaryDarkText">#D6CBFF</Color>
+    <Color x:Key="Tertiary">#120D1D</Color>
 
-    <Color x:Key="White">#FCFBF8</Color>
-    <Color x:Key="Black">#1F2522</Color>
-    <Color x:Key="Magenta">#9A7B4F</Color>
-    <Color x:Key="MidnightBlue">#214E48</Color>
-    <Color x:Key="OffBlack">#171B19</Color>
+    <Color x:Key="White">#F5F1FF</Color>
+    <Color x:Key="Black">#0F0B17</Color>
+    <Color x:Key="Magenta">#D600AA</Color>
+    <Color x:Key="MidnightBlue">#F0EBFF</Color>
+    <Color x:Key="OffBlack">#15111F</Color>
 
-    <Color x:Key="Gray100">#F5F1E8</Color>
-    <Color x:Key="Gray200">#E3DACC</Color>
-    <Color x:Key="Gray300">#D0C4B2</Color>
-    <Color x:Key="Gray400">#AA9F92</Color>
-    <Color x:Key="Gray500">#6F6A63</Color>
-    <Color x:Key="Gray600">#4D4A45</Color>
-    <Color x:Key="Gray900">#1F2522</Color>
-    <Color x:Key="Gray950">#171B19</Color>
-    <Color x:Key="Canvas">#F3EEE4</Color>
-    <Color x:Key="Surface">#FBF9F4</Color>
-    <Color x:Key="SurfaceRaised">#F7F2E8</Color>
-    <Color x:Key="SurfaceTint">#ECE4D6</Color>
-    <Color x:Key="FieldBackground">#F7F2E9</Color>
-    <Color x:Key="FieldBorder">#D7CCBC</Color>
-    <Color x:Key="Error">#B5544E</Color>
+    <Color x:Key="Gray100">#F5F3FA</Color>
+    <Color x:Key="Gray200">#D8D1E8</Color>
+    <Color x:Key="Gray300">#B8AECF</Color>
+    <Color x:Key="Gray400">#968DA9</Color>
+    <Color x:Key="Gray500">#7D758F</Color>
+    <Color x:Key="Gray600">#C9C2DA</Color>
+    <Color x:Key="Gray900">#1A1624</Color>
+    <Color x:Key="Gray950">#110D18</Color>
+
+    <Color x:Key="Canvas">#0F0B17</Color>
+    <Color x:Key="Surface">#171222</Color>
+    <Color x:Key="SurfaceRaised">#211A32</Color>
+    <Color x:Key="SurfaceTint">#2A2140</Color>
+    <Color x:Key="FieldBackground">#1D182B</Color>
+    <Color x:Key="FieldBorder">#4F4380</Color>
+    <Color x:Key="Outline">#342B4F</Color>
+    <Color x:Key="OutlineStrong">#5D4A99</Color>
+    <Color x:Key="TextPrimary">#F5F1FF</Color>
+    <Color x:Key="TextSecondary">#D0C8E0</Color>
+    <Color x:Key="TextMuted">#A9A0BC</Color>
+    <Color x:Key="StageCurrentBackground">#2A2140</Color>
+    <Color x:Key="StageCompletedBackground">#1A1624</Color>
+    <Color x:Key="Error">#FF8C82</Color>
 
     <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource Primary}"/>
     <SolidColorBrush x:Key="SecondaryBrush" Color="{StaticResource Secondary}"/>
@@ -55,5 +63,12 @@
     <SolidColorBrush x:Key="SurfaceTintBrush" Color="{StaticResource SurfaceTint}"/>
     <SolidColorBrush x:Key="FieldBackgroundBrush" Color="{StaticResource FieldBackground}"/>
     <SolidColorBrush x:Key="FieldBorderBrush" Color="{StaticResource FieldBorder}"/>
+    <SolidColorBrush x:Key="OutlineBrush" Color="{StaticResource Outline}"/>
+    <SolidColorBrush x:Key="OutlineStrongBrush" Color="{StaticResource OutlineStrong}"/>
+    <SolidColorBrush x:Key="TextPrimaryBrush" Color="{StaticResource TextPrimary}"/>
+    <SolidColorBrush x:Key="TextSecondaryBrush" Color="{StaticResource TextSecondary}"/>
+    <SolidColorBrush x:Key="TextMutedBrush" Color="{StaticResource TextMuted}"/>
+    <SolidColorBrush x:Key="StageCurrentBackgroundBrush" Color="{StaticResource StageCurrentBackground}"/>
+    <SolidColorBrush x:Key="StageCompletedBackgroundBrush" Color="{StaticResource StageCompletedBackground}"/>
     <SolidColorBrush x:Key="ErrorBrush" Color="{StaticResource Error}"/>
 </ResourceDictionary>

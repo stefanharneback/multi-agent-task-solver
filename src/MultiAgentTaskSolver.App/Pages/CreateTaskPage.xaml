@@ -135,7 +135,7 @@
             </VerticalStackLayout>
             <Label Style="{StaticResource FormFieldHint}" Text="Markdown is recommended for structure. Use headings, bullet lists, and examples when useful." />
 
-            <Label AutomationId="CreateTaskErrorLabel" Text="{Binding ErrorMessage}" TextColor="{StaticResource Error}" />
+            <Label AutomationId="CreateTaskErrorLabel" Style="{StaticResource ErrorLabelStyle}" Text="{Binding ErrorMessage}" />
 
             <HorizontalStackLayout Spacing="12">
                 <Button AutomationId="CreateTaskConfirmButton" Style="{StaticResource PrimaryActionButtonStyle}" Text="Create" Command="{Binding CreateCommand}" />

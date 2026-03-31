@@ -65,7 +65,7 @@
                             Style="{StaticResource PrimaryActionButtonStyle}"
                             Text="Save Settings" />
                     </HorizontalStackLayout>
-                    <Label AutomationId="SettingsErrorLabel" Text="{Binding ErrorMessage}" TextColor="{StaticResource Error}" />
+                    <Label AutomationId="SettingsErrorLabel" Style="{StaticResource ErrorLabelStyle}" Text="{Binding ErrorMessage}" />
                 </VerticalStackLayout>
             </Border>
 
@@ -80,8 +80,8 @@
                             <DataTemplate x:DataType="viewModels:ModelEntryViewModel">
                                 <Border Style="{StaticResource SurfaceCardStyle}" Padding="12" Margin="0,0,0,8">
                                     <VerticalStackLayout Spacing="4">
-                                        <Label Text="{Binding DisplayName}" FontAttributes="Bold" />
-                                        <Label Text="{Binding ModelId}" FontSize="12" TextColor="{StaticResource Gray500}" />
+                                        <Label Style="{StaticResource BodyStrongStyle}" Text="{Binding DisplayName}" />
+                                        <Label Style="{StaticResource CaptionLabelStyle}" Text="{Binding ModelId}" />
                                         <Label Text="{Binding Description}" />
                                     </VerticalStackLayout>
                                 </Border>

@@ -10,8 +10,8 @@
     <ScrollView>
         <VerticalStackLayout Padding="20" Spacing="14">
             <Label Style="{StaticResource PageHeadingStyle}" Text="Task details" />
-            <Label AutomationId="TaskRootPathLabel" Text="{Binding TaskRootPath}" FontAttributes="Italic" />
-            <Label AutomationId="TaskStatusLabel" Text="{Binding TaskStatusText}" FontAttributes="Bold" />
+            <Label AutomationId="TaskRootPathLabel" Style="{StaticResource ItalicBodyStyle}" Text="{Binding TaskRootPath}" />
+            <Label AutomationId="TaskStatusLabel" Style="{StaticResource StatusLabelStyle}" Text="{Binding TaskStatusText}" />
             <Label AutomationId="TaskUsageSummaryLabel" Style="{StaticResource FormFieldHint}" Text="{Binding TaskUsageSummaryText}" />
 
             <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
@@ -135,7 +135,7 @@
                 <Button AutomationId="TaskRunHistoryButton" Style="{StaticResource SecondaryActionButtonStyle}" Text="Flow &amp; History" Command="{Binding OpenRunHistoryCommand}" />
             </HorizontalStackLayout>
 
-            <Label AutomationId="TaskReviewHeadingLabel" Text="Task review agent" FontAttributes="Bold" FontSize="18" />
+            <Label AutomationId="TaskReviewHeadingLabel" Style="{StaticResource SectionHeadingStyle}" Text="Task review agent" />
             <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
                 <Label Style="{StaticResource FormFieldTitle}" Text="Review model" />
                 <Button CommandParameter="review-model" Clicked="OnHelpButtonClicked" Style="{StaticResource InfoButtonStyle}" Text="?" />
@@ -154,13 +154,13 @@
                 Style="{StaticResource PrimaryActionButtonStyle}"
                 Text="Run Task Review" />
 
-            <Label AutomationId="LatestReviewHeadingLabel" Text="Latest review summary" FontAttributes="Bold" FontSize="18" />
+            <Label AutomationId="LatestReviewHeadingLabel" Style="{StaticResource SectionHeadingStyle}" Text="Latest review summary" />
             <Border Padding="10" Style="{StaticResource SurfaceCardStyle}">
                 <Label AutomationId="LatestReviewSummaryLabel" Text="{Binding LatestReviewSummary}" />
             </Border>
             <Label AutomationId="LatestReviewUsageLabel" Style="{StaticResource FormFieldHint}" Text="{Binding LatestReviewUsageText}" />
 
-            <Label AutomationId="LatestReviewOutputHeadingLabel" Text="Latest review output" FontAttributes="Bold" FontSize="18" />
+            <Label AutomationId="LatestReviewOutputHeadingLabel" Style="{StaticResource SectionHeadingStyle}" Text="Latest review output" />
             <Border Padding="10" Style="{StaticResource SurfaceCardStyle}">
                 <Editor
                     AutomationId="LatestReviewOutputEditor"
@@ -173,16 +173,15 @@
 
             <Label
                 AutomationId="ReviewDecisionHeadingLabel"
-                FontAttributes="Bold"
-                FontSize="18"
                 IsVisible="{Binding CanApplyReviewDecision}"
+                Style="{StaticResource SectionHeadingStyle}"
                 Text="Review decision" />
             <HorizontalStackLayout IsVisible="{Binding CanApplyReviewDecision}" Spacing="12">
                 <Button AutomationId="ApproveReviewButton" Style="{StaticResource PrimaryActionButtonStyle}" Text="Approve" Command="{Binding ApproveReviewCommand}" />
                 <Button AutomationId="ReviseReviewButton" Style="{StaticResource SecondaryActionButtonStyle}" Text="Revise Task" Command="{Binding ReviseReviewCommand}" />
             </HorizontalStackLayout>
 
-            <Label AutomationId="WorkerHeadingLabel" Text="Worker agent" FontAttributes="Bold" FontSize="18" />
+            <Label AutomationId="WorkerHeadingLabel" Style="{StaticResource SectionHeadingStyle}" Text="Worker agent" />
             <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
                 <Label Style="{StaticResource FormFieldTitle}" Text="Worker model" />
                 <Button CommandParameter="worker-model" Clicked="OnHelpButtonClicked" Style="{StaticResource InfoButtonStyle}" Text="?" />
@@ -201,13 +200,13 @@
                 Style="{StaticResource PrimaryActionButtonStyle}"
                 Text="Run Worker" />
 
-            <Label AutomationId="LatestWorkerHeadingLabel" Text="Latest worker summary" FontAttributes="Bold" FontSize="18" />
+            <Label AutomationId="LatestWorkerHeadingLabel" Style="{StaticResource SectionHeadingStyle}" Text="Latest worker summary" />
             <Border Padding="10" Style="{StaticResource SurfaceCardStyle}">
                 <Label AutomationId="LatestWorkerSummaryLabel" Text="{Binding LatestWorkerSummary}" />
             </Border>
             <Label AutomationId="LatestWorkerUsageLabel" Style="{StaticResource FormFieldHint}" Text="{Binding LatestWorkerUsageText}" />
 
-            <Label AutomationId="LatestWorkerOutputHeadingLabel" Text="Latest worker output" FontAttributes="Bold" FontSize="18" />
+            <Label AutomationId="LatestWorkerOutputHeadingLabel" Style="{StaticResource SectionHeadingStyle}" Text="Latest worker output" />
             <Border Padding="10" Style="{StaticResource SurfaceCardStyle}">
                 <Editor
                     AutomationId="LatestWorkerOutputEditor"
@@ -218,7 +217,7 @@
                     Text="{Binding LatestWorkerOutput}" />
             </Border>
 
-            <Label AutomationId="ImportFilesHeadingLabel" Text="Import files" FontAttributes="Bold" FontSize="18" />
+            <Label AutomationId="ImportFilesHeadingLabel" Style="{StaticResource SectionHeadingStyle}" Text="Import files" />
 
             <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
                 <Label Style="{StaticResource FormFieldTitle}" Text="Import destination" />
@@ -230,9 +229,9 @@
                 <Button AutomationId="ImportFolderButton" Style="{StaticResource SecondaryActionButtonStyle}" Text="Import Folder" Command="{Binding ImportPickedFolderCommand}" />
             </HorizontalStackLayout>
 
-            <Label AutomationId="TaskDetailsErrorLabel" Text="{Binding ErrorMessage}" TextColor="{StaticResource Error}" />
+            <Label AutomationId="TaskDetailsErrorLabel" Style="{StaticResource ErrorLabelStyle}" Text="{Binding ErrorMessage}" />
 
-            <Label AutomationId="ArtifactsHeadingLabel" Text="Artifacts" FontAttributes="Bold" FontSize="18" />
+            <Label AutomationId="ArtifactsHeadingLabel" Style="{StaticResource SectionHeadingStyle}" Text="Artifacts" />
             <VerticalStackLayout
                 AutomationId="ArtifactsCollectionView"
                 Spacing="8"
@@ -244,7 +243,7 @@
                     <DataTemplate x:DataType="viewModels:ArtifactEntryViewModel">
                         <Border Padding="10" Style="{StaticResource SurfaceCardStyle}">
                             <VerticalStackLayout Spacing="4">
-                                <Label Text="{Binding Alias}" FontAttributes="Bold" />
+                                <Label Style="{StaticResource BodyStrongStyle}" Text="{Binding Alias}" />
                                 <Label Text="{Binding RelativePath}" />
                                 <Label Text="{Binding MediaType}" Style="{StaticResource FormFieldHint}" />
                                 <Label Text="{Binding SizeText}" Style="{StaticResource FormFieldHint}" />
@@ -254,7 +253,7 @@
                 </BindableLayout.ItemTemplate>
             </VerticalStackLayout>
 
-            <Label AutomationId="FolderTreeHeadingLabel" Text="Folder tree" FontAttributes="Bold" FontSize="18" />
+            <Label AutomationId="FolderTreeHeadingLabel" Style="{StaticResource SectionHeadingStyle}" Text="Folder tree" />
             <VerticalStackLayout
                 AutomationId="FolderTreeCollectionView"
                 Spacing="4"
@@ -264,7 +263,7 @@
                 </BindableLayout.EmptyView>
                 <BindableLayout.ItemTemplate>
                     <DataTemplate x:DataType="viewModels:TaskTreeEntryViewModel">
-                        <Label Text="{Binding DisplayName}" FontFamily="OpenSansRegular" />
+                        <Label Text="{Binding DisplayName}" />
                     </DataTemplate>
                 </BindableLayout.ItemTemplate>
             </VerticalStackLayout>

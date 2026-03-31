@@ -35,15 +35,59 @@ public sealed class UiSurfaceContractTests
     {
         var styles = ReadRepoFile("src", "MultiAgentTaskSolver.App", "Resources", "Styles", "Styles.xaml");
         var colors = ReadRepoFile("src", "MultiAgentTaskSolver.App", "Resources", "Styles", "Colors.xaml");
+        var appCode = ReadRepoFile("src", "MultiAgentTaskSolver.App", "App.xaml.cs");
 
         Assert.Contains("Style TargetType=\"Page\"", styles, StringComparison.Ordinal);
         Assert.Contains("EditorPanelStyle", styles, StringComparison.Ordinal);
         Assert.Contains("EditorResizeHandleStyle", styles, StringComparison.Ordinal);
         Assert.Contains("EditorResizeGripStyle", styles, StringComparison.Ordinal);
-        Assert.DoesNotContain("#512BD4", colors, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("Canvas", colors, StringComparison.Ordinal);
-        Assert.Contains("Surface", colors, StringComparison.Ordinal);
-        Assert.Contains("FieldBackground", colors, StringComparison.Ordinal);
+        Assert.Contains("BodyStrongStyle", styles, StringComparison.Ordinal);
+        Assert.Contains("ItalicBodyStyle", styles, StringComparison.Ordinal);
+        Assert.Contains("CaptionLabelStyle", styles, StringComparison.Ordinal);
+        Assert.Contains("StatusLabelStyle", styles, StringComparison.Ordinal);
+        Assert.Contains("ErrorLabelStyle", styles, StringComparison.Ordinal);
+        Assert.Contains("#512BD4", colors, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("<Color x:Key=\"Canvas\">#0F0B17</Color>", colors, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("<Color x:Key=\"Surface\">#171222</Color>", colors, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("<Color x:Key=\"FieldBackground\">#1D182B</Color>", colors, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("StageCurrentBackground", colors, StringComparison.Ordinal);
+        Assert.Contains("StageCompletedBackground", colors, StringComparison.Ordinal);
+        Assert.Contains("UserAppTheme = AppTheme.Dark;", appCode, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void SharedPagesNoLongerCarryInlineThemeOverrides()
+    {
+        var settingsPage = ReadRepoFile("src", "MultiAgentTaskSolver.App", "Pages", "SettingsPage.xaml");
+        var taskDetailsPage = ReadRepoFile("src", "MultiAgentTaskSolver.App", "Pages", "TaskDetailsPage.xaml");
+        var runHistoryPage = ReadRepoFile("src", "MultiAgentTaskSolver.App", "Pages", "RunHistoryPage.xaml");
+
+        Assert.DoesNotContain("FontAttributes=", settingsPage, StringComparison.Ordinal);
+        Assert.DoesNotContain("FontSize=", settingsPage, StringComparison.Ordinal);
+        Assert.DoesNotContain("TextColor=", settingsPage, StringComparison.Ordinal);
+
+        Assert.DoesNotContain("FontAttributes=", taskDetailsPage, StringComparison.Ordinal);
+        Assert.DoesNotContain("FontSize=", taskDetailsPage, StringComparison.Ordinal);
+        Assert.DoesNotContain("TextColor=", taskDetailsPage, StringComparison.Ordinal);
+
+        Assert.DoesNotContain("FontAttributes=", runHistoryPage, StringComparison.Ordinal);
+        Assert.DoesNotContain("FontSize=", runHistoryPage, StringComparison.Ordinal);
+        Assert.DoesNotContain("TextColor=", runHistoryPage, StringComparison.Ordinal);
+        Assert.DoesNotContain("AppThemeBinding", runHistoryPage, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void CodeBuiltViewsUseSharedStylesInsteadOfHardcodedThemeValues()
+    {
+        var settingsHomeView = ReadRepoFile("src", "MultiAgentTaskSolver.App", "Pages", "SettingsHomeView.cs");
+        var taskWorkspaceHomePage = ReadRepoFile("src", "MultiAgentTaskSolver.App", "Pages", "TaskWorkspaceHomePage.cs");
+        var taskWorkspaceHomeView = ReadRepoFile("src", "MultiAgentTaskSolver.App", "Pages", "TaskWorkspaceHomeView.cs");
+
+        Assert.DoesNotContain("Color.FromArgb", settingsHomeView, StringComparison.Ordinal);
+        Assert.DoesNotContain("Color.FromArgb", taskWorkspaceHomePage, StringComparison.Ordinal);
+        Assert.DoesNotContain("Color.FromArgb", taskWorkspaceHomeView, StringComparison.Ordinal);
+        Assert.Contains("ItalicBodyStyle", settingsHomeView + taskWorkspaceHomePage + taskWorkspaceHomeView, StringComparison.Ordinal);
+        Assert.Contains("ErrorLabelStyle", settingsHomeView + taskWorkspaceHomePage + taskWorkspaceHomeView, StringComparison.Ordinal);
     }
 
     private static string ReadRepoFile(params string[] relativeSegments)
