@@ -9,7 +9,7 @@ public sealed class FileSystemTaskWorkspaceStoreTests : IDisposable
     private readonly string _tempRootPath = Path.Combine(Path.GetTempPath(), "mats-tests", Guid.NewGuid().ToString("N"));
 
     [Fact]
-    public async Task CreateTaskAsyncCreatesDefaultFoldersAndPreservesArbitrarySubfolders()
+    public async Task CreateTaskAsyncCreatesDeclaredWorkspacePathsAndPreservesArbitrarySubfolders()
     {
         var store = new FileSystemTaskWorkspaceStore();
 
@@ -18,19 +18,21 @@ public sealed class FileSystemTaskWorkspaceStoreTests : IDisposable
             Title = "Review rules",
             Summary = "Review current rules and notes.",
             TaskMarkdown = "# Task",
-            AdditionalInputCategories = ["custom source"],
+            InputPaths = ["documents", "research/custom-source"],
+            OutputPaths = ["deliverables/final-report.md"],
         });
 
         Assert.True(File.Exists(Path.Combine(snapshot.TaskRootPath, "task.json")));
         Assert.True(File.Exists(Path.Combine(snapshot.TaskRootPath, "task.md")));
         Assert.Contains("\"status\": \"draft\"", await File.ReadAllTextAsync(Path.Combine(snapshot.TaskRootPath, "task.json")), StringComparison.Ordinal);
         Assert.True(Directory.Exists(Path.Combine(snapshot.TaskRootPath, "inputs", "documents")));
-        Assert.True(Directory.Exists(Path.Combine(snapshot.TaskRootPath, "inputs", "custom-source")));
+        Assert.True(Directory.Exists(Path.Combine(snapshot.TaskRootPath, "inputs", "research", "custom-source")));
+        Assert.True(Directory.Exists(Path.Combine(snapshot.TaskRootPath, "outputs", "deliverables")));
         Assert.True(Directory.Exists(Path.Combine(snapshot.TaskRootPath, "runs")));
         Assert.True(Directory.Exists(Path.Combine(snapshot.TaskRootPath, "outputs")));
         Assert.True(Directory.Exists(Path.Combine(snapshot.TaskRootPath, "cache")));
 
-        Directory.CreateDirectory(Path.Combine(snapshot.TaskRootPath, "inputs", "custom-source", "deep"));
+        Directory.CreateDirectory(Path.Combine(snapshot.TaskRootPath, "inputs", "research", "custom-source", "deep"));
 
         var reloaded = await store.LoadTaskAsync(_tempRootPath, snapshot.Manifest.Id);
 
@@ -38,7 +40,25 @@ public sealed class FileSystemTaskWorkspaceStoreTests : IDisposable
         Assert.Contains(reloaded!.Tree, node => node.RelativePath == "inputs");
         Assert.Contains(
             Flatten(reloaded.Tree),
-            node => node.RelativePath == "inputs/custom-source/deep" && node.IsDirectory);
+            node => node.RelativePath == "inputs/research/custom-source/deep" && node.IsDirectory);
+    }
+
+    [Fact]
+    public async Task CreateTaskAsyncWithoutDeclaredInputPathsDoesNotSeedDefaultInputFolders()
+    {
+        var store = new FileSystemTaskWorkspaceStore();
+
+        var snapshot = await store.CreateTaskAsync(_tempRootPath, new CreateTaskRequest
+        {
+            Title = "Minimal task",
+            Summary = "No declared input folders yet.",
+            TaskMarkdown = "# Task",
+            InputPaths = [],
+        });
+
+        Assert.True(Directory.Exists(Path.Combine(snapshot.TaskRootPath, "inputs")));
+        Assert.False(Directory.Exists(Path.Combine(snapshot.TaskRootPath, "inputs", "documents")));
+        Assert.Empty(Directory.EnumerateDirectories(Path.Combine(snapshot.TaskRootPath, "inputs")));
     }
 
     [Fact]
@@ -55,20 +75,52 @@ public sealed class FileSystemTaskWorkspaceStoreTests : IDisposable
         var sourceFilePath = Path.Combine(_tempRootPath, "source.txt");
         await File.WriteAllTextAsync(sourceFilePath, "hello world");
 
-        var artifact = await store.ImportArtifactAsync(_tempRootPath, snapshot.Manifest.Id, new ArtifactImportRequest
+        var artifacts = await store.ImportArtifactAsync(_tempRootPath, snapshot.Manifest.Id, new ArtifactImportRequest
         {
-            SourceFilePath = sourceFilePath,
+            SourcePath = sourceFilePath,
             DestinationRelativeDirectory = Path.Combine("inputs", "articles"),
             Alias = "article-1",
         });
 
         var reloaded = await store.LoadTaskAsync(_tempRootPath, snapshot.Manifest.Id);
 
+        var artifact = Assert.Single(artifacts);
         Assert.Equal("article-1", artifact.Alias);
         Assert.NotNull(reloaded);
         Assert.Single(reloaded!.Manifest.Artifacts);
         Assert.Equal("inputs/articles/source.txt", reloaded.Manifest.Artifacts[0].RelativePath);
         Assert.True(File.Exists(Path.Combine(reloaded.TaskRootPath, "inputs", "articles", "source.txt")));
+    }
+
+    [Fact]
+    public async Task ImportArtifactAsyncCopiesFolderTreeAndUpdatesManifest()
+    {
+        var store = new FileSystemTaskWorkspaceStore();
+        var snapshot = await store.CreateTaskAsync(_tempRootPath, new CreateTaskRequest
+        {
+            Title = "Analyze folder",
+            Summary = "Read imported folder.",
+            TaskMarkdown = "# Task",
+        });
+
+        var sourceFolderPath = Path.Combine(_tempRootPath, "source-folder");
+        Directory.CreateDirectory(Path.Combine(sourceFolderPath, "nested"));
+        await File.WriteAllTextAsync(Path.Combine(sourceFolderPath, "root.md"), "root");
+        await File.WriteAllTextAsync(Path.Combine(sourceFolderPath, "nested", "child.md"), "child");
+
+        var artifacts = await store.ImportArtifactAsync(_tempRootPath, snapshot.Manifest.Id, new ArtifactImportRequest
+        {
+            SourcePath = sourceFolderPath,
+            DestinationRelativeDirectory = "research",
+        });
+
+        var reloaded = await store.LoadTaskAsync(_tempRootPath, snapshot.Manifest.Id);
+
+        Assert.Equal(2, artifacts.Count);
+        Assert.NotNull(reloaded);
+        Assert.Contains(reloaded!.Manifest.Artifacts, artifact => artifact.RelativePath == "inputs/research/source-folder/root.md");
+        Assert.Contains(reloaded.Manifest.Artifacts, artifact => artifact.RelativePath == "inputs/research/source-folder/nested/child.md");
+        Assert.True(File.Exists(Path.Combine(reloaded.TaskRootPath, "inputs", "research", "source-folder", "nested", "child.md")));
     }
 
     [Fact]
@@ -91,10 +143,34 @@ public sealed class FileSystemTaskWorkspaceStoreTests : IDisposable
         {
             await store.ImportArtifactAsync(_tempRootPath, snapshot.Manifest.Id, new ArtifactImportRequest
             {
-                SourceFilePath = sourceFilePath,
+                SourcePath = sourceFilePath,
                 DestinationRelativeDirectory = escapedDestination,
             });
         });
+    }
+
+    [Fact]
+    public async Task SaveTaskAsyncCreatesNewDeclaredInputAndOutputPaths()
+    {
+        var store = new FileSystemTaskWorkspaceStore();
+        var snapshot = await store.CreateTaskAsync(_tempRootPath, new CreateTaskRequest
+        {
+            Title = "Edit task paths",
+            Summary = "Update declared paths.",
+            TaskMarkdown = "# Task",
+        });
+
+        var updatedManifest = snapshot.Manifest with
+        {
+            InputPaths = ["inputs/research/articles"],
+            OutputPaths = ["outputs/deliverables/final.md"],
+        };
+
+        await store.SaveTaskAsync(_tempRootPath, updatedManifest, snapshot.TaskMarkdown);
+
+        var taskRootPath = Path.Combine(_tempRootPath, snapshot.Manifest.FolderName);
+        Assert.True(Directory.Exists(Path.Combine(taskRootPath, "inputs", "research", "articles")));
+        Assert.True(Directory.Exists(Path.Combine(taskRootPath, "outputs", "deliverables")));
     }
 
     [Fact]

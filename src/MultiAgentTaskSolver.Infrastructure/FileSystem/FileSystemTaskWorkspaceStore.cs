@@ -30,17 +30,8 @@ public sealed class FileSystemTaskWorkspaceStore : ITaskWorkspaceStore
         Directory.CreateDirectory(Path.Combine(taskRootPath, TaskFolderConventions.OutputsFolderName));
         Directory.CreateDirectory(Path.Combine(taskRootPath, TaskFolderConventions.CacheFolderName));
 
-        var categories = TaskFolderConventions.DefaultInputCategories
-            .Concat(request.AdditionalInputCategories ?? [])
-            .Select(TaskFolderConventions.Slugify)
-            .Where(static value => !string.IsNullOrWhiteSpace(value))
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .ToArray();
-
-        foreach (var category in categories)
-        {
-            Directory.CreateDirectory(Path.Combine(taskRootPath, TaskFolderConventions.InputsFolderName, category));
-        }
+        var inputPaths = NormalizeInputPaths(request.InputPaths);
+        var outputPaths = NormalizeOutputPaths(request.OutputPaths);
 
         var manifest = new TaskManifest
         {
@@ -52,8 +43,12 @@ public sealed class FileSystemTaskWorkspaceStore : ITaskWorkspaceStore
             Status = TaskLifecycleState.Draft,
             CreatedAtUtc = createdAtUtc,
             UpdatedAtUtc = createdAtUtc,
-            InputCategories = categories,
+            InputPaths = inputPaths,
+            OutputPaths = outputPaths,
+            InputCategories = inputPaths.Select(ToLegacyInputCategory).ToArray(),
         };
+
+        EnsureDeclaredPathsExist(taskRootPath, manifest);
 
         await WriteManifestAsync(taskRootPath, manifest, cancellationToken);
         await WriteMarkdownAsync(taskRootPath, request.TaskMarkdown, cancellationToken);
@@ -108,7 +103,10 @@ public sealed class FileSystemTaskWorkspaceStore : ITaskWorkspaceStore
         CancellationToken cancellationToken = default)
     {
         var taskRootPath = await GetRequiredTaskRootPathAsync(workspaceRootPath, manifest.Id, cancellationToken);
-        var updatedManifest = manifest with
+        var normalizedManifest = NormalizeManifest(manifest);
+        EnsureDeclaredPathsExist(taskRootPath, normalizedManifest);
+
+        var updatedManifest = normalizedManifest with
         {
             UpdatedAtUtc = DateTimeOffset.UtcNow,
         };
@@ -117,55 +115,58 @@ public sealed class FileSystemTaskWorkspaceStore : ITaskWorkspaceStore
         await WriteMarkdownAsync(taskRootPath, taskMarkdown, cancellationToken);
     }
 
-    public async Task<ArtifactManifest> ImportArtifactAsync(
+    public async Task<IReadOnlyList<ArtifactManifest>> ImportArtifactAsync(
         string workspaceRootPath,
         string taskId,
         ArtifactImportRequest request,
         CancellationToken cancellationToken = default)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(request.SourceFilePath);
+        ArgumentException.ThrowIfNullOrWhiteSpace(request.SourcePath);
 
         var taskRootPath = await GetRequiredTaskRootPathAsync(workspaceRootPath, taskId, cancellationToken);
         var snapshot = await LoadSnapshotAsync(taskRootPath, cancellationToken);
-
-        if (!File.Exists(request.SourceFilePath))
-        {
-            throw new FileNotFoundException("Artifact source file was not found.", request.SourceFilePath);
-        }
 
         var destinationRelativeDirectory = NormalizeDestinationDirectory(request.DestinationRelativeDirectory);
         var destinationDirectoryPath = EnsureDirectoryWithinTaskRoot(taskRootPath, destinationRelativeDirectory);
         Directory.CreateDirectory(destinationDirectoryPath);
 
-        var sourceFileName = Path.GetFileName(request.SourceFilePath);
-        var destinationFilePath = CreateUniqueDestinationPath(destinationDirectoryPath, sourceFileName);
-        File.Copy(request.SourceFilePath, destinationFilePath);
-
         var importedAtUtc = DateTimeOffset.UtcNow;
-        var artifact = new ArtifactManifest
-        {
-            Id = Guid.NewGuid().ToString("N"),
-            Alias = string.IsNullOrWhiteSpace(request.Alias)
-                ? TaskFolderConventions.Slugify(Path.GetFileNameWithoutExtension(destinationFilePath))
-                : TaskFolderConventions.Slugify(request.Alias),
-            DisplayName = Path.GetFileName(destinationFilePath),
-            Category = destinationRelativeDirectory.Replace('\\', '/'),
-            RelativePath = Path.GetRelativePath(taskRootPath, destinationFilePath).Replace('\\', '/'),
-            MediaType = GuessMediaType(destinationFilePath),
-            Sha256 = await ComputeSha256Async(destinationFilePath, cancellationToken),
-            SizeBytes = new FileInfo(destinationFilePath).Length,
-            ImportedAtUtc = importedAtUtc,
-        };
+        var reservedAliases = new HashSet<string>(
+            snapshot.Manifest.Artifacts
+                .Select(static artifact => artifact.Alias)
+                .Where(static alias => !string.IsNullOrWhiteSpace(alias)),
+            StringComparer.OrdinalIgnoreCase);
+
+        IReadOnlyList<ArtifactManifest> importedArtifacts = File.Exists(request.SourcePath)
+            ? [await ImportFileAsync(
+                taskRootPath,
+                request.SourcePath,
+                destinationRelativeDirectory,
+                destinationDirectoryPath,
+                request.Alias,
+                importedAtUtc,
+                reservedAliases,
+                cancellationToken)]
+            : Directory.Exists(request.SourcePath)
+                ? await ImportDirectoryAsync(
+                    taskRootPath,
+                    request.SourcePath,
+                    destinationRelativeDirectory,
+                    destinationDirectoryPath,
+                    importedAtUtc,
+                    reservedAliases,
+                    cancellationToken)
+                : throw new FileNotFoundException("Artifact source path was not found.", request.SourcePath);
 
         var updatedManifest = snapshot.Manifest with
         {
             UpdatedAtUtc = importedAtUtc,
-            Artifacts = snapshot.Manifest.Artifacts.Concat([artifact]).ToArray(),
+            Artifacts = snapshot.Manifest.Artifacts.Concat(importedArtifacts).ToArray(),
         };
 
         await WriteManifestAsync(taskRootPath, updatedManifest, cancellationToken);
 
-        return artifact;
+        return importedArtifacts;
     }
 
     public async Task SaveRunAsync(
@@ -278,7 +279,7 @@ public sealed class FileSystemTaskWorkspaceStore : ITaskWorkspaceStore
 
         var taskRootPath = await GetRequiredTaskRootPathAsync(workspaceRootPath, taskId, cancellationToken);
         var outputsRootPath = EnsureDirectoryWithinTaskRoot(taskRootPath, TaskFolderConventions.OutputsFolderName);
-        var normalizedRelativePath = payload.RelativePath.Replace('/', Path.DirectorySeparatorChar);
+        var normalizedRelativePath = TaskFolderConventions.NormalizeOutputPath(payload.RelativePath).Replace('/', Path.DirectorySeparatorChar);
         var outputPath = EnsureDirectoryWithinTaskRoot(taskRootPath, normalizedRelativePath);
         EnsurePathWithinRoot(outputsRootPath, outputPath, "Output artifact path escaped the outputs folder.");
 
@@ -291,6 +292,7 @@ public sealed class FileSystemTaskWorkspaceStore : ITaskWorkspaceStore
         var manifestPath = Path.Combine(taskRootPath, TaskFolderConventions.TaskManifestFileName);
         var markdownPath = Path.Combine(taskRootPath, TaskFolderConventions.TaskMarkdownFileName);
         var manifest = await ReadManifestAsync(manifestPath, cancellationToken);
+        EnsureDeclaredPathsExist(taskRootPath, manifest);
         var taskMarkdown = File.Exists(markdownPath)
             ? await File.ReadAllTextAsync(markdownPath, cancellationToken)
             : string.Empty;
@@ -308,7 +310,9 @@ public sealed class FileSystemTaskWorkspaceStore : ITaskWorkspaceStore
     {
         await using var stream = File.OpenRead(manifestPath);
         var manifest = await JsonSerializer.DeserializeAsync<TaskManifest>(stream, JsonDefaults.SerializerOptions, cancellationToken);
-        return manifest ?? throw new InvalidOperationException($"Task manifest at '{manifestPath}' was empty.");
+        return manifest is null
+            ? throw new InvalidOperationException($"Task manifest at '{manifestPath}' was empty.")
+            : NormalizeManifest(manifest);
     }
 
     private static Task WriteManifestAsync(string taskRootPath, TaskManifest manifest, CancellationToken cancellationToken)
@@ -333,11 +337,8 @@ public sealed class FileSystemTaskWorkspaceStore : ITaskWorkspaceStore
 
     private static string NormalizeDestinationDirectory(string destinationRelativeDirectory)
     {
-        var normalized = string.IsNullOrWhiteSpace(destinationRelativeDirectory)
-            ? Path.Combine(TaskFolderConventions.InputsFolderName, "documents")
-            : destinationRelativeDirectory.Replace('/', Path.DirectorySeparatorChar);
-
-        return normalized.TrimStart(Path.DirectorySeparatorChar);
+        return TaskFolderConventions.NormalizeInputPath(destinationRelativeDirectory)
+            .Replace('/', Path.DirectorySeparatorChar);
     }
 
     private static string EnsureDirectoryWithinTaskRoot(string taskRootPath, string relativePath)
@@ -371,10 +372,10 @@ public sealed class FileSystemTaskWorkspaceStore : ITaskWorkspaceStore
         }
     }
 
-    private static string CreateUniqueDestinationPath(string destinationDirectoryPath, string sourceFileName)
+    private static string CreateUniqueFileDestinationPath(string destinationDirectoryPath, string sourceFileName)
     {
         var candidatePath = Path.Combine(destinationDirectoryPath, sourceFileName);
-        if (!File.Exists(candidatePath))
+        if (!File.Exists(candidatePath) && !Directory.Exists(candidatePath))
         {
             return candidatePath;
         }
@@ -386,13 +387,221 @@ public sealed class FileSystemTaskWorkspaceStore : ITaskWorkspaceStore
         while (true)
         {
             candidatePath = Path.Combine(destinationDirectoryPath, $"{baseName}-{counter}{extension}");
-            if (!File.Exists(candidatePath))
+            if (!File.Exists(candidatePath) && !Directory.Exists(candidatePath))
             {
                 return candidatePath;
             }
 
             counter++;
         }
+    }
+
+    private static string CreateUniqueDirectoryDestinationPath(string destinationDirectoryPath, string directoryName)
+    {
+        var candidatePath = Path.Combine(destinationDirectoryPath, directoryName);
+        if (!Directory.Exists(candidatePath) && !File.Exists(candidatePath))
+        {
+            return candidatePath;
+        }
+
+        var counter = 1;
+        while (true)
+        {
+            candidatePath = Path.Combine(destinationDirectoryPath, $"{directoryName}-{counter}");
+            if (!Directory.Exists(candidatePath) && !File.Exists(candidatePath))
+            {
+                return candidatePath;
+            }
+
+            counter++;
+        }
+    }
+
+    private static TaskManifest NormalizeManifest(TaskManifest manifest)
+    {
+        var inputPaths = NormalizeInputPaths(
+            manifest.InputPaths.Count > 0
+                ? manifest.InputPaths
+                : manifest.InputCategories.Count > 0
+                    ? manifest.InputCategories.Select(static category => $"{TaskFolderConventions.InputsFolderName}/{category}")
+                    : []);
+
+        var outputPaths = NormalizeOutputPaths(manifest.OutputPaths);
+
+        return manifest with
+        {
+            InputPaths = inputPaths,
+            OutputPaths = outputPaths,
+            InputCategories = inputPaths.Select(ToLegacyInputCategory).ToArray(),
+        };
+    }
+
+    private static string[] NormalizeInputPaths(IEnumerable<string>? inputPaths)
+    {
+        var values = inputPaths?
+            .Where(static path => !string.IsNullOrWhiteSpace(path))
+            .Select(TaskFolderConventions.NormalizeInputPath)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+
+        return values is { Length: > 0 } ? values : [];
+    }
+
+    private static string[] NormalizeOutputPaths(IEnumerable<string>? outputPaths)
+    {
+        var values = outputPaths?
+            .Where(static path => !string.IsNullOrWhiteSpace(path))
+            .Select(TaskFolderConventions.NormalizeOutputPath)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+
+        return values is { Length: > 0 } ? values : TaskFolderConventions.DefaultOutputPaths.ToArray();
+    }
+
+    private static string ToLegacyInputCategory(string inputPath)
+    {
+        var normalized = TaskFolderConventions.NormalizeInputPath(inputPath);
+        return normalized.StartsWith($"{TaskFolderConventions.InputsFolderName}/", StringComparison.OrdinalIgnoreCase)
+            ? normalized[(TaskFolderConventions.InputsFolderName.Length + 1)..]
+            : normalized;
+    }
+
+    private static void EnsureDeclaredPathsExist(string taskRootPath, TaskManifest manifest)
+    {
+        foreach (var inputPath in manifest.InputPaths)
+        {
+            Directory.CreateDirectory(EnsureDirectoryWithinTaskRoot(taskRootPath, inputPath));
+        }
+
+        var outputsRootPath = EnsureDirectoryWithinTaskRoot(taskRootPath, TaskFolderConventions.OutputsFolderName);
+        foreach (var outputPath in manifest.OutputPaths)
+        {
+            var fullOutputPath = EnsureDirectoryWithinTaskRoot(taskRootPath, outputPath);
+            EnsurePathWithinRoot(outputsRootPath, fullOutputPath, "Output artifact path escaped the outputs folder.");
+            Directory.CreateDirectory(Path.GetDirectoryName(fullOutputPath)!);
+        }
+    }
+
+    private static async Task<ArtifactManifest> ImportFileAsync(
+        string taskRootPath,
+        string sourceFilePath,
+        string destinationRelativeDirectory,
+        string destinationDirectoryPath,
+        string? requestedAlias,
+        DateTimeOffset importedAtUtc,
+        ISet<string> reservedAliases,
+        CancellationToken cancellationToken)
+    {
+        var sourceFileName = Path.GetFileName(sourceFilePath);
+        var destinationFilePath = CreateUniqueFileDestinationPath(destinationDirectoryPath, sourceFileName);
+        File.Copy(sourceFilePath, destinationFilePath);
+
+        return await CreateArtifactManifestAsync(
+            taskRootPath,
+            destinationFilePath,
+            destinationRelativeDirectory,
+            requestedAlias,
+            importedAtUtc,
+            reservedAliases,
+            cancellationToken);
+    }
+
+    private static async Task<IReadOnlyList<ArtifactManifest>> ImportDirectoryAsync(
+        string taskRootPath,
+        string sourceDirectoryPath,
+        string destinationRelativeDirectory,
+        string destinationDirectoryPath,
+        DateTimeOffset importedAtUtc,
+        ISet<string> reservedAliases,
+        CancellationToken cancellationToken)
+    {
+        var sourceDirectoryName = Path.GetFileName(Path.TrimEndingDirectorySeparator(sourceDirectoryPath));
+        if (string.IsNullOrWhiteSpace(sourceDirectoryName))
+        {
+            throw new InvalidOperationException("Imported folders must have a valid name.");
+        }
+
+        var destinationRootPath = CreateUniqueDirectoryDestinationPath(destinationDirectoryPath, sourceDirectoryName);
+        Directory.CreateDirectory(destinationRootPath);
+
+        foreach (var sourceSubdirectoryPath in Directory.EnumerateDirectories(sourceDirectoryPath, "*", SearchOption.AllDirectories)
+                     .OrderBy(static path => path, StringComparer.OrdinalIgnoreCase))
+        {
+            var relativeSubdirectoryPath = Path.GetRelativePath(sourceDirectoryPath, sourceSubdirectoryPath);
+            Directory.CreateDirectory(Path.Combine(destinationRootPath, relativeSubdirectoryPath));
+        }
+
+        var artifacts = new List<ArtifactManifest>();
+        foreach (var sourceFilePath in Directory.EnumerateFiles(sourceDirectoryPath, "*", SearchOption.AllDirectories)
+                     .OrderBy(static path => path, StringComparer.OrdinalIgnoreCase))
+        {
+            var relativeSubPath = Path.GetRelativePath(sourceDirectoryPath, sourceFilePath);
+            var destinationFilePath = Path.Combine(destinationRootPath, relativeSubPath);
+            Directory.CreateDirectory(Path.GetDirectoryName(destinationFilePath)!);
+            File.Copy(sourceFilePath, destinationFilePath);
+
+            artifacts.Add(await CreateArtifactManifestAsync(
+                taskRootPath,
+                destinationFilePath,
+                destinationRelativeDirectory,
+                null,
+                importedAtUtc,
+                reservedAliases,
+                cancellationToken));
+        }
+
+        return artifacts;
+    }
+
+    private static async Task<ArtifactManifest> CreateArtifactManifestAsync(
+        string taskRootPath,
+        string destinationFilePath,
+        string destinationRelativeDirectory,
+        string? requestedAlias,
+        DateTimeOffset importedAtUtc,
+        ISet<string> reservedAliases,
+        CancellationToken cancellationToken)
+    {
+        var relativePath = Path.GetRelativePath(taskRootPath, destinationFilePath).Replace('\\', '/');
+        var category = Path.GetDirectoryName(relativePath)?.Replace('\\', '/') ?? destinationRelativeDirectory.Replace('\\', '/');
+
+        return new ArtifactManifest
+        {
+            Id = Guid.NewGuid().ToString("N"),
+            Alias = CreateUniqueArtifactAlias(taskRootPath, destinationFilePath, requestedAlias, reservedAliases),
+            DisplayName = Path.GetFileName(destinationFilePath),
+            Category = category,
+            RelativePath = relativePath,
+            MediaType = GuessMediaType(destinationFilePath),
+            Sha256 = await ComputeSha256Async(destinationFilePath, cancellationToken),
+            SizeBytes = new FileInfo(destinationFilePath).Length,
+            ImportedAtUtc = importedAtUtc,
+        };
+    }
+
+    private static string CreateUniqueArtifactAlias(
+        string taskRootPath,
+        string destinationFilePath,
+        string? requestedAlias,
+        ISet<string> reservedAliases)
+    {
+        var aliasSource = string.IsNullOrWhiteSpace(requestedAlias)
+            ? Path.ChangeExtension(Path.GetRelativePath(taskRootPath, destinationFilePath), null)?
+                .Replace(Path.DirectorySeparatorChar, '-')
+                .Replace(Path.AltDirectorySeparatorChar, '-')
+            : requestedAlias;
+
+        var baseAlias = TaskFolderConventions.Slugify(aliasSource ?? Path.GetFileNameWithoutExtension(destinationFilePath));
+        var alias = baseAlias;
+        var counter = 2;
+
+        while (!reservedAliases.Add(alias))
+        {
+            alias = $"{baseAlias}-{counter}";
+            counter++;
+        }
+
+        return alias;
     }
 
     private static async Task<string> ComputeSha256Async(string filePath, CancellationToken cancellationToken)

@@ -15,6 +15,9 @@ This repository currently delivers the foundation slice:
 - a first task-review execution path with persisted prompt, response, and usage artifacts
 - an explicit review approval or revise gate with persisted `user-decision` runs
 - a first worker execution path with persisted run artifacts and markdown output under `outputs/`
+- task-defined input folder declarations and output file targets
+- picker-assisted task creation for input/output path setup
+- file and folder imports into declared task input paths
 - task details usage summaries for the latest review/worker runs plus per-task token, duration, and cost rollups from saved `usage.json` artifacts
 - a MAUI shell for tasks, task details, flow/history, and settings
 - app-level automated tests for MAUI viewmodels and navigation/picker seams
@@ -51,19 +54,17 @@ Task-<id>/
   task.json
   task.md
   inputs/
-    documents/
-    transcripts/
-    interviews/
-    articles/
-    rules/
-    notes/
-    standards/
+    <task-defined folders...>
   runs/
   outputs/
+    worker-output.md
+    <task-defined files...>
+    0001-worker/
+      worker-output.md
   cache/
 ```
 
-Canonical task artifacts stay human-readable. The `cache/` folder may contain machine-oriented derived files.
+The top-level roots stay stable, but the task manifest now declares which folders under `inputs/` are intended for imports and which file targets under `outputs/` are intended for the worker deliverable. Input subfolders are only created when the task declares them. Worker runs still keep a run-scoped output copy under `outputs/<sequence>-worker/` so prior history remains readable. Canonical task artifacts stay human-readable. The `cache/` folder may contain machine-oriented derived files.
 
 ## Project structure
 

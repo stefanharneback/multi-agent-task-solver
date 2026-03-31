@@ -58,7 +58,9 @@ This roadmap defines the next major milestones for the repository. Update it whe
 - Current slice delivered:
   - worker-agent run kind
   - persisted worker runs with `step.json`, `prompt.md`, `response.md`, and `usage.json`
-  - markdown output artifact creation under `outputs/`
+  - task-defined input folder declarations and output file targets in the task manifest
+  - file and folder imports into declared task input paths
+  - markdown output artifact creation under `outputs/`, including run-scoped copies and declared output targets
   - MAUI task-details entry point for running a worker and inspecting the latest worker output
 - Scope:
   - worker-agent run kind

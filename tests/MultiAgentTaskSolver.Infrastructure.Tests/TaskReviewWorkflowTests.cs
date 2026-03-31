@@ -24,7 +24,7 @@ public sealed class TaskReviewWorkflowTests : IDisposable
         await File.WriteAllTextAsync(sourceFilePath, "Policy draft content.");
         await store.ImportArtifactAsync(_tempRootPath, created.Manifest.Id, new ArtifactImportRequest
         {
-            SourceFilePath = sourceFilePath,
+            SourcePath = sourceFilePath,
             DestinationRelativeDirectory = Path.Combine("inputs", "documents"),
             Alias = "policy",
         });

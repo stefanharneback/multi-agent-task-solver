@@ -44,6 +44,16 @@ public sealed class WorkerPromptFactory : IWorkerPromptFactory
         builder.AppendLine("# Task Description");
         builder.AppendLine(snapshot.TaskMarkdown);
 
+        if (snapshot.Manifest.OutputPaths.Count > 0)
+        {
+            builder.AppendLine();
+            builder.AppendLine("# Declared Output Targets");
+            foreach (var outputPath in snapshot.Manifest.OutputPaths.OrderBy(static path => path, StringComparer.OrdinalIgnoreCase))
+            {
+                builder.Append("- ").AppendLine(outputPath);
+            }
+        }
+
         if (resolution.ReferencedAliases.Count > 0)
         {
             builder.AppendLine();
@@ -86,7 +96,7 @@ public sealed class WorkerPromptFactory : IWorkerPromptFactory
                 ## Deliverable
                 ## Open Questions
                 ## Follow-up Notes
-                The Deliverable section should be ready to persist as the worker output artifact.
+                The Deliverable section should be ready to persist into the declared output file targets.
                 """,
             InputText = builder.ToString().Trim(),
             ReferencedAliases = resolution.ReferencedAliases,

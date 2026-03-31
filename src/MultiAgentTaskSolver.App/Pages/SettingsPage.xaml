@@ -9,35 +9,87 @@
 
     <ScrollView>
         <VerticalStackLayout Padding="20" Spacing="14">
-            <Label AutomationId="SettingsHeadingLabel" Text="Workspace settings" FontAttributes="Bold" FontSize="24" />
+            <Label AutomationId="SettingsHeadingLabel" Style="{StaticResource PageHeadingStyle}" Text="Workspace settings" />
+            <Label Style="{StaticResource FormFieldHint}" Text="Configure the local workspace and the OpenAI gateway connection used by the app." />
 
-            <Label Text="Workspace root" />
-            <Entry AutomationId="WorkspaceRootEntry" Text="{Binding WorkspaceRootPath}" />
-            <Button AutomationId="BrowseWorkspaceButton" Text="Browse Workspace Folder" Command="{Binding BrowseWorkspaceFolderCommand}" HorizontalOptions="Start" />
+            <Border Style="{StaticResource SurfaceCardStyle}" Padding="16">
+                <VerticalStackLayout Spacing="12">
+                    <Label Style="{StaticResource SectionHeadingStyle}" Text="Workspace and gateway" />
 
-            <Label Text="OpenAI gateway base URL" />
-            <Entry AutomationId="OpenAiGatewayBaseUrlEntry" Text="{Binding OpenAiGatewayBaseUrl}" Keyboard="Url" />
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                        <Label Style="{StaticResource FormFieldTitle}" Text="Workspace root" />
+                        <Button CommandParameter="workspace-root" Clicked="OnHelpButtonClicked" Style="{StaticResource InfoButtonStyle}" Text="?" />
+                    </Grid>
+                    <Entry
+                        AutomationId="WorkspaceRootEntry"
+                        Placeholder="Folder where task workspaces are stored."
+                        Style="{StaticResource FormEntryStyle}"
+                        Text="{Binding WorkspaceRootPath}" />
+                    <Label Style="{StaticResource FormFieldHint}" Text="This should point to the base folder where task manifests and artifacts are saved." />
+                    <Button
+                        AutomationId="BrowseWorkspaceButton"
+                        Command="{Binding BrowseWorkspaceFolderCommand}"
+                        HorizontalOptions="Start"
+                        Style="{StaticResource SecondaryActionButtonStyle}"
+                        Text="Browse Workspace Folder" />
 
-            <Label Text="OpenAI client bearer token" />
-            <Entry AutomationId="OpenAiBearerTokenEntry" Text="{Binding OpenAiBearerToken}" IsPassword="True" />
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                        <Label Style="{StaticResource FormFieldTitle}" Text="OpenAI gateway base URL" />
+                        <Button CommandParameter="gateway-base-url" Clicked="OnHelpButtonClicked" Style="{StaticResource InfoButtonStyle}" Text="?" />
+                    </Grid>
+                    <Entry
+                        AutomationId="OpenAiGatewayBaseUrlEntry"
+                        Keyboard="Url"
+                        Placeholder="https://your-gateway-host"
+                        Style="{StaticResource FormEntryStyle}"
+                        Text="{Binding OpenAiGatewayBaseUrl}" />
+                    <Label Style="{StaticResource FormFieldHint}" Text="Base URL for the gateway service that forwards requests to OpenAI." />
 
-            <Button AutomationId="SaveSettingsButton" Text="Save Settings" Command="{Binding SaveCommand}" HorizontalOptions="Start" />
-            <Label AutomationId="SettingsErrorLabel" Text="{Binding ErrorMessage}" TextColor="IndianRed" />
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                        <Label Style="{StaticResource FormFieldTitle}" Text="OpenAI client bearer token" />
+                        <Button CommandParameter="bearer-token" Clicked="OnHelpButtonClicked" Style="{StaticResource InfoButtonStyle}" Text="?" />
+                    </Grid>
+                    <Entry
+                        AutomationId="OpenAiBearerTokenEntry"
+                        IsPassword="True"
+                        Placeholder="Paste the client bearer token"
+                        Style="{StaticResource FormEntryStyle}"
+                        Text="{Binding OpenAiBearerToken}" />
+                    <Label Style="{StaticResource FormFieldHint}" Text="Stored locally and used for authenticated calls from the app to the gateway." />
 
-            <Label AutomationId="OpenAiModelsHeadingLabel" Text="Seeded OpenAI models" FontAttributes="Bold" FontSize="18" />
-            <CollectionView AutomationId="OpenAiModelsCollectionView" ItemsSource="{Binding OpenAiModels}">
-                <CollectionView.ItemTemplate>
-                    <DataTemplate x:DataType="viewModels:ModelEntryViewModel">
-                        <Border Padding="10" Margin="0,0,0,8" StrokeThickness="1">
-                            <VerticalStackLayout Spacing="4">
-                                <Label Text="{Binding DisplayName}" FontAttributes="Bold" />
-                                <Label Text="{Binding ModelId}" FontSize="12" />
-                                <Label Text="{Binding Description}" />
-                            </VerticalStackLayout>
-                        </Border>
-                    </DataTemplate>
-                </CollectionView.ItemTemplate>
-            </CollectionView>
+                    <HorizontalStackLayout Spacing="12">
+                        <Button
+                            AutomationId="SaveSettingsButton"
+                            Command="{Binding SaveCommand}"
+                            HorizontalOptions="Start"
+                            Style="{StaticResource PrimaryActionButtonStyle}"
+                            Text="Save Settings" />
+                    </HorizontalStackLayout>
+                    <Label AutomationId="SettingsErrorLabel" Text="{Binding ErrorMessage}" TextColor="IndianRed" />
+                </VerticalStackLayout>
+            </Border>
+
+            <Border Style="{StaticResource SurfaceCardStyle}" Padding="16">
+                <VerticalStackLayout Spacing="12">
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                        <Label AutomationId="OpenAiModelsHeadingLabel" Style="{StaticResource SectionHeadingStyle}" Text="Seeded OpenAI models" />
+                        <Button CommandParameter="seeded-models" Clicked="OnHelpButtonClicked" Style="{StaticResource InfoButtonStyle}" Text="?" />
+                    </Grid>
+                    <CollectionView AutomationId="OpenAiModelsCollectionView" ItemsSource="{Binding OpenAiModels}">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="viewModels:ModelEntryViewModel">
+                                <Border Style="{StaticResource SurfaceCardStyle}" Padding="12" Margin="0,0,0,8">
+                                    <VerticalStackLayout Spacing="4">
+                                        <Label Text="{Binding DisplayName}" FontAttributes="Bold" />
+                                        <Label Text="{Binding ModelId}" FontSize="12" TextColor="{StaticResource Gray500}" />
+                                        <Label Text="{Binding Description}" />
+                                    </VerticalStackLayout>
+                                </Border>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </VerticalStackLayout>
+            </Border>
         </VerticalStackLayout>
     </ScrollView>
 </ContentPage>

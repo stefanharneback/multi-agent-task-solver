@@ -20,6 +20,8 @@ public sealed class TaskManifestTests
             Status = TaskLifecycleState.Draft,
             CreatedAtUtc = DateTimeOffset.Parse("2026-03-23T20:00:00Z", CultureInfo.InvariantCulture),
             UpdatedAtUtc = DateTimeOffset.Parse("2026-03-23T20:30:00Z", CultureInfo.InvariantCulture),
+            InputPaths = ["inputs/documents", "inputs/notes"],
+            OutputPaths = ["outputs/final/summary.md"],
             InputCategories = ["documents", "notes"],
             Artifacts =
             [
@@ -77,6 +79,8 @@ public sealed class TaskManifestTests
 
         Assert.NotNull(roundTripped);
         Assert.Equal(manifest.Title, roundTripped!.Title);
+        Assert.Equal(manifest.InputPaths, roundTripped.InputPaths);
+        Assert.Equal(manifest.OutputPaths, roundTripped.OutputPaths);
         Assert.Single(roundTripped.Artifacts);
         Assert.Single(roundTripped.Runs);
         Assert.Equal("policy", roundTripped.Artifacts[0].Alias);

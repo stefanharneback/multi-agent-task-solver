@@ -88,6 +88,50 @@ public sealed class TaskDetailsViewModelTests
     }
 
     [Fact]
+    public async Task SaveAsyncPersistsConfiguredInputAndOutputPaths()
+    {
+        var coordinator = new FakeTaskWorkspaceCoordinator();
+        coordinator.ModelsByProvider["openai"] = [TestData.CreateTextModel("gpt-5", "GPT-5")];
+        coordinator.Snapshots["task-001"] = TestData.CreateSnapshot("task-001", "Task", "Summary", TaskLifecycleState.Draft);
+
+        var viewModel = new TaskDetailsViewModel(coordinator, new FakeNavigationService(), new FakeFilePickerService());
+        await viewModel.LoadAsync("task-001");
+        viewModel.InputPathsText = "research/articles\ninputs/contracts";
+        viewModel.OutputPathsText = "deliverables/final-report.md";
+
+        await viewModel.SaveAsync();
+
+        var savedTask = Assert.Single(coordinator.SavedTasks);
+        Assert.Equal(["inputs/research/articles", "inputs/contracts"], savedTask.Manifest.InputPaths);
+        Assert.Equal(["outputs/deliverables/final-report.md"], savedTask.Manifest.OutputPaths);
+    }
+
+    [Fact]
+    public async Task ImportPickedFolderAsyncUsesSelectedFolderPath()
+    {
+        var coordinator = new FakeTaskWorkspaceCoordinator();
+        coordinator.ModelsByProvider["openai"] = [TestData.CreateTextModel("gpt-5", "GPT-5")];
+        coordinator.Snapshots["task-001"] = TestData.CreateSnapshot("task-001", "Task", "Summary", TaskLifecycleState.Draft);
+        var folderPicker = new FakeFolderPickerService
+        {
+            SelectedPath = "C:\\temp\\source-folder",
+        };
+
+        var viewModel = new TaskDetailsViewModel(
+            coordinator,
+            new FakeNavigationService(),
+            new FakeFilePickerService(),
+            folderPicker);
+        await viewModel.LoadAsync("task-001");
+
+        await viewModel.ImportPickedFolderAsync();
+
+        var importCall = Assert.Single(coordinator.ImportedArtifacts);
+        Assert.Equal(["C:\\temp\\source-folder"], importCall.SourcePaths);
+        Assert.Equal("inputs/articles", importCall.DestinationRelativeDirectory);
+    }
+
+    [Fact]
     public async Task RunTaskReviewAsyncReloadsLatestTaskState()
     {
         var coordinator = new FakeTaskWorkspaceCoordinator();

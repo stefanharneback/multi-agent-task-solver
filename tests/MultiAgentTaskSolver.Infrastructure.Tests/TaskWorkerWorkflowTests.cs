@@ -24,7 +24,7 @@ public sealed class TaskWorkerWorkflowTests : IDisposable
         await File.WriteAllTextAsync(sourceFilePath, "Policy draft content.");
         await store.ImportArtifactAsync(_tempRootPath, created.Manifest.Id, new ArtifactImportRequest
         {
-            SourceFilePath = sourceFilePath,
+            SourcePath = sourceFilePath,
             DestinationRelativeDirectory = Path.Combine("inputs", "documents"),
             Alias = "policy",
         });
@@ -57,12 +57,17 @@ public sealed class TaskWorkerWorkflowTests : IDisposable
         Assert.Equal(TaskRunKind.Worker, reloaded.Manifest.Runs[0].Kind);
         Assert.Equal(TaskRunStatus.Completed, reloaded.Manifest.Runs[0].Status);
         Assert.Equal(TaskStepStatus.Completed, reloaded.Manifest.Runs[0].Steps[0].Status);
-        Assert.Equal(["outputs/0001-worker/worker-output.md"], reloaded.Manifest.Runs[0].Steps[0].OutputArtifactPaths);
+        Assert.Equal(
+            ["outputs/0001-worker/worker-output.md", "outputs/worker-output.md"],
+            reloaded.Manifest.Runs[0].Steps[0].OutputArtifactPaths);
         Assert.Equal("outputs/0001-worker/worker-output.md", result.OutputArtifactPaths[0]);
+        Assert.Equal("outputs/worker-output.md", result.OutputArtifactPaths[1]);
 
         var taskRootPath = Path.Combine(_tempRootPath, created.Manifest.FolderName);
-        var outputPath = Path.Combine(taskRootPath, "outputs", "0001-worker", "worker-output.md");
-        Assert.Contains("## Deliverable", await File.ReadAllTextAsync(outputPath), StringComparison.Ordinal);
+        var historyOutputPath = Path.Combine(taskRootPath, "outputs", "0001-worker", "worker-output.md");
+        var declaredOutputPath = Path.Combine(taskRootPath, "outputs", "worker-output.md");
+        Assert.Contains("## Deliverable", await File.ReadAllTextAsync(historyOutputPath), StringComparison.Ordinal);
+        Assert.Contains("## Deliverable", await File.ReadAllTextAsync(declaredOutputPath), StringComparison.Ordinal);
     }
 
     [Fact]

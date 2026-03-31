@@ -66,8 +66,8 @@ public static class MauiProgram
         builder.Services.AddTransient<TaskDetailsViewModel>();
         builder.Services.AddTransient<RunHistoryViewModel>();
 
-        builder.Services.AddSingleton<TaskListPage>();
-        builder.Services.AddSingleton<SettingsPage>();
+        builder.Services.AddSingleton<TaskWorkspaceHomeView>();
+        builder.Services.AddSingleton<SettingsHomeView>();
         builder.Services.AddTransient<CreateTaskPage>();
         builder.Services.AddTransient<TaskDetailsPage>();
         builder.Services.AddTransient<RunHistoryPage>();

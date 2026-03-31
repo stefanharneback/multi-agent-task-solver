@@ -4,11 +4,27 @@ namespace MultiAgentTaskSolver.App;
 
 public partial class AppShell : Shell
 {
-    public AppShell(TaskListPage taskListPage, SettingsPage settingsPage)
+    public AppShell(TaskWorkspaceHomeView taskWorkspaceHomeView, SettingsHomeView settingsHomeView)
     {
         InitializeComponent();
 
-        Items.Add(CreateFlyoutItem("Tasks", "tasks", taskListPage));
+        var taskWorkspacePage = new ContentPage
+        {
+            Title = "Tasks",
+            Content = taskWorkspaceHomeView
+        };
+
+        taskWorkspacePage.Appearing += async (_, _) => await taskWorkspaceHomeView.LoadAsync();
+
+        var settingsPage = new ContentPage
+        {
+            Title = "Settings",
+            Content = settingsHomeView
+        };
+
+        settingsPage.Appearing += async (_, _) => await settingsHomeView.LoadAsync();
+
+        Items.Add(CreateFlyoutItem("Tasks", "tasks", taskWorkspacePage));
         Items.Add(CreateFlyoutItem("Settings", "settings", settingsPage));
     }
 

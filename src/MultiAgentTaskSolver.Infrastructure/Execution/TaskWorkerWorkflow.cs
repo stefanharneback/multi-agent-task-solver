@@ -62,8 +62,12 @@ public sealed class TaskWorkerWorkflow : ITaskWorkerWorkflow
         var resolution = await _artifactReferenceResolver.ResolveAsync(snapshot, cancellationToken);
         var promptPackage = _workerPromptFactory.Create(snapshot with { Manifest = workingManifest }, resolution);
         var sequence = NextSequence(snapshot.Manifest);
-        var outputRelativePath = Path.Combine(TaskFolderConventions.OutputsFolderName, $"{sequence:0000}-worker", "worker-output.md")
-            .Replace('\\', '/');
+        var historyOutputRelativePath = TaskFolderConventions.CreateRunScopedWorkerOutputPath(sequence);
+        var declaredOutputPaths = workingManifest.OutputPaths
+            .Select(TaskFolderConventions.NormalizeOutputPath)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .Where(path => !string.Equals(path, historyOutputRelativePath, StringComparison.OrdinalIgnoreCase))
+            .ToArray();
 
         var runId = Guid.NewGuid().ToString("N");
         var stepId = Guid.NewGuid().ToString("N");
@@ -124,7 +128,7 @@ public sealed class TaskWorkerWorkflow : ITaskWorkerWorkflow
             {
                 Status = TaskStepStatus.Completed,
                 Summary = summary,
-                OutputArtifactPaths = [outputRelativePath],
+                OutputArtifactPaths = [historyOutputRelativePath, .. declaredOutputPaths],
                 CompletedAtUtc = completedAtUtc,
             };
 
@@ -154,10 +158,22 @@ public sealed class TaskWorkerWorkflow : ITaskWorkerWorkflow
                 snapshot.Manifest.Id,
                 new OutputArtifactPayload
                 {
-                    RelativePath = outputRelativePath,
+                    RelativePath = historyOutputRelativePath,
                     Content = BuildOutputArtifactContent(outputText, summary),
                 },
                 cancellationToken);
+            foreach (var declaredOutputPath in declaredOutputPaths)
+            {
+                await _taskWorkspaceStore.SaveOutputArtifactAsync(
+                    workspaceRootPath,
+                    snapshot.Manifest.Id,
+                    new OutputArtifactPayload
+                    {
+                        RelativePath = declaredOutputPath,
+                        Content = BuildOutputArtifactContent(outputText, summary),
+                    },
+                    cancellationToken);
+            }
 
             var latestSnapshot = await _taskWorkspaceStore.LoadTaskAsync(workspaceRootPath, snapshot.Manifest.Id, cancellationToken)
                 ?? throw new InvalidOperationException($"Task '{snapshot.Manifest.Id}' was not found after saving the worker run.");

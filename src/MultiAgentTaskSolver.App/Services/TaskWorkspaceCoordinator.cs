@@ -94,7 +94,7 @@ public sealed class TaskWorkspaceCoordinator : ITaskWorkspaceCoordinator
                 taskId,
                 new ArtifactImportRequest
                 {
-                    SourceFilePath = sourcePath,
+                    SourcePath = sourcePath,
                     DestinationRelativeDirectory = destinationRelativeDirectory,
                 },
                 cancellationToken);

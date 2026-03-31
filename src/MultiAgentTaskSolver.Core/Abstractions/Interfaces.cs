@@ -71,7 +71,7 @@ public interface ITaskWorkspaceStore
         string taskMarkdown,
         CancellationToken cancellationToken = default);
 
-    Task<ArtifactManifest> ImportArtifactAsync(
+    Task<IReadOnlyList<ArtifactManifest>> ImportArtifactAsync(
         string workspaceRootPath,
         string taskId,
         ArtifactImportRequest request,

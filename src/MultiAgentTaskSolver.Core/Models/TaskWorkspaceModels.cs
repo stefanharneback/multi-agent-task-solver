@@ -22,6 +22,11 @@ public sealed record TaskManifest
 
     public string TaskMarkdownPath { get; init; } = TaskFolderConventions.TaskMarkdownFileName;
 
+    public IReadOnlyList<string> InputPaths { get; init; } = TaskFolderConventions.DefaultInputPaths.ToArray();
+
+    public IReadOnlyList<string> OutputPaths { get; init; } = TaskFolderConventions.DefaultOutputPaths.ToArray();
+
+    // Legacy compatibility for previously saved task manifests.
     public IReadOnlyList<string> InputCategories { get; init; } = TaskFolderConventions.DefaultInputCategories.ToArray();
 
     public IReadOnlyList<ArtifactManifest> Artifacts { get; init; } = [];
@@ -138,12 +143,14 @@ public sealed record CreateTaskRequest
 
     public string TaskMarkdown { get; init; } = string.Empty;
 
-    public IReadOnlyList<string> AdditionalInputCategories { get; init; } = [];
+    public IReadOnlyList<string> InputPaths { get; init; } = [];
+
+    public IReadOnlyList<string> OutputPaths { get; init; } = [];
 }
 
 public sealed record ArtifactImportRequest
 {
-    public string SourceFilePath { get; init; } = string.Empty;
+    public string SourcePath { get; init; } = string.Empty;
 
     public string DestinationRelativeDirectory { get; init; } = string.Empty;
 

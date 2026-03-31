@@ -7,7 +7,8 @@ This document defines the planned orchestration contract for the review, worker,
 - The repository currently implements the `task-review`, review-gate `user-decision`, and first `worker` run kinds.
 - The current path resolves referenced `@alias` artifacts, assembles a review prompt, calls the configured provider, and persists prompt, response, and usage artifacts.
 - Review output can now be explicitly approved for worker execution or sent back to `draft`, with the user decision preserved as its own immutable run.
-- Worker output now persists both under `runs/` and as a human-readable artifact under `outputs/`.
+- Tasks now declare intended input folders under `inputs/` and intended output file targets under `outputs/`.
+- Worker output now persists both as a run-scoped copy under `outputs/` and to the task-declared output target(s).
 - Critic execution is still not implemented, so a completed worker run currently leaves the task in `working` until the critique loop lands.
 
 ## Roles
@@ -83,7 +84,7 @@ Automatic progression should never bypass these gates in the default workflow.
 
 ## Output expectations
 
-- Worker artifacts belong under `outputs/`.
+- Worker artifacts belong under `outputs/`, with a run-scoped copy preserved for each attempt.
 - Review and critic artifacts belong under `runs/` unless they are promoted into human-facing deliverables.
 - Derived machine-only files belong under `cache/`.
 

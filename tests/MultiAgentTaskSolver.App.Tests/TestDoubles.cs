@@ -84,7 +84,13 @@ internal sealed class FakeTaskWorkspaceCoordinator : ITaskWorkspaceCoordinator
             Slug = "task-created",
             CreatedAtUtc = DateTimeOffset.UtcNow,
             UpdatedAtUtc = DateTimeOffset.UtcNow,
-            InputCategories = TaskFolderConventions.DefaultInputCategories.ToArray(),
+            InputPaths = request.InputPaths.Count > 0 ? request.InputPaths : TaskFolderConventions.DefaultInputPaths.ToArray(),
+            OutputPaths = request.OutputPaths.Count > 0 ? request.OutputPaths : TaskFolderConventions.DefaultOutputPaths.ToArray(),
+            InputCategories = (request.InputPaths.Count > 0 ? request.InputPaths : TaskFolderConventions.DefaultInputPaths)
+                .Select(path => path.StartsWith($"{TaskFolderConventions.InputsFolderName}/", StringComparison.OrdinalIgnoreCase)
+                    ? path[(TaskFolderConventions.InputsFolderName.Length + 1)..]
+                    : path)
+                .ToArray(),
         };
 
         var snapshotResult = new TaskWorkspaceSnapshot
@@ -344,6 +350,12 @@ internal static class TestData
                 Status = status,
                 CreatedAtUtc = new DateTimeOffset(2026, 3, 26, 8, 0, 0, TimeSpan.Zero),
                 UpdatedAtUtc = new DateTimeOffset(2026, 3, 26, 9, 0, 0, TimeSpan.Zero),
+                InputPaths = (inputCategories ?? TaskFolderConventions.DefaultInputCategories.ToArray())
+                    .Select(category => category.StartsWith($"{TaskFolderConventions.InputsFolderName}/", StringComparison.OrdinalIgnoreCase)
+                        ? category
+                        : $"{TaskFolderConventions.InputsFolderName}/{category}")
+                    .ToArray(),
+                OutputPaths = TaskFolderConventions.DefaultOutputPaths.ToArray(),
                 InputCategories = inputCategories ?? TaskFolderConventions.DefaultInputCategories.ToArray(),
                 Artifacts = artifacts ?? [],
                 Runs = runs ?? [],

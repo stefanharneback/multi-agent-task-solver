@@ -11,6 +11,7 @@ public sealed partial class TaskDetailsViewModel : ViewModelBase
     private readonly ITaskWorkspaceCoordinator _coordinator;
     private readonly IAppNavigationService _navigationService;
     private readonly IFilePickerService _filePickerService;
+    private readonly IFolderPickerService _folderPickerService;
 
     private TaskManifest? _manifest;
 
@@ -18,12 +19,23 @@ public sealed partial class TaskDetailsViewModel : ViewModelBase
         ITaskWorkspaceCoordinator coordinator,
         IAppNavigationService navigationService,
         IFilePickerService filePickerService)
+        : this(coordinator, navigationService, filePickerService, new NullFolderPickerService())
+    {
+    }
+
+    public TaskDetailsViewModel(
+        ITaskWorkspaceCoordinator coordinator,
+        IAppNavigationService navigationService,
+        IFilePickerService filePickerService,
+        IFolderPickerService folderPickerService)
     {
         _coordinator = coordinator;
         _navigationService = navigationService;
         _filePickerService = filePickerService;
+        _folderPickerService = folderPickerService;
         SaveCommand = new AsyncRelayCommand(SaveAsync);
         ImportPickedFilesCommand = new AsyncRelayCommand(ImportPickedFilesAsync);
+        ImportPickedFolderCommand = new AsyncRelayCommand(ImportPickedFolderAsync);
         OpenRunHistoryCommand = new AsyncRelayCommand(OpenRunHistoryAsync);
         RunTaskReviewCommand = new AsyncRelayCommand(RunTaskReviewAsync);
         RunWorkerCommand = new AsyncRelayCommand(RunWorkerAsync);
@@ -44,6 +56,8 @@ public sealed partial class TaskDetailsViewModel : ViewModelBase
     public IAsyncRelayCommand SaveCommand { get; }
 
     public IAsyncRelayCommand ImportPickedFilesCommand { get; }
+
+    public IAsyncRelayCommand ImportPickedFolderCommand { get; }
 
     public IAsyncRelayCommand OpenRunHistoryCommand { get; }
 
@@ -69,6 +83,12 @@ public sealed partial class TaskDetailsViewModel : ViewModelBase
 
     [CommunityToolkit.Mvvm.ComponentModel.ObservableProperty]
     public partial string TaskMarkdown { get; set; } = string.Empty;
+
+    [CommunityToolkit.Mvvm.ComponentModel.ObservableProperty]
+    public partial string InputPathsText { get; set; } = string.Empty;
+
+    [CommunityToolkit.Mvvm.ComponentModel.ObservableProperty]
+    public partial string OutputPathsText { get; set; } = string.Empty;
 
     [CommunityToolkit.Mvvm.ComponentModel.ObservableProperty]
     public partial string SelectedImportDestination { get; set; } = string.Empty;
@@ -130,10 +150,13 @@ public sealed partial class TaskDetailsViewModel : ViewModelBase
             {
                 Title = Title.Trim(),
                 Summary = Summary.Trim(),
+                InputPaths = TaskFolderConventions.ParseInputPaths(InputPathsText),
+                OutputPaths = TaskFolderConventions.ParseOutputPaths(OutputPathsText),
             };
 
             await _coordinator.SaveTaskAsync(updatedManifest, TaskMarkdown);
             _manifest = updatedManifest;
+            await LoadCoreAsync(updatedManifest.Id);
         });
     }
 
@@ -163,6 +186,21 @@ public sealed partial class TaskDetailsViewModel : ViewModelBase
             }
 
             await ImportFilesCoreAsync(paths);
+            await LoadCoreAsync(TaskId);
+        });
+    }
+
+    public Task ImportPickedFolderAsync()
+    {
+        return RunBusyAsync(async () =>
+        {
+            var folderPath = await _folderPickerService.PickFolderAsync();
+            if (string.IsNullOrWhiteSpace(folderPath))
+            {
+                return;
+            }
+
+            await ImportFilesCoreAsync([folderPath]);
             await LoadCoreAsync(TaskId);
         });
     }
@@ -272,6 +310,8 @@ public sealed partial class TaskDetailsViewModel : ViewModelBase
         Title = snapshot.Manifest.Title;
         Summary = snapshot.Manifest.Summary;
         TaskMarkdown = snapshot.TaskMarkdown;
+        InputPathsText = string.Join(Environment.NewLine, snapshot.Manifest.InputPaths);
+        OutputPathsText = string.Join(Environment.NewLine, snapshot.Manifest.OutputPaths);
         TaskStatusText = snapshot.Manifest.Status.GetDisplayName();
         TaskUsageSummaryText = await LoadTaskUsageSummaryTextAsync(snapshot);
 
@@ -343,8 +383,7 @@ public sealed partial class TaskDetailsViewModel : ViewModelBase
 
     private static string[] GetImportDestinations(TaskManifest manifest)
     {
-        return manifest.InputCategories
-            .Select(category => $"inputs/{category}")
+        return manifest.InputPaths
             .OrderBy(static path => path, StringComparer.OrdinalIgnoreCase)
             .ToArray();
     }
@@ -534,5 +573,13 @@ public sealed partial class TaskDetailsViewModel : ViewModelBase
             snapshot.Manifest.Runs.SelectMany(static run => run.Steps));
 
         return WorkflowArtifactReader.BuildUsageText(WorkflowArtifactReader.AggregateUsage(usages));
+    }
+
+    private sealed class NullFolderPickerService : IFolderPickerService
+    {
+        public Task<string?> PickFolderAsync(CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult<string?>(null);
+        }
     }
 }

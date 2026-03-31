@@ -9,33 +9,92 @@
 
     <ScrollView>
         <VerticalStackLayout Padding="20" Spacing="14">
+            <Label Style="{StaticResource PageHeadingStyle}" Text="Task details" />
             <Label AutomationId="TaskRootPathLabel" Text="{Binding TaskRootPath}" FontAttributes="Italic" />
             <Label AutomationId="TaskStatusLabel" Text="{Binding TaskStatusText}" FontAttributes="Bold" />
-            <Label AutomationId="TaskUsageSummaryLabel" FontSize="12" Text="{Binding TaskUsageSummaryText}" />
+            <Label AutomationId="TaskUsageSummaryLabel" Style="{StaticResource FormFieldHint}" Text="{Binding TaskUsageSummaryText}" />
 
-            <Entry AutomationId="TaskTitleEntry" Placeholder="Title" Text="{Binding Title}" />
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                <Label Style="{StaticResource FormFieldTitle}" Text="Task title" />
+                <Button CommandParameter="title" Clicked="OnHelpButtonClicked" Style="{StaticResource InfoButtonStyle}" Text="?" />
+            </Grid>
+            <Entry AutomationId="TaskTitleEntry" Placeholder="Short task name used in the task list and workspace." Style="{StaticResource FormEntryStyle}" Text="{Binding Title}" />
 
+            <Grid ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="8">
+                <Label Style="{StaticResource FormFieldTitle}" Text="Short summary" />
+                <Button CommandParameter="summary" Clicked="OnHelpButtonClicked" Style="{StaticResource InfoButtonStyle}" Text="?" />
+                <Button CommandParameter="summary:-1" Clicked="OnEditorHeightButtonClicked" Style="{StaticResource MiniButtonStyle}" Text="A-" />
+                <Button CommandParameter="summary:1" Clicked="OnEditorHeightButtonClicked" Style="{StaticResource MiniButtonStyle}" Text="A+" />
+            </Grid>
             <Editor
+                x:Name="TaskSummaryEditor"
                 AutomationId="TaskSummaryEditor"
                 AutoSize="Disabled"
-                HeightRequest="80"
-                Placeholder="Summary"
+                HeightRequest="96"
+                Placeholder="Editable plain text. Describe the task briefly for the list and the next person reading it."
+                Style="{StaticResource FormEditorStyle}"
                 Text="{Binding Summary}" />
 
+            <Grid ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="8">
+                <Label Style="{StaticResource FormFieldTitle}" Text="Task instructions" />
+                <Button CommandParameter="instructions" Clicked="OnHelpButtonClicked" Style="{StaticResource InfoButtonStyle}" Text="?" />
+                <Button CommandParameter="instructions:-1" Clicked="OnEditorHeightButtonClicked" Style="{StaticResource MiniButtonStyle}" Text="A-" />
+                <Button CommandParameter="instructions:1" Clicked="OnEditorHeightButtonClicked" Style="{StaticResource MiniButtonStyle}" Text="A+" />
+            </Grid>
             <Editor
+                x:Name="TaskMarkdownEditor"
                 AutomationId="TaskMarkdownEditor"
                 AutoSize="Disabled"
-                HeightRequest="260"
+                HeightRequest="300"
+                Placeholder="Editable plain text. Write the full task, constraints, references, and expected outputs."
+                Style="{StaticResource FormEditorStyle}"
                 Text="{Binding TaskMarkdown}" />
 
+            <Grid ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="8">
+                <Label AutomationId="TaskInputPathsHeadingLabel" Style="{StaticResource FormFieldTitle}" Text="Input folders" />
+                <Button CommandParameter="input-paths" Clicked="OnHelpButtonClicked" Style="{StaticResource InfoButtonStyle}" Text="?" />
+                <Button CommandParameter="input-paths:-1" Clicked="OnEditorHeightButtonClicked" Style="{StaticResource MiniButtonStyle}" Text="A-" />
+                <Button CommandParameter="input-paths:1" Clicked="OnEditorHeightButtonClicked" Style="{StaticResource MiniButtonStyle}" Text="A+" />
+            </Grid>
+            <Editor
+                x:Name="TaskInputPathsEditor"
+                AutomationId="TaskInputPathsEditor"
+                AutoSize="Disabled"
+                HeightRequest="120"
+                Placeholder="Editable plain text. One task-relative input folder per line."
+                Style="{StaticResource FormEditorStyle}"
+                Text="{Binding InputPathsText}" />
+            <Label Style="{StaticResource FormFieldHint}" Text="You can edit these paths directly as plain text." />
+
+            <Grid ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="8">
+                <Label AutomationId="TaskOutputPathsHeadingLabel" Style="{StaticResource FormFieldTitle}" Text="Output files" />
+                <Button CommandParameter="output-paths" Clicked="OnHelpButtonClicked" Style="{StaticResource InfoButtonStyle}" Text="?" />
+                <Button CommandParameter="output-paths:-1" Clicked="OnEditorHeightButtonClicked" Style="{StaticResource MiniButtonStyle}" Text="A-" />
+                <Button CommandParameter="output-paths:1" Clicked="OnEditorHeightButtonClicked" Style="{StaticResource MiniButtonStyle}" Text="A+" />
+            </Grid>
+            <Editor
+                x:Name="TaskOutputPathsEditor"
+                AutomationId="TaskOutputPathsEditor"
+                AutoSize="Disabled"
+                HeightRequest="90"
+                Placeholder="Editable plain text. One task-relative output file per line."
+                Style="{StaticResource FormEditorStyle}"
+                Text="{Binding OutputPathsText}" />
+            <Label Style="{StaticResource FormFieldHint}" Text="Each line should resolve under outputs/." />
+
             <HorizontalStackLayout Spacing="12">
-                <Button AutomationId="TaskSaveButton" Text="Save" Command="{Binding SaveCommand}" />
-                <Button AutomationId="TaskRunHistoryButton" Text="Flow &amp; History" Command="{Binding OpenRunHistoryCommand}" />
+                <Button AutomationId="TaskSaveButton" Style="{StaticResource PrimaryActionButtonStyle}" Text="Save" Command="{Binding SaveCommand}" />
+                <Button AutomationId="TaskRunHistoryButton" Style="{StaticResource SecondaryActionButtonStyle}" Text="Flow &amp; History" Command="{Binding OpenRunHistoryCommand}" />
             </HorizontalStackLayout>
 
             <Label AutomationId="TaskReviewHeadingLabel" Text="Task review agent" FontAttributes="Bold" FontSize="18" />
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                <Label Style="{StaticResource FormFieldTitle}" Text="Review model" />
+                <Button CommandParameter="review-model" Clicked="OnHelpButtonClicked" Style="{StaticResource InfoButtonStyle}" Text="?" />
+            </Grid>
             <Picker
                 AutomationId="TaskReviewModelPicker"
+                Style="{StaticResource FormPickerStyle}"
                 IsEnabled="{Binding CanRunTaskReview}"
                 ItemDisplayBinding="{Binding DisplayName}"
                 ItemsSource="{Binding ReviewModels}"
@@ -44,21 +103,23 @@
                 AutomationId="RunTaskReviewButton"
                 Command="{Binding RunTaskReviewCommand}"
                 IsEnabled="{Binding CanRunTaskReview}"
+                Style="{StaticResource PrimaryActionButtonStyle}"
                 Text="Run Task Review" />
 
             <Label AutomationId="LatestReviewHeadingLabel" Text="Latest review summary" FontAttributes="Bold" FontSize="18" />
-            <Border Padding="10" StrokeThickness="1">
+            <Border Padding="10" Style="{StaticResource SurfaceCardStyle}">
                 <Label AutomationId="LatestReviewSummaryLabel" Text="{Binding LatestReviewSummary}" />
             </Border>
-            <Label AutomationId="LatestReviewUsageLabel" FontSize="12" Text="{Binding LatestReviewUsageText}" />
+            <Label AutomationId="LatestReviewUsageLabel" Style="{StaticResource FormFieldHint}" Text="{Binding LatestReviewUsageText}" />
 
             <Label AutomationId="LatestReviewOutputHeadingLabel" Text="Latest review output" FontAttributes="Bold" FontSize="18" />
-            <Border Padding="10" StrokeThickness="1">
+            <Border Padding="10" Style="{StaticResource SurfaceCardStyle}">
                 <Editor
                     AutomationId="LatestReviewOutputEditor"
                     AutoSize="Disabled"
                     HeightRequest="200"
                     IsReadOnly="True"
+                    Style="{StaticResource FormEditorStyle}"
                     Text="{Binding LatestReviewOutput}" />
             </Border>
 
@@ -69,13 +130,18 @@
                 IsVisible="{Binding CanApplyReviewDecision}"
                 Text="Review decision" />
             <HorizontalStackLayout IsVisible="{Binding CanApplyReviewDecision}" Spacing="12">
-                <Button AutomationId="ApproveReviewButton" Text="Approve" Command="{Binding ApproveReviewCommand}" />
-                <Button AutomationId="ReviseReviewButton" Text="Revise Task" Command="{Binding ReviseReviewCommand}" />
+                <Button AutomationId="ApproveReviewButton" Style="{StaticResource PrimaryActionButtonStyle}" Text="Approve" Command="{Binding ApproveReviewCommand}" />
+                <Button AutomationId="ReviseReviewButton" Style="{StaticResource SecondaryActionButtonStyle}" Text="Revise Task" Command="{Binding ReviseReviewCommand}" />
             </HorizontalStackLayout>
 
             <Label AutomationId="WorkerHeadingLabel" Text="Worker agent" FontAttributes="Bold" FontSize="18" />
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                <Label Style="{StaticResource FormFieldTitle}" Text="Worker model" />
+                <Button CommandParameter="worker-model" Clicked="OnHelpButtonClicked" Style="{StaticResource InfoButtonStyle}" Text="?" />
+            </Grid>
             <Picker
                 AutomationId="WorkerModelPicker"
+                Style="{StaticResource FormPickerStyle}"
                 IsEnabled="{Binding CanRunWorker}"
                 ItemDisplayBinding="{Binding DisplayName}"
                 ItemsSource="{Binding WorkerModels}"
@@ -84,28 +150,37 @@
                 AutomationId="RunWorkerButton"
                 Command="{Binding RunWorkerCommand}"
                 IsEnabled="{Binding CanRunWorker}"
+                Style="{StaticResource PrimaryActionButtonStyle}"
                 Text="Run Worker" />
 
             <Label AutomationId="LatestWorkerHeadingLabel" Text="Latest worker summary" FontAttributes="Bold" FontSize="18" />
-            <Border Padding="10" StrokeThickness="1">
+            <Border Padding="10" Style="{StaticResource SurfaceCardStyle}">
                 <Label AutomationId="LatestWorkerSummaryLabel" Text="{Binding LatestWorkerSummary}" />
             </Border>
-            <Label AutomationId="LatestWorkerUsageLabel" FontSize="12" Text="{Binding LatestWorkerUsageText}" />
+            <Label AutomationId="LatestWorkerUsageLabel" Style="{StaticResource FormFieldHint}" Text="{Binding LatestWorkerUsageText}" />
 
             <Label AutomationId="LatestWorkerOutputHeadingLabel" Text="Latest worker output" FontAttributes="Bold" FontSize="18" />
-            <Border Padding="10" StrokeThickness="1">
+            <Border Padding="10" Style="{StaticResource SurfaceCardStyle}">
                 <Editor
                     AutomationId="LatestWorkerOutputEditor"
                     AutoSize="Disabled"
                     HeightRequest="200"
                     IsReadOnly="True"
+                    Style="{StaticResource FormEditorStyle}"
                     Text="{Binding LatestWorkerOutput}" />
             </Border>
 
             <Label AutomationId="ImportFilesHeadingLabel" Text="Import files" FontAttributes="Bold" FontSize="18" />
 
-            <Picker AutomationId="ImportDestinationPicker" ItemsSource="{Binding ImportDestinations}" SelectedItem="{Binding SelectedImportDestination}" />
-            <Button AutomationId="ImportFilesButton" Text="Import Files" Command="{Binding ImportPickedFilesCommand}" />
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                <Label Style="{StaticResource FormFieldTitle}" Text="Import destination" />
+                <Button CommandParameter="import-destination" Clicked="OnHelpButtonClicked" Style="{StaticResource InfoButtonStyle}" Text="?" />
+            </Grid>
+            <Picker AutomationId="ImportDestinationPicker" Style="{StaticResource FormPickerStyle}" ItemsSource="{Binding ImportDestinations}" SelectedItem="{Binding SelectedImportDestination}" />
+            <HorizontalStackLayout Spacing="12">
+                <Button AutomationId="ImportFilesButton" Style="{StaticResource SecondaryActionButtonStyle}" Text="Import Files" Command="{Binding ImportPickedFilesCommand}" />
+                <Button AutomationId="ImportFolderButton" Style="{StaticResource SecondaryActionButtonStyle}" Text="Import Folder" Command="{Binding ImportPickedFolderCommand}" />
+            </HorizontalStackLayout>
 
             <Label AutomationId="TaskDetailsErrorLabel" Text="{Binding ErrorMessage}" TextColor="IndianRed" />
 
@@ -119,12 +194,12 @@
                 </BindableLayout.EmptyView>
                 <BindableLayout.ItemTemplate>
                     <DataTemplate x:DataType="viewModels:ArtifactEntryViewModel">
-                        <Border Padding="10" StrokeThickness="1">
+                        <Border Padding="10" Style="{StaticResource SurfaceCardStyle}">
                             <VerticalStackLayout Spacing="4">
                                 <Label Text="{Binding Alias}" FontAttributes="Bold" />
                                 <Label Text="{Binding RelativePath}" />
-                                <Label Text="{Binding MediaType}" FontSize="12" />
-                                <Label Text="{Binding SizeText}" FontSize="12" />
+                                <Label Text="{Binding MediaType}" Style="{StaticResource FormFieldHint}" />
+                                <Label Text="{Binding SizeText}" Style="{StaticResource FormFieldHint}" />
                             </VerticalStackLayout>
                         </Border>
                     </DataTemplate>
