@@ -107,6 +107,23 @@ public sealed class TaskDetailsViewModelTests
     }
 
     [Fact]
+    public async Task SaveAsyncAllowsClearingDeclaredOutputPaths()
+    {
+        var coordinator = new FakeTaskWorkspaceCoordinator();
+        coordinator.ModelsByProvider["openai"] = [TestData.CreateTextModel("gpt-5", "GPT-5")];
+        coordinator.Snapshots["task-001"] = TestData.CreateSnapshot("task-001", "Task", "Summary", TaskLifecycleState.Draft);
+
+        var viewModel = new TaskDetailsViewModel(coordinator, new FakeNavigationService(), new FakeFilePickerService());
+        await viewModel.LoadAsync("task-001");
+        viewModel.OutputPathsText = string.Empty;
+
+        await viewModel.SaveAsync();
+
+        var savedTask = Assert.Single(coordinator.SavedTasks);
+        Assert.Empty(savedTask.Manifest.OutputPaths);
+    }
+
+    [Fact]
     public async Task ImportPickedFolderAsyncUsesSelectedFolderPath()
     {
         var coordinator = new FakeTaskWorkspaceCoordinator();

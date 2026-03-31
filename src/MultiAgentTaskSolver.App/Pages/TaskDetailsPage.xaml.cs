@@ -16,18 +16,13 @@ public partial class TaskDetailsPage : ContentPage
     {
         InitializeComponent();
         BindingContext = _viewModel = viewModel;
-        ApplySavedEditorHeights();
+        ConfigureResizableEditor(TaskSummaryEditor, TaskSummaryResizeHandle, SummaryHeightKey, 96d);
+        ConfigureResizableEditor(TaskInputPathsEditor, TaskInputPathsResizeHandle, InputPathsHeightKey, 120d);
+        ConfigureResizableEditor(TaskOutputPathsEditor, TaskOutputPathsResizeHandle, OutputPathsHeightKey, 90d);
+        ConfigureResizableEditor(TaskMarkdownEditor, TaskMarkdownResizeHandle, TaskMarkdownHeightKey, 300d);
     }
 
     public Task LoadAsync(string taskId) => _viewModel.LoadAsync(taskId);
-
-    private void ApplySavedEditorHeights()
-    {
-        TaskSummaryEditor.HeightRequest = UiStateStore.GetEditorHeight(SummaryHeightKey, TaskSummaryEditor.HeightRequest);
-        TaskInputPathsEditor.HeightRequest = UiStateStore.GetEditorHeight(InputPathsHeightKey, TaskInputPathsEditor.HeightRequest);
-        TaskOutputPathsEditor.HeightRequest = UiStateStore.GetEditorHeight(OutputPathsHeightKey, TaskOutputPathsEditor.HeightRequest);
-        TaskMarkdownEditor.HeightRequest = UiStateStore.GetEditorHeight(TaskMarkdownHeightKey, TaskMarkdownEditor.HeightRequest);
-    }
 
     private async void OnHelpButtonClicked(object? sender, EventArgs e)
     {
@@ -52,7 +47,7 @@ public partial class TaskDetailsPage : ContentPage
                 "Type one folder per line. These are task-local paths under inputs/. You can edit them directly as plain text."),
             "output-paths" => (
                 "Output files",
-                "Type one file per line. These are task-local paths under outputs/. The worker uses these declared targets when it writes results."),
+                "Type one file per line when you want a stable top-level deliverable under outputs/. Leave it blank if the run-scoped worker history copy is enough."),
             "review-model" => (
                 "Review model",
                 "Choose the model used by the review step. Use a stronger model when the task is ambiguous or high risk."),
@@ -68,33 +63,47 @@ public partial class TaskDetailsPage : ContentPage
         await DisplayAlertAsync(title, message, "Close");
     }
 
-    private void OnEditorHeightButtonClicked(object? sender, EventArgs e)
+    private static void ConfigureResizableEditor(Editor editor, View handle, string key, double fallbackHeight)
     {
-        if (sender is not Button button || button.CommandParameter is not string parameter)
-        {
-            return;
-        }
+        editor.HeightRequest = UiStateStore.GetEditorHeight(key, fallbackHeight);
 
-        var parts = parameter.Split(':', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-        if (parts.Length != 2 || !int.TryParse(parts[1], out var direction))
-        {
-            return;
-        }
+        var session = new EditorResizeSession(editor, key, fallbackHeight);
+        var gesture = new PanGestureRecognizer();
+        gesture.PanUpdated += (_, args) => HandleEditorResize(session, args);
+        handle.GestureRecognizers.Add(gesture);
+    }
 
-        switch (parts[0])
+    private static void HandleEditorResize(EditorResizeSession session, PanUpdatedEventArgs args)
+    {
+        switch (args.StatusType)
         {
-            case "summary":
-                TaskSummaryEditor.HeightRequest = UiStateStore.ChangeEditorHeight(SummaryHeightKey, TaskSummaryEditor.HeightRequest, direction, 96d);
+            case GestureStatus.Started:
+                session.StartHeight = session.Editor.HeightRequest > 0 ? session.Editor.HeightRequest : session.FallbackHeight;
                 break;
-            case "input-paths":
-                TaskInputPathsEditor.HeightRequest = UiStateStore.ChangeEditorHeight(InputPathsHeightKey, TaskInputPathsEditor.HeightRequest, direction, 120d);
+            case GestureStatus.Running:
+                session.Editor.HeightRequest = UiStateStore.ResizeEditorHeight(
+                    session.StartHeight,
+                    args.TotalY,
+                    session.FallbackHeight);
                 break;
-            case "output-paths":
-                TaskOutputPathsEditor.HeightRequest = UiStateStore.ChangeEditorHeight(OutputPathsHeightKey, TaskOutputPathsEditor.HeightRequest, direction, 90d);
-                break;
-            case "instructions":
-                TaskMarkdownEditor.HeightRequest = UiStateStore.ChangeEditorHeight(TaskMarkdownHeightKey, TaskMarkdownEditor.HeightRequest, direction, 300d);
+            case GestureStatus.Completed:
+            case GestureStatus.Canceled:
+                session.Editor.HeightRequest = UiStateStore.SaveEditorHeight(
+                    session.Key,
+                    session.Editor.HeightRequest,
+                    session.FallbackHeight);
                 break;
         }
+    }
+
+    private sealed class EditorResizeSession(Editor editor, string key, double fallbackHeight)
+    {
+        public Editor Editor { get; } = editor;
+
+        public string Key { get; } = key;
+
+        public double FallbackHeight { get; } = fallbackHeight;
+
+        public double StartHeight { get; set; }
     }
 }

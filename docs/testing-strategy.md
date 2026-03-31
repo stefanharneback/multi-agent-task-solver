@@ -54,6 +54,7 @@ dotnet tool run reportgenerator "-reports:artifacts/test-results/**/coverage.cob
 - view model validation and command behavior
 - settings and task-workspace coordination logic
 - navigation and native-picker behavior through app service abstractions
+- lightweight XAML or UI-contract tests for placeholders, automation hooks, and critical surface regressions when full UI automation is not practical
 - prefer stable `AutomationId` values on new interactive controls so end-to-end automation can be added without rewriting the UI
 - page-level rendering and native control behavior may still need manual smoke coverage
 

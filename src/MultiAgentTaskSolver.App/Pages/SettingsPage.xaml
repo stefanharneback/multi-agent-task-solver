@@ -65,7 +65,7 @@
                             Style="{StaticResource PrimaryActionButtonStyle}"
                             Text="Save Settings" />
                     </HorizontalStackLayout>
-                    <Label AutomationId="SettingsErrorLabel" Text="{Binding ErrorMessage}" TextColor="IndianRed" />
+                    <Label AutomationId="SettingsErrorLabel" Text="{Binding ErrorMessage}" TextColor="{StaticResource Error}" />
                 </VerticalStackLayout>
             </Border>
 

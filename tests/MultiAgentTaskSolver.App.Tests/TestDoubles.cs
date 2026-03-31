@@ -84,9 +84,9 @@ internal sealed class FakeTaskWorkspaceCoordinator : ITaskWorkspaceCoordinator
             Slug = "task-created",
             CreatedAtUtc = DateTimeOffset.UtcNow,
             UpdatedAtUtc = DateTimeOffset.UtcNow,
-            InputPaths = request.InputPaths.Count > 0 ? request.InputPaths : TaskFolderConventions.DefaultInputPaths.ToArray(),
-            OutputPaths = request.OutputPaths.Count > 0 ? request.OutputPaths : TaskFolderConventions.DefaultOutputPaths.ToArray(),
-            InputCategories = (request.InputPaths.Count > 0 ? request.InputPaths : TaskFolderConventions.DefaultInputPaths)
+            InputPaths = request.InputPaths.ToArray(),
+            OutputPaths = request.OutputPaths.ToArray(),
+            InputCategories = request.InputPaths
                 .Select(path => path.StartsWith($"{TaskFolderConventions.InputsFolderName}/", StringComparison.OrdinalIgnoreCase)
                     ? path[(TaskFolderConventions.InputsFolderName.Length + 1)..]
                     : path)

@@ -6,19 +6,23 @@ internal static class UiStateStore
 {
     private const double MinimumEditorHeight = 72d;
     private const double MaximumEditorHeight = 960d;
-    private const double EditorHeightStep = 48d;
 
     public static double GetEditorHeight(string key, double fallbackHeight)
     {
         return ClampEditorHeight(Preferences.Default.Get(key, fallbackHeight));
     }
 
-    public static double ChangeEditorHeight(string key, double currentHeight, int direction, double fallbackHeight)
+    public static double ResizeEditorHeight(double baselineHeight, double deltaY, double fallbackHeight)
     {
-        var baseline = currentHeight > 0 ? currentHeight : fallbackHeight;
-        var nextHeight = ClampEditorHeight(baseline + (direction * EditorHeightStep));
-        Preferences.Default.Set(key, nextHeight);
-        return nextHeight;
+        var baseline = baselineHeight > 0 ? baselineHeight : fallbackHeight;
+        return ClampEditorHeight(baseline + deltaY);
+    }
+
+    public static double SaveEditorHeight(string key, double currentHeight, double fallbackHeight)
+    {
+        var height = ClampEditorHeight(currentHeight > 0 ? currentHeight : fallbackHeight);
+        Preferences.Default.Set(key, height);
+        return height;
     }
 
     public static WindowLayout GetWindowLayout()
@@ -43,7 +47,7 @@ internal static class UiStateStore
         Preferences.Default.Set("ui.window.height", height);
     }
 
-    private static double ClampEditorHeight(double height)
+    internal static double ClampEditorHeight(double height)
     {
         return Math.Clamp(height, MinimumEditorHeight, MaximumEditorHeight);
     }

@@ -62,6 +62,25 @@ public sealed class FileSystemTaskWorkspaceStoreTests : IDisposable
     }
 
     [Fact]
+    public async Task CreateTaskAsyncWithoutDeclaredOutputPathsDoesNotSeedDefaultOutputTargets()
+    {
+        var store = new FileSystemTaskWorkspaceStore();
+
+        var snapshot = await store.CreateTaskAsync(_tempRootPath, new CreateTaskRequest
+        {
+            Title = "Minimal task",
+            Summary = "No declared outputs yet.",
+            TaskMarkdown = "# Task",
+            OutputPaths = [],
+        });
+
+        Assert.True(Directory.Exists(Path.Combine(snapshot.TaskRootPath, "outputs")));
+        Assert.Empty(snapshot.Manifest.OutputPaths);
+        Assert.False(File.Exists(Path.Combine(snapshot.TaskRootPath, "outputs", "worker-output.md")));
+        Assert.Empty(Directory.EnumerateDirectories(Path.Combine(snapshot.TaskRootPath, "outputs")));
+    }
+
+    [Fact]
     public async Task ImportArtifactAsyncCopiesFileAndUpdatesManifest()
     {
         var store = new FileSystemTaskWorkspaceStore();

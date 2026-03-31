@@ -455,7 +455,7 @@ public sealed class FileSystemTaskWorkspaceStore : ITaskWorkspaceStore
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToArray();
 
-        return values is { Length: > 0 } ? values : TaskFolderConventions.DefaultOutputPaths.ToArray();
+        return values is { Length: > 0 } ? values : [];
     }
 
     private static string ToLegacyInputCategory(string inputPath)

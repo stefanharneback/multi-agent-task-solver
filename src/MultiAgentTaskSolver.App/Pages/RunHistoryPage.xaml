@@ -16,7 +16,7 @@
             <Label AutomationId="RunHistoryTaskTitleLabel" Text="{Binding TaskTitle}" FontAttributes="Bold" FontSize="24" />
             <Label AutomationId="RunHistoryTaskStatusLabel" Text="{Binding TaskStatusText}" FontAttributes="Bold" />
             <Label AutomationId="RunHistoryNarrativeLabel" Text="{Binding ProgressNarrative}" />
-            <Label AutomationId="RunHistoryErrorLabel" Text="{Binding ErrorMessage}" TextColor="IndianRed" />
+            <Label AutomationId="RunHistoryErrorLabel" Text="{Binding ErrorMessage}" TextColor="{StaticResource Error}" />
 
             <Label AutomationId="RunHistorySummaryHeadingLabel" Text="Progress snapshot" FontAttributes="Bold" FontSize="18" />
             <FlexLayout

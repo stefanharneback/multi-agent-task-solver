@@ -25,7 +25,7 @@ public sealed class TaskWorkspaceHomePage : ContentPage
         _errorLabel = new Label
         {
             AutomationId = "TaskListErrorLabel",
-            TextColor = Colors.IndianRed
+            TextColor = Color.FromArgb("#B5544E")
         };
         _errorLabel.SetBinding(Label.TextProperty, nameof(TaskListViewModel.ErrorMessage));
 

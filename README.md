@@ -15,7 +15,7 @@ This repository currently delivers the foundation slice:
 - a first task-review execution path with persisted prompt, response, and usage artifacts
 - an explicit review approval or revise gate with persisted `user-decision` runs
 - a first worker execution path with persisted run artifacts and markdown output under `outputs/`
-- task-defined input folder declarations and output file targets
+- task-defined input folder declarations and optional output file targets
 - picker-assisted task creation for input/output path setup
 - file and folder imports into declared task input paths
 - task details usage summaries for the latest review/worker runs plus per-task token, duration, and cost rollups from saved `usage.json` artifacts
@@ -57,14 +57,13 @@ Task-<id>/
     <task-defined folders...>
   runs/
   outputs/
-    worker-output.md
-    <task-defined files...>
+    <task-defined files when declared...>
     0001-worker/
       worker-output.md
   cache/
 ```
 
-The top-level roots stay stable, but the task manifest now declares which folders under `inputs/` are intended for imports and which file targets under `outputs/` are intended for the worker deliverable. Input subfolders are only created when the task declares them. Worker runs still keep a run-scoped output copy under `outputs/<sequence>-worker/` so prior history remains readable. Canonical task artifacts stay human-readable. The `cache/` folder may contain machine-oriented derived files.
+The top-level roots stay stable, but the task manifest now declares which folders under `inputs/` are intended for imports and which file targets under `outputs/` are intended for the worker deliverable. Input subfolders are only created when the task declares them. Declared output files are only created when the task explicitly lists them. Worker runs always keep a run-scoped output copy under `outputs/<sequence>-worker/` so prior history remains readable even when no top-level output target is declared. Canonical task artifacts stay human-readable. The `cache/` folder may contain machine-oriented derived files.
 
 ## Project structure
 

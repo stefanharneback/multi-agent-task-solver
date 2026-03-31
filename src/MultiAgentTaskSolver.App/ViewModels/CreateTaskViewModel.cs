@@ -27,12 +27,6 @@ public sealed partial class CreateTaskViewModel : ViewModelBase
         CreateCommand = new AsyncRelayCommand(CreateAsync);
         CancelCommand = new AsyncRelayCommand(CancelAsync);
         AddInputFolderCommand = new AsyncRelayCommand(AddInputFolderAsync);
-        AddOutputFolderCommand = new AsyncRelayCommand(AddOutputFolderAsync);
-        TaskMarkdown = """
-# Task
-
-Describe the task, expected outcome, and how attached files should be referenced.
-""";
     }
 
     [CommunityToolkit.Mvvm.ComponentModel.ObservableProperty]
@@ -55,8 +49,6 @@ Describe the task, expected outcome, and how attached files should be referenced
     public IAsyncRelayCommand CancelCommand { get; }
 
     public IAsyncRelayCommand AddInputFolderCommand { get; }
-
-    public IAsyncRelayCommand AddOutputFolderCommand { get; }
 
     public Task CreateAsync()
     {
@@ -97,28 +89,6 @@ Describe the task, expected outcome, and how attached files should be referenced
             }
 
             InputPathsText = AppendDeclaredPath(InputPathsText, TaskFolderConventions.NormalizeInputPath(folderName));
-        });
-    }
-
-    public Task AddOutputFolderAsync()
-    {
-        return RunBusyAsync(async () =>
-        {
-            var selectedFolderPath = await _folderPickerService.PickFolderAsync();
-            if (string.IsNullOrWhiteSpace(selectedFolderPath))
-            {
-                return;
-            }
-
-            var folderName = Path.GetFileName(Path.TrimEndingDirectorySeparator(selectedFolderPath));
-            if (string.IsNullOrWhiteSpace(folderName))
-            {
-                return;
-            }
-
-            OutputPathsText = AppendDeclaredPath(
-                OutputPathsText,
-                TaskFolderConventions.NormalizeOutputPath($"{folderName}/{TaskFolderConventions.DefaultWorkerOutputFileName}"));
         });
     }
 

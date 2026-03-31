@@ -48,17 +48,17 @@ public static class TaskFolderConventions
 
     public static string[] ParseOutputPaths(string rawValue)
     {
-        return ParsePathList(rawValue, NormalizeOutputPath, DefaultOutputPaths);
+        return ParsePathList(rawValue, NormalizeOutputPath);
     }
 
     public static string NormalizeInputPath(string value)
     {
-        return NormalizeDeclaredPath(value, InputsFolderName, $"{InputsFolderName}/documents");
+        return NormalizeDeclaredPath(value, InputsFolderName);
     }
 
     public static string NormalizeOutputPath(string value)
     {
-        return NormalizeDeclaredPath(value, OutputsFolderName, $"{OutputsFolderName}/{DefaultWorkerOutputFileName}");
+        return NormalizeDeclaredPath(value, OutputsFolderName);
     }
 
     public static string CreateRunScopedWorkerOutputPath(int sequence)
@@ -113,11 +113,11 @@ public static class TaskFolderConventions
         return values.Count > 0 ? values.ToArray() : [];
     }
 
-    private static string NormalizeDeclaredPath(string value, string rootFolderName, string fallback)
+    private static string NormalizeDeclaredPath(string value, string rootFolderName)
     {
         if (string.IsNullOrWhiteSpace(value))
         {
-            return fallback;
+            throw new InvalidOperationException($"Path must stay under '{rootFolderName}/'.");
         }
 
         var normalized = value.Trim().Replace('\\', '/').Trim('/');

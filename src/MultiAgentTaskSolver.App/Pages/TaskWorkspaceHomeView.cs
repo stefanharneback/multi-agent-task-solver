@@ -22,7 +22,7 @@ public sealed class TaskWorkspaceHomeView : ContentView
         _errorLabel = new Label
         {
             AutomationId = "TaskListErrorLabel",
-            TextColor = Colors.IndianRed
+            TextColor = Color.FromArgb("#B5544E")
         };
 
         var createTaskButton = new Button

@@ -37,6 +37,47 @@ public sealed class CreateTaskViewModelTests
     }
 
     [Fact]
+    public void ConstructorLeavesTaskMarkdownEmptySoPlaceholderCanRender()
+    {
+        var viewModel = new CreateTaskViewModel(new FakeTaskWorkspaceCoordinator(), new FakeNavigationService());
+
+        Assert.Equal(string.Empty, viewModel.TaskMarkdown);
+        Assert.Equal(string.Empty, viewModel.OutputPathsText);
+    }
+
+    [Fact]
+    public async Task CreateAsyncAllowsNoDeclaredOutputPaths()
+    {
+        CreateTaskRequest? capturedRequest = null;
+        var coordinator = new FakeTaskWorkspaceCoordinator
+        {
+            CreateTaskHandler = request =>
+            {
+                capturedRequest = request;
+                var snapshot = TestData.CreateSnapshot("task-new", request.Title, request.Summary, TaskLifecycleState.Draft);
+                return snapshot with
+                {
+                    Manifest = snapshot.Manifest with
+                    {
+                        OutputPaths = request.OutputPaths.ToArray(),
+                    },
+                };
+            },
+        };
+
+        var viewModel = new CreateTaskViewModel(coordinator, new FakeNavigationService())
+        {
+            Title = "Explicit outputs only when needed",
+            Summary = "Leave outputs blank.",
+        };
+
+        await viewModel.CreateAsync();
+
+        Assert.NotNull(capturedRequest);
+        Assert.Empty(capturedRequest!.OutputPaths);
+    }
+
+    [Fact]
     public async Task CancelAsyncGoesBack()
     {
         var navigation = new FakeNavigationService();
@@ -59,19 +100,5 @@ public sealed class CreateTaskViewModelTests
         await viewModel.AddInputFolderAsync();
 
         Assert.Equal("inputs/Contracts", viewModel.InputPathsText);
-    }
-
-    [Fact]
-    public async Task AddOutputFolderAsyncAppendsDefaultWorkerOutputFileUnderSelectedFolder()
-    {
-        var folderPicker = new FakeFolderPickerService
-        {
-            SelectedPath = "C:\\temp\\Deliverables",
-        };
-        var viewModel = new CreateTaskViewModel(new FakeTaskWorkspaceCoordinator(), new FakeNavigationService(), folderPicker);
-
-        await viewModel.AddOutputFolderAsync();
-
-        Assert.Equal("outputs/Deliverables/worker-output.md", viewModel.OutputPathsText);
     }
 }

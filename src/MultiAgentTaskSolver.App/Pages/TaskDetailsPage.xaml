@@ -20,67 +20,115 @@
             </Grid>
             <Entry AutomationId="TaskTitleEntry" Placeholder="Short task name used in the task list and workspace." Style="{StaticResource FormEntryStyle}" Text="{Binding Title}" />
 
-            <Grid ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="8">
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
                 <Label Style="{StaticResource FormFieldTitle}" Text="Short summary" />
                 <Button CommandParameter="summary" Clicked="OnHelpButtonClicked" Style="{StaticResource InfoButtonStyle}" Text="?" />
-                <Button CommandParameter="summary:-1" Clicked="OnEditorHeightButtonClicked" Style="{StaticResource MiniButtonStyle}" Text="A-" />
-                <Button CommandParameter="summary:1" Clicked="OnEditorHeightButtonClicked" Style="{StaticResource MiniButtonStyle}" Text="A+" />
             </Grid>
-            <Editor
-                x:Name="TaskSummaryEditor"
-                AutomationId="TaskSummaryEditor"
-                AutoSize="Disabled"
-                HeightRequest="96"
-                Placeholder="Editable plain text. Describe the task briefly for the list and the next person reading it."
-                Style="{StaticResource FormEditorStyle}"
-                Text="{Binding Summary}" />
+            <VerticalStackLayout Spacing="0">
+                <Border Style="{StaticResource EditorPanelStyle}">
+                    <Editor
+                        x:Name="TaskSummaryEditor"
+                        AutomationId="TaskSummaryEditor"
+                        AutoSize="Disabled"
+                        HeightRequest="96"
+                        Placeholder="Editable plain text. Describe the task briefly for the list and the next person reading it."
+                        Style="{StaticResource FormEditorStyle}"
+                        Text="{Binding Summary}" />
+                </Border>
+                <Border
+                    x:Name="TaskSummaryResizeHandle"
+                    AutomationId="TaskSummaryResizeHandle"
+                    Style="{StaticResource EditorResizeHandleStyle}">
+                    <HorizontalStackLayout HorizontalOptions="Center" Spacing="4">
+                        <BoxView Style="{StaticResource EditorResizeGripStyle}" />
+                        <BoxView Style="{StaticResource EditorResizeGripStyle}" />
+                        <BoxView Style="{StaticResource EditorResizeGripStyle}" />
+                    </HorizontalStackLayout>
+                </Border>
+            </VerticalStackLayout>
 
-            <Grid ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="8">
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
                 <Label Style="{StaticResource FormFieldTitle}" Text="Task instructions" />
                 <Button CommandParameter="instructions" Clicked="OnHelpButtonClicked" Style="{StaticResource InfoButtonStyle}" Text="?" />
-                <Button CommandParameter="instructions:-1" Clicked="OnEditorHeightButtonClicked" Style="{StaticResource MiniButtonStyle}" Text="A-" />
-                <Button CommandParameter="instructions:1" Clicked="OnEditorHeightButtonClicked" Style="{StaticResource MiniButtonStyle}" Text="A+" />
             </Grid>
-            <Editor
-                x:Name="TaskMarkdownEditor"
-                AutomationId="TaskMarkdownEditor"
-                AutoSize="Disabled"
-                HeightRequest="300"
-                Placeholder="Editable plain text. Write the full task, constraints, references, and expected outputs."
-                Style="{StaticResource FormEditorStyle}"
-                Text="{Binding TaskMarkdown}" />
+            <VerticalStackLayout Spacing="0">
+                <Border Style="{StaticResource EditorPanelStyle}">
+                    <Editor
+                        x:Name="TaskMarkdownEditor"
+                        AutomationId="TaskMarkdownEditor"
+                        AutoSize="Disabled"
+                        HeightRequest="300"
+                        Placeholder="Editable plain text. Write the full task, constraints, references, and expected outputs."
+                        Style="{StaticResource FormEditorStyle}"
+                        Text="{Binding TaskMarkdown}" />
+                </Border>
+                <Border
+                    x:Name="TaskMarkdownResizeHandle"
+                    AutomationId="TaskMarkdownResizeHandle"
+                    Style="{StaticResource EditorResizeHandleStyle}">
+                    <HorizontalStackLayout HorizontalOptions="Center" Spacing="4">
+                        <BoxView Style="{StaticResource EditorResizeGripStyle}" />
+                        <BoxView Style="{StaticResource EditorResizeGripStyle}" />
+                        <BoxView Style="{StaticResource EditorResizeGripStyle}" />
+                    </HorizontalStackLayout>
+                </Border>
+            </VerticalStackLayout>
 
-            <Grid ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="8">
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
                 <Label AutomationId="TaskInputPathsHeadingLabel" Style="{StaticResource FormFieldTitle}" Text="Input folders" />
                 <Button CommandParameter="input-paths" Clicked="OnHelpButtonClicked" Style="{StaticResource InfoButtonStyle}" Text="?" />
-                <Button CommandParameter="input-paths:-1" Clicked="OnEditorHeightButtonClicked" Style="{StaticResource MiniButtonStyle}" Text="A-" />
-                <Button CommandParameter="input-paths:1" Clicked="OnEditorHeightButtonClicked" Style="{StaticResource MiniButtonStyle}" Text="A+" />
             </Grid>
-            <Editor
-                x:Name="TaskInputPathsEditor"
-                AutomationId="TaskInputPathsEditor"
-                AutoSize="Disabled"
-                HeightRequest="120"
-                Placeholder="Editable plain text. One task-relative input folder per line."
-                Style="{StaticResource FormEditorStyle}"
-                Text="{Binding InputPathsText}" />
+            <VerticalStackLayout Spacing="0">
+                <Border Style="{StaticResource EditorPanelStyle}">
+                    <Editor
+                        x:Name="TaskInputPathsEditor"
+                        AutomationId="TaskInputPathsEditor"
+                        AutoSize="Disabled"
+                        HeightRequest="120"
+                        Placeholder="Editable plain text. One task-relative input folder per line."
+                        Style="{StaticResource FormEditorStyle}"
+                        Text="{Binding InputPathsText}" />
+                </Border>
+                <Border
+                    x:Name="TaskInputPathsResizeHandle"
+                    AutomationId="TaskInputPathsResizeHandle"
+                    Style="{StaticResource EditorResizeHandleStyle}">
+                    <HorizontalStackLayout HorizontalOptions="Center" Spacing="4">
+                        <BoxView Style="{StaticResource EditorResizeGripStyle}" />
+                        <BoxView Style="{StaticResource EditorResizeGripStyle}" />
+                        <BoxView Style="{StaticResource EditorResizeGripStyle}" />
+                    </HorizontalStackLayout>
+                </Border>
+            </VerticalStackLayout>
             <Label Style="{StaticResource FormFieldHint}" Text="You can edit these paths directly as plain text." />
 
-            <Grid ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="8">
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
                 <Label AutomationId="TaskOutputPathsHeadingLabel" Style="{StaticResource FormFieldTitle}" Text="Output files" />
                 <Button CommandParameter="output-paths" Clicked="OnHelpButtonClicked" Style="{StaticResource InfoButtonStyle}" Text="?" />
-                <Button CommandParameter="output-paths:-1" Clicked="OnEditorHeightButtonClicked" Style="{StaticResource MiniButtonStyle}" Text="A-" />
-                <Button CommandParameter="output-paths:1" Clicked="OnEditorHeightButtonClicked" Style="{StaticResource MiniButtonStyle}" Text="A+" />
             </Grid>
-            <Editor
-                x:Name="TaskOutputPathsEditor"
-                AutomationId="TaskOutputPathsEditor"
-                AutoSize="Disabled"
-                HeightRequest="90"
-                Placeholder="Editable plain text. One task-relative output file per line."
-                Style="{StaticResource FormEditorStyle}"
-                Text="{Binding OutputPathsText}" />
-            <Label Style="{StaticResource FormFieldHint}" Text="Each line should resolve under outputs/." />
+            <VerticalStackLayout Spacing="0">
+                <Border Style="{StaticResource EditorPanelStyle}">
+                    <Editor
+                        x:Name="TaskOutputPathsEditor"
+                        AutomationId="TaskOutputPathsEditor"
+                        AutoSize="Disabled"
+                        HeightRequest="90"
+                        Placeholder="Editable plain text. One task-relative output file per line."
+                        Style="{StaticResource FormEditorStyle}"
+                        Text="{Binding OutputPathsText}" />
+                </Border>
+                <Border
+                    x:Name="TaskOutputPathsResizeHandle"
+                    AutomationId="TaskOutputPathsResizeHandle"
+                    Style="{StaticResource EditorResizeHandleStyle}">
+                    <HorizontalStackLayout HorizontalOptions="Center" Spacing="4">
+                        <BoxView Style="{StaticResource EditorResizeGripStyle}" />
+                        <BoxView Style="{StaticResource EditorResizeGripStyle}" />
+                        <BoxView Style="{StaticResource EditorResizeGripStyle}" />
+                    </HorizontalStackLayout>
+                </Border>
+            </VerticalStackLayout>
+            <Label Style="{StaticResource FormFieldHint}" Text="Each line should resolve under outputs/. Leave it blank if the run-scoped history copy is enough." />
 
             <HorizontalStackLayout Spacing="12">
                 <Button AutomationId="TaskSaveButton" Style="{StaticResource PrimaryActionButtonStyle}" Text="Save" Command="{Binding SaveCommand}" />
@@ -182,7 +230,7 @@
                 <Button AutomationId="ImportFolderButton" Style="{StaticResource SecondaryActionButtonStyle}" Text="Import Folder" Command="{Binding ImportPickedFolderCommand}" />
             </HorizontalStackLayout>
 
-            <Label AutomationId="TaskDetailsErrorLabel" Text="{Binding ErrorMessage}" TextColor="IndianRed" />
+            <Label AutomationId="TaskDetailsErrorLabel" Text="{Binding ErrorMessage}" TextColor="{StaticResource Error}" />
 
             <Label AutomationId="ArtifactsHeadingLabel" Text="Artifacts" FontAttributes="Bold" FontSize="18" />
             <VerticalStackLayout

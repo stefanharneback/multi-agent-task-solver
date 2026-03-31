@@ -60,7 +60,7 @@ public sealed class SettingsHomeView : ContentView
         var errorLabel = new Label
         {
             AutomationId = "SettingsErrorLabel",
-            TextColor = Colors.IndianRed
+            TextColor = Color.FromArgb("#B5544E")
         };
         errorLabel.SetBinding(Label.TextProperty, nameof(SettingsViewModel.ErrorMessage));
 

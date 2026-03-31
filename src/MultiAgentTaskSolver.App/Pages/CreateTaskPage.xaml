@@ -10,7 +10,7 @@
     <ScrollView>
         <VerticalStackLayout Padding="20" Spacing="14">
             <Label AutomationId="CreateTaskHeadingLabel" Style="{StaticResource PageHeadingStyle}" Text="New task" />
-            <Label Style="{StaticResource FormFieldHint}" Text="Define the task, the folders it can use as input, and the files it should produce as output." />
+            <Label Style="{StaticResource FormFieldHint}" Text="Define the task, declare any task-local input folders, and optionally declare explicit output file targets." />
 
             <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
                 <Label Style="{StaticResource FormFieldTitle}" Text="Task title" />
@@ -18,36 +18,60 @@
             </Grid>
             <Entry AutomationId="CreateTaskTitleEntry" Placeholder="Short task name used in the task list and workspace." Style="{StaticResource FormEntryStyle}" Text="{Binding Title}" />
 
-            <Grid ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="8">
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
                 <Label Style="{StaticResource FormFieldTitle}" Text="Short summary" />
                 <Button CommandParameter="summary" Clicked="OnHelpButtonClicked" Style="{StaticResource InfoButtonStyle}" Text="?" />
-                <Button CommandParameter="summary:-1" Clicked="OnEditorHeightButtonClicked" Style="{StaticResource MiniButtonStyle}" Text="A-" />
-                <Button CommandParameter="summary:1" Clicked="OnEditorHeightButtonClicked" Style="{StaticResource MiniButtonStyle}" Text="A+" />
             </Grid>
-            <Editor
-                x:Name="SummaryEditor"
-                AutomationId="CreateTaskSummaryEditor"
-                AutoSize="Disabled"
-                HeightRequest="96"
-                Placeholder="Editable plain text. Describe the goal, outcome, and important context in 1-4 short paragraphs."
-                Style="{StaticResource FormEditorStyle}"
-                Text="{Binding Summary}" />
+            <VerticalStackLayout Spacing="0">
+                <Border Style="{StaticResource EditorPanelStyle}">
+                    <Editor
+                        x:Name="SummaryEditor"
+                        AutomationId="CreateTaskSummaryEditor"
+                        AutoSize="Disabled"
+                        HeightRequest="96"
+                        Placeholder="Editable plain text. Describe the goal, outcome, and important context in 1-4 short paragraphs."
+                        Style="{StaticResource FormEditorStyle}"
+                        Text="{Binding Summary}" />
+                </Border>
+                <Border
+                    x:Name="SummaryResizeHandle"
+                    AutomationId="CreateTaskSummaryResizeHandle"
+                    Style="{StaticResource EditorResizeHandleStyle}">
+                    <HorizontalStackLayout HorizontalOptions="Center" Spacing="4">
+                        <BoxView Style="{StaticResource EditorResizeGripStyle}" />
+                        <BoxView Style="{StaticResource EditorResizeGripStyle}" />
+                        <BoxView Style="{StaticResource EditorResizeGripStyle}" />
+                    </HorizontalStackLayout>
+                </Border>
+            </VerticalStackLayout>
             <Label Style="{StaticResource FormFieldHint}" Text="Plain text. Keep it short enough to scan quickly." />
 
-            <Grid ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="8">
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
                 <Label AutomationId="CreateTaskInputPathsHeadingLabel" Style="{StaticResource FormFieldTitle}" Text="Input folders" />
                 <Button CommandParameter="input-paths" Clicked="OnHelpButtonClicked" Style="{StaticResource InfoButtonStyle}" Text="?" />
-                <Button CommandParameter="input-paths:-1" Clicked="OnEditorHeightButtonClicked" Style="{StaticResource MiniButtonStyle}" Text="A-" />
-                <Button CommandParameter="input-paths:1" Clicked="OnEditorHeightButtonClicked" Style="{StaticResource MiniButtonStyle}" Text="A+" />
             </Grid>
-            <Editor
-                x:Name="InputPathsEditor"
-                AutomationId="CreateTaskInputPathsEditor"
-                AutoSize="Disabled"
-                HeightRequest="120"
-                Placeholder="Editable plain text. One task-relative folder per line, for example: research/articles"
-                Style="{StaticResource FormEditorStyle}"
-                Text="{Binding InputPathsText}" />
+            <VerticalStackLayout Spacing="0">
+                <Border Style="{StaticResource EditorPanelStyle}">
+                    <Editor
+                        x:Name="InputPathsEditor"
+                        AutomationId="CreateTaskInputPathsEditor"
+                        AutoSize="Disabled"
+                        HeightRequest="120"
+                        Placeholder="Editable plain text. One task-relative folder per line, for example: research/articles"
+                        Style="{StaticResource FormEditorStyle}"
+                        Text="{Binding InputPathsText}" />
+                </Border>
+                <Border
+                    x:Name="InputPathsResizeHandle"
+                    AutomationId="CreateTaskInputPathsResizeHandle"
+                    Style="{StaticResource EditorResizeHandleStyle}">
+                    <HorizontalStackLayout HorizontalOptions="Center" Spacing="4">
+                        <BoxView Style="{StaticResource EditorResizeGripStyle}" />
+                        <BoxView Style="{StaticResource EditorResizeGripStyle}" />
+                        <BoxView Style="{StaticResource EditorResizeGripStyle}" />
+                    </HorizontalStackLayout>
+                </Border>
+            </VerticalStackLayout>
             <Label Style="{StaticResource FormFieldHint}" Text="You can type directly here or use Browse Input Folder to add a folder name." />
             <Button
                 AutomationId="CreateTaskAddInputFolderButton"
@@ -55,44 +79,63 @@
                 Style="{StaticResource SecondaryActionButtonStyle}"
                 Text="Browse Input Folder" />
 
-            <Grid ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="8">
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
                 <Label AutomationId="CreateTaskOutputPathsHeadingLabel" Style="{StaticResource FormFieldTitle}" Text="Output files" />
                 <Button CommandParameter="output-paths" Clicked="OnHelpButtonClicked" Style="{StaticResource InfoButtonStyle}" Text="?" />
-                <Button CommandParameter="output-paths:-1" Clicked="OnEditorHeightButtonClicked" Style="{StaticResource MiniButtonStyle}" Text="A-" />
-                <Button CommandParameter="output-paths:1" Clicked="OnEditorHeightButtonClicked" Style="{StaticResource MiniButtonStyle}" Text="A+" />
             </Grid>
-            <Editor
-                x:Name="OutputPathsEditor"
-                AutomationId="CreateTaskOutputPathsEditor"
-                AutoSize="Disabled"
-                HeightRequest="90"
-                Placeholder="Editable plain text. One task-relative output file per line, for example: deliverables/final-report.md"
-                Style="{StaticResource FormEditorStyle}"
-                Text="{Binding OutputPathsText}" />
-            <Label Style="{StaticResource FormFieldHint}" Text="Each line should point to a file under outputs/." />
-            <Button
-                AutomationId="CreateTaskAddOutputFolderButton"
-                Command="{Binding AddOutputFolderCommand}"
-                Style="{StaticResource SecondaryActionButtonStyle}"
-                Text="Browse Output Folder" />
+            <VerticalStackLayout Spacing="0">
+                <Border Style="{StaticResource EditorPanelStyle}">
+                    <Editor
+                        x:Name="OutputPathsEditor"
+                        AutomationId="CreateTaskOutputPathsEditor"
+                        AutoSize="Disabled"
+                        HeightRequest="90"
+                        Placeholder="Editable plain text. One task-relative output file per line, for example: deliverables/final-report.md"
+                        Style="{StaticResource FormEditorStyle}"
+                        Text="{Binding OutputPathsText}" />
+                </Border>
+                <Border
+                    x:Name="OutputPathsResizeHandle"
+                    AutomationId="CreateTaskOutputPathsResizeHandle"
+                    Style="{StaticResource EditorResizeHandleStyle}">
+                    <HorizontalStackLayout HorizontalOptions="Center" Spacing="4">
+                        <BoxView Style="{StaticResource EditorResizeGripStyle}" />
+                        <BoxView Style="{StaticResource EditorResizeGripStyle}" />
+                        <BoxView Style="{StaticResource EditorResizeGripStyle}" />
+                    </HorizontalStackLayout>
+                </Border>
+            </VerticalStackLayout>
+            <Label Style="{StaticResource FormFieldHint}" Text="Each line should point to a file under outputs/. Leave this blank if you only want run-history copies under outputs/&lt;sequence&gt;-worker/." />
 
-            <Grid ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="8">
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
                 <Label Style="{StaticResource FormFieldTitle}" Text="Task instructions" />
                 <Button CommandParameter="instructions" Clicked="OnHelpButtonClicked" Style="{StaticResource InfoButtonStyle}" Text="?" />
-                <Button CommandParameter="instructions:-1" Clicked="OnEditorHeightButtonClicked" Style="{StaticResource MiniButtonStyle}" Text="A-" />
-                <Button CommandParameter="instructions:1" Clicked="OnEditorHeightButtonClicked" Style="{StaticResource MiniButtonStyle}" Text="A+" />
             </Grid>
-            <Editor
-                x:Name="TaskMarkdownEditor"
-                AutomationId="CreateTaskMarkdownEditor"
-                AutoSize="Disabled"
-                HeightRequest="320"
-                Placeholder="Editable plain text. Write the full task, acceptance criteria, output expectations, and how inputs should be used."
-                Style="{StaticResource FormEditorStyle}"
-                Text="{Binding TaskMarkdown}" />
+            <VerticalStackLayout Spacing="0">
+                <Border Style="{StaticResource EditorPanelStyle}">
+                    <Editor
+                        x:Name="TaskMarkdownEditor"
+                        AutomationId="CreateTaskMarkdownEditor"
+                        AutoSize="Disabled"
+                        HeightRequest="320"
+                        Placeholder="Editable plain text. Write the full task, acceptance criteria, output expectations, and how inputs should be used."
+                        Style="{StaticResource FormEditorStyle}"
+                        Text="{Binding TaskMarkdown}" />
+                </Border>
+                <Border
+                    x:Name="TaskMarkdownResizeHandle"
+                    AutomationId="CreateTaskMarkdownResizeHandle"
+                    Style="{StaticResource EditorResizeHandleStyle}">
+                    <HorizontalStackLayout HorizontalOptions="Center" Spacing="4">
+                        <BoxView Style="{StaticResource EditorResizeGripStyle}" />
+                        <BoxView Style="{StaticResource EditorResizeGripStyle}" />
+                        <BoxView Style="{StaticResource EditorResizeGripStyle}" />
+                    </HorizontalStackLayout>
+                </Border>
+            </VerticalStackLayout>
             <Label Style="{StaticResource FormFieldHint}" Text="Markdown is recommended for structure. Use headings, bullet lists, and examples when useful." />
 
-            <Label AutomationId="CreateTaskErrorLabel" Text="{Binding ErrorMessage}" TextColor="IndianRed" />
+            <Label AutomationId="CreateTaskErrorLabel" Text="{Binding ErrorMessage}" TextColor="{StaticResource Error}" />
 
             <HorizontalStackLayout Spacing="12">
                 <Button AutomationId="CreateTaskConfirmButton" Style="{StaticResource PrimaryActionButtonStyle}" Text="Create" Command="{Binding CreateCommand}" />
