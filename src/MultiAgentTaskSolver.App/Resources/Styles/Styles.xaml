@@ -95,6 +95,17 @@
         <Setter Property="TextColor" Value="{StaticResource TextMuted}" />
     </Style>
 
+    <Style TargetType="Label" x:Key="FormFieldSubtitle">
+        <Setter Property="FontFamily" Value="OpenSansRegular" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="TextColor" Value="{StaticResource TextSecondary}" />
+        <Setter Property="LineBreakMode" Value="WordWrap" />
+    </Style>
+
+    <Style TargetType="Grid" x:Key="CollapsibleSectionHeaderStyle">
+        <Setter Property="Padding" Value="0,8,0,4" />
+    </Style>
+
     <Style TargetType="Border">
         <Setter Property="BackgroundColor" Value="{StaticResource Surface}" />
         <Setter Property="Stroke" Value="{StaticResource OutlineBrush}" />

@@ -41,6 +41,7 @@ public sealed partial class TaskDetailsViewModel : ViewModelBase
         RunWorkerCommand = new AsyncRelayCommand(RunWorkerAsync);
         ApproveReviewCommand = new AsyncRelayCommand(ApproveReviewAsync);
         ReviseReviewCommand = new AsyncRelayCommand(ReviseReviewAsync);
+        CopyAliasToClipboardCommand = new AsyncRelayCommand<string>(CopyAliasToClipboardAsync);
     }
 
     public ObservableCollection<string> ImportDestinations { get; } = [];
@@ -48,6 +49,10 @@ public sealed partial class TaskDetailsViewModel : ViewModelBase
     public ObservableCollection<TaskTreeEntryViewModel> TreeEntries { get; } = [];
 
     public ObservableCollection<ArtifactEntryViewModel> Artifacts { get; } = [];
+
+    public ObservableCollection<InputFolderViewModel> InputFolders { get; } = [];
+
+    public ObservableCollection<OutputTargetViewModel> OutputTargets { get; } = [];
 
     public ObservableCollection<ModelEntryViewModel> ReviewModels { get; } = [];
 
@@ -68,6 +73,8 @@ public sealed partial class TaskDetailsViewModel : ViewModelBase
     public IAsyncRelayCommand ApproveReviewCommand { get; }
 
     public IAsyncRelayCommand ReviseReviewCommand { get; }
+
+    public IAsyncRelayCommand<string> CopyAliasToClipboardCommand { get; }
 
     [CommunityToolkit.Mvvm.ComponentModel.ObservableProperty]
     public partial string TaskId { get; set; } = string.Empty;
@@ -146,12 +153,17 @@ public sealed partial class TaskDetailsViewModel : ViewModelBase
                 return;
             }
 
+            var outputDescriptions = OutputTargets
+                .Where(static t => !string.IsNullOrWhiteSpace(t.Description))
+                .ToDictionary(static t => t.Path, static t => t.Description, StringComparer.OrdinalIgnoreCase);
+
             var updatedManifest = _manifest with
             {
                 Title = Title.Trim(),
                 Summary = Summary.Trim(),
                 InputPaths = TaskFolderConventions.ParseInputPaths(InputPathsText),
                 OutputPaths = TaskFolderConventions.ParseOutputPaths(OutputPathsText),
+                OutputPathDescriptions = outputDescriptions,
             };
 
             await _coordinator.SaveTaskAsync(updatedManifest, TaskMarkdown);
@@ -203,6 +215,16 @@ public sealed partial class TaskDetailsViewModel : ViewModelBase
             await ImportFilesCoreAsync([folderPath]);
             await LoadCoreAsync(TaskId);
         });
+    }
+
+    public static Task CopyAliasToClipboardAsync(string? alias)
+    {
+        if (string.IsNullOrWhiteSpace(alias))
+        {
+            return Task.CompletedTask;
+        }
+
+        return Clipboard.Default.SetTextAsync($"@{alias}");
     }
 
     public Task OpenRunHistoryAsync()
@@ -312,6 +334,29 @@ public sealed partial class TaskDetailsViewModel : ViewModelBase
         TaskMarkdown = snapshot.TaskMarkdown;
         InputPathsText = string.Join(Environment.NewLine, snapshot.Manifest.InputPaths);
         OutputPathsText = string.Join(Environment.NewLine, snapshot.Manifest.OutputPaths);
+
+        InputFolders.Clear();
+        foreach (var inputPath in snapshot.Manifest.InputPaths)
+        {
+            var filesInFolder = snapshot.Manifest.Artifacts
+                .Where(a => a.RelativePath.StartsWith(inputPath + "/", StringComparison.OrdinalIgnoreCase))
+                .Select(a => new InputFileViewModel(
+                    a.Alias,
+                    Path.GetFileName(a.RelativePath),
+                    a.RelativePath,
+                    a.MediaType,
+                    $"{a.SizeBytes:n0} bytes"))
+                .ToArray();
+
+            InputFolders.Add(new InputFolderViewModel(inputPath, filesInFolder.Length, filesInFolder));
+        }
+
+        OutputTargets.Clear();
+        foreach (var outputPath in snapshot.Manifest.OutputPaths)
+        {
+            snapshot.Manifest.OutputPathDescriptions.TryGetValue(outputPath, out var description);
+            OutputTargets.Add(new OutputTargetViewModel(outputPath, description ?? string.Empty));
+        }
         TaskStatusText = snapshot.Manifest.Status.GetDisplayName();
         TaskUsageSummaryText = await LoadTaskUsageSummaryTextAsync(snapshot);
 

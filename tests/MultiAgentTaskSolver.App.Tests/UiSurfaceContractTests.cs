@@ -14,7 +14,7 @@ public sealed class UiSurfaceContractTests
         Assert.Contains("CreateTaskInputPathsResizeHandle", xaml, StringComparison.Ordinal);
         Assert.Contains("CreateTaskOutputPathsResizeHandle", xaml, StringComparison.Ordinal);
         Assert.Contains("CreateTaskMarkdownResizeHandle", xaml, StringComparison.Ordinal);
-        Assert.Contains("Leave this blank if you only want run-history copies", xaml, StringComparison.Ordinal);
+        Assert.Contains("Leave blank to only keep run-scoped history copies", xaml, StringComparison.Ordinal);
     }
 
     [Fact]

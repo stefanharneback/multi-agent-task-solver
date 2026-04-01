@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.Input;
 using MultiAgentTaskSolver.App.Services;
 using MultiAgentTaskSolver.Core;
@@ -27,6 +28,10 @@ public sealed partial class CreateTaskViewModel : ViewModelBase
         CreateCommand = new AsyncRelayCommand(CreateAsync);
         CancelCommand = new AsyncRelayCommand(CancelAsync);
         AddInputFolderCommand = new AsyncRelayCommand(AddInputFolderAsync);
+        AddInputFolderByNameCommand = new RelayCommand<string>(AddInputFolderByName);
+        RemoveInputFolderCommand = new RelayCommand<string>(RemoveInputFolder);
+        AddOutputTargetCommand = new RelayCommand<string>(AddOutputTarget);
+        RemoveOutputTargetCommand = new RelayCommand<string>(RemoveOutputTarget);
     }
 
     [CommunityToolkit.Mvvm.ComponentModel.ObservableProperty]
@@ -44,23 +49,51 @@ public sealed partial class CreateTaskViewModel : ViewModelBase
     [CommunityToolkit.Mvvm.ComponentModel.ObservableProperty]
     public partial string TaskMarkdown { get; set; } = string.Empty;
 
+    public ObservableCollection<string> InputFolders { get; } = [];
+
+    public ObservableCollection<OutputTargetViewModel> OutputTargets { get; } = [];
+
     public IAsyncRelayCommand CreateCommand { get; }
 
     public IAsyncRelayCommand CancelCommand { get; }
 
     public IAsyncRelayCommand AddInputFolderCommand { get; }
 
+    public IRelayCommand<string> AddInputFolderByNameCommand { get; }
+
+    public IRelayCommand<string> RemoveInputFolderCommand { get; }
+
+    public IRelayCommand<string> AddOutputTargetCommand { get; }
+
+    public IRelayCommand<string> RemoveOutputTargetCommand { get; }
+
     public Task CreateAsync()
     {
         return RunBusyAsync(async () =>
         {
+            var inputPaths = InputFolders.Count > 0
+                ? InputFolders.Select(TaskFolderConventions.NormalizeInputPath).Distinct(StringComparer.OrdinalIgnoreCase).ToArray()
+                : TaskFolderConventions.ParseInputPaths(InputPathsText);
+
+            var outputTargetsList = OutputTargets.Count > 0
+                ? OutputTargets.ToArray()
+                : TaskFolderConventions.ParseOutputPaths(OutputPathsText)
+                    .Select(static path => new OutputTargetViewModel(path, string.Empty))
+                    .ToArray();
+
+            var outputPaths = outputTargetsList.Select(static t => t.Path).ToArray();
+            var outputDescriptions = outputTargetsList
+                .Where(static t => !string.IsNullOrWhiteSpace(t.Description))
+                .ToDictionary(static t => t.Path, static t => t.Description, StringComparer.OrdinalIgnoreCase);
+
             var snapshot = await _coordinator.CreateTaskAsync(new CreateTaskRequest
             {
                 Title = Title,
                 Summary = Summary,
                 TaskMarkdown = TaskMarkdown,
-                InputPaths = TaskFolderConventions.ParseInputPaths(InputPathsText),
-                OutputPaths = TaskFolderConventions.ParseOutputPaths(OutputPathsText),
+                InputPaths = inputPaths,
+                OutputPaths = outputPaths,
+                OutputPathDescriptions = outputDescriptions,
             });
 
             await _navigationService.GoToTaskDetailsAsync(snapshot.Manifest.Id, replaceCurrentPage: true);
@@ -88,24 +121,78 @@ public sealed partial class CreateTaskViewModel : ViewModelBase
                 return;
             }
 
-            InputPathsText = AppendDeclaredPath(InputPathsText, TaskFolderConventions.NormalizeInputPath(folderName));
+            var normalizedPath = TaskFolderConventions.NormalizeInputPath(folderName);
+            if (!InputFolders.Contains(normalizedPath, StringComparer.OrdinalIgnoreCase))
+            {
+                InputFolders.Add(normalizedPath);
+            }
+
+            InputPathsText = string.Join(Environment.NewLine, InputFolders);
         });
     }
 
-    private static string AppendDeclaredPath(string existingValue, string path)
+    public void AddInputFolderByName(string? folderName)
     {
-        var paths = string.IsNullOrWhiteSpace(existingValue)
-            ? []
-            : existingValue
-                .Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-                .ToList();
-
-        if (!paths.Contains(path, StringComparer.OrdinalIgnoreCase))
+        if (string.IsNullOrWhiteSpace(folderName))
         {
-            paths.Add(path);
+            return;
         }
 
-        return string.Join(Environment.NewLine, paths);
+        var normalizedPath = TaskFolderConventions.NormalizeInputPath(folderName.Trim());
+        if (!InputFolders.Contains(normalizedPath, StringComparer.OrdinalIgnoreCase))
+        {
+            InputFolders.Add(normalizedPath);
+        }
+
+        InputPathsText = string.Join(Environment.NewLine, InputFolders);
+    }
+
+    public void RemoveInputFolder(string? path)
+    {
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            return;
+        }
+
+        var match = InputFolders.FirstOrDefault(f => string.Equals(f, path, StringComparison.OrdinalIgnoreCase));
+        if (match is not null)
+        {
+            InputFolders.Remove(match);
+        }
+
+        InputPathsText = string.Join(Environment.NewLine, InputFolders);
+    }
+
+    public void AddOutputTarget(string? path)
+    {
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            return;
+        }
+
+        var normalizedPath = TaskFolderConventions.NormalizeOutputPath(path.Trim());
+        if (OutputTargets.All(t => !string.Equals(t.Path, normalizedPath, StringComparison.OrdinalIgnoreCase)))
+        {
+            OutputTargets.Add(new OutputTargetViewModel(normalizedPath, string.Empty));
+        }
+
+        OutputPathsText = string.Join(Environment.NewLine, OutputTargets.Select(static t => t.Path));
+    }
+
+    public void RemoveOutputTarget(string? path)
+    {
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            return;
+        }
+
+        var match = OutputTargets.FirstOrDefault(t => string.Equals(t.Path, path, StringComparison.OrdinalIgnoreCase));
+        if (match is not null)
+        {
+            OutputTargets.Remove(match);
+        }
+
+        OutputPathsText = string.Join(Environment.NewLine, OutputTargets.Select(static t => t.Path));
     }
 
     private sealed class NullFolderPickerService : IFolderPickerService

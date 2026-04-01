@@ -16,16 +16,15 @@
                 <VerticalStackLayout Spacing="12">
                     <Label Style="{StaticResource SectionHeadingStyle}" Text="Workspace and gateway" />
 
-                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                    <VerticalStackLayout Spacing="2">
                         <Label Style="{StaticResource FormFieldTitle}" Text="Workspace root" />
-                        <Button CommandParameter="workspace-root" Clicked="OnHelpButtonClicked" Style="{StaticResource InfoButtonStyle}" Text="?" />
-                    </Grid>
+                        <Label Style="{StaticResource FormFieldSubtitle}" Text="Base folder where task folders, manifests, run artifacts, and imported files are stored." />
+                    </VerticalStackLayout>
                     <Entry
                         AutomationId="WorkspaceRootEntry"
                         Placeholder="Folder where task workspaces are stored."
                         Style="{StaticResource FormEntryStyle}"
                         Text="{Binding WorkspaceRootPath}" />
-                    <Label Style="{StaticResource FormFieldHint}" Text="This should point to the base folder where task manifests and artifacts are saved." />
                     <Button
                         AutomationId="BrowseWorkspaceButton"
                         Command="{Binding BrowseWorkspaceFolderCommand}"
@@ -33,29 +32,27 @@
                         Style="{StaticResource SecondaryActionButtonStyle}"
                         Text="Browse Workspace Folder" />
 
-                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                    <VerticalStackLayout Spacing="2">
                         <Label Style="{StaticResource FormFieldTitle}" Text="OpenAI gateway base URL" />
-                        <Button CommandParameter="gateway-base-url" Clicked="OnHelpButtonClicked" Style="{StaticResource InfoButtonStyle}" Text="?" />
-                    </Grid>
+                        <Label Style="{StaticResource FormFieldSubtitle}" Text="Include the scheme (e.g. https://your-service-host). Do not add endpoint-specific paths." />
+                    </VerticalStackLayout>
                     <Entry
                         AutomationId="OpenAiGatewayBaseUrlEntry"
                         Keyboard="Url"
                         Placeholder="https://your-gateway-host"
                         Style="{StaticResource FormEntryStyle}"
                         Text="{Binding OpenAiGatewayBaseUrl}" />
-                    <Label Style="{StaticResource FormFieldHint}" Text="Base URL for the gateway service that forwards requests to OpenAI." />
 
-                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                    <VerticalStackLayout Spacing="2">
                         <Label Style="{StaticResource FormFieldTitle}" Text="OpenAI client bearer token" />
-                        <Button CommandParameter="bearer-token" Clicked="OnHelpButtonClicked" Style="{StaticResource InfoButtonStyle}" Text="?" />
-                    </Grid>
+                        <Label Style="{StaticResource FormFieldSubtitle}" Text="Stored locally on this machine. Used for authenticated calls from the app to the gateway." />
+                    </VerticalStackLayout>
                     <Entry
                         AutomationId="OpenAiBearerTokenEntry"
                         IsPassword="True"
                         Placeholder="Paste the client bearer token"
                         Style="{StaticResource FormEntryStyle}"
                         Text="{Binding OpenAiBearerToken}" />
-                    <Label Style="{StaticResource FormFieldHint}" Text="Stored locally and used for authenticated calls from the app to the gateway." />
 
                     <HorizontalStackLayout Spacing="12">
                         <Button
@@ -71,10 +68,10 @@
 
             <Border Style="{StaticResource SurfaceCardStyle}" Padding="16">
                 <VerticalStackLayout Spacing="12">
-                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                    <VerticalStackLayout Spacing="2">
                         <Label AutomationId="OpenAiModelsHeadingLabel" Style="{StaticResource SectionHeadingStyle}" Text="Seeded OpenAI models" />
-                        <Button CommandParameter="seeded-models" Clicked="OnHelpButtonClicked" Style="{StaticResource InfoButtonStyle}" Text="?" />
-                    </Grid>
+                        <Label Style="{StaticResource FormFieldSubtitle}" Text="Models available through the gateway for review and worker selection. Informational only." />
+                    </VerticalStackLayout>
                     <CollectionView AutomationId="OpenAiModelsCollectionView" ItemsSource="{Binding OpenAiModels}">
                         <CollectionView.ItemTemplate>
                             <DataTemplate x:DataType="viewModels:ModelEntryViewModel">

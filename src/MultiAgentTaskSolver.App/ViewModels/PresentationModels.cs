@@ -59,3 +59,19 @@ public sealed record ModelEntryViewModel(
     string ModelId,
     string DisplayName,
     string Description);
+
+public sealed record InputFolderViewModel(
+    string Path,
+    int FileCount,
+    IReadOnlyList<InputFileViewModel> Files);
+
+public sealed record InputFileViewModel(
+    string Alias,
+    string FileName,
+    string RelativePath,
+    string MediaType,
+    string SizeText);
+
+public sealed record OutputTargetViewModel(
+    string Path,
+    string Description);

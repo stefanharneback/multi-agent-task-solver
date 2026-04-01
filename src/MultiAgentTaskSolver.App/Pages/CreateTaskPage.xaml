@@ -12,16 +12,16 @@
             <Label AutomationId="CreateTaskHeadingLabel" Style="{StaticResource PageHeadingStyle}" Text="New task" />
             <Label Style="{StaticResource FormFieldHint}" Text="Define the task, declare any task-local input folders, and optionally declare explicit output file targets." />
 
-            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+            <VerticalStackLayout Spacing="2">
                 <Label Style="{StaticResource FormFieldTitle}" Text="Task title" />
-                <Button CommandParameter="title" Clicked="OnHelpButtonClicked" Style="{StaticResource InfoButtonStyle}" Text="?" />
-            </Grid>
-            <Entry AutomationId="CreateTaskTitleEntry" Placeholder="Short task name used in the task list and workspace." Style="{StaticResource FormEntryStyle}" Text="{Binding Title}" />
+                <Label Style="{StaticResource FormFieldSubtitle}" Text="Short, specific name (3–10 words). Visible in the task list without opening the task." />
+            </VerticalStackLayout>
+            <Entry AutomationId="CreateTaskTitleEntry" Placeholder="e.g. Summarize Q4 sales transcripts" Style="{StaticResource FormEntryStyle}" Text="{Binding Title}" />
 
-            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+            <VerticalStackLayout Spacing="2">
                 <Label Style="{StaticResource FormFieldTitle}" Text="Short summary" />
-                <Button CommandParameter="summary" Clicked="OnHelpButtonClicked" Style="{StaticResource InfoButtonStyle}" Text="?" />
-            </Grid>
+                <Label Style="{StaticResource FormFieldSubtitle}" Text="Compact overview of the goal, main constraints, and expected result. One to four short paragraphs." />
+            </VerticalStackLayout>
             <VerticalStackLayout Spacing="0">
                 <Border Style="{StaticResource EditorPanelStyle}">
                     <Editor
@@ -29,7 +29,7 @@
                         AutomationId="CreateTaskSummaryEditor"
                         AutoSize="Disabled"
                         HeightRequest="96"
-                        Placeholder="Editable plain text. Describe the goal, outcome, and important context in 1-4 short paragraphs."
+                        Placeholder="Describe what the task should accomplish and why."
                         Style="{StaticResource FormEditorStyle}"
                         Text="{Binding Summary}" />
                 </Border>
@@ -44,12 +44,11 @@
                     </HorizontalStackLayout>
                 </Border>
             </VerticalStackLayout>
-            <Label Style="{StaticResource FormFieldHint}" Text="Plain text. Keep it short enough to scan quickly." />
 
-            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+            <VerticalStackLayout Spacing="2">
                 <Label AutomationId="CreateTaskInputPathsHeadingLabel" Style="{StaticResource FormFieldTitle}" Text="Input folders" />
-                <Button CommandParameter="input-paths" Clicked="OnHelpButtonClicked" Style="{StaticResource InfoButtonStyle}" Text="?" />
-            </Grid>
+                <Label Style="{StaticResource FormFieldSubtitle}" Text="Task-local folders under inputs/. One folder per line. Use Browse to pick a folder name from your file system." />
+            </VerticalStackLayout>
             <VerticalStackLayout Spacing="0">
                 <Border Style="{StaticResource EditorPanelStyle}">
                     <Editor
@@ -57,7 +56,7 @@
                         AutomationId="CreateTaskInputPathsEditor"
                         AutoSize="Disabled"
                         HeightRequest="120"
-                        Placeholder="Editable plain text. One task-relative folder per line, for example: research/articles"
+                        Placeholder="e.g. inputs/research&#10;inputs/contracts"
                         Style="{StaticResource FormEditorStyle}"
                         Text="{Binding InputPathsText}" />
                 </Border>
@@ -72,17 +71,16 @@
                     </HorizontalStackLayout>
                 </Border>
             </VerticalStackLayout>
-            <Label Style="{StaticResource FormFieldHint}" Text="You can type directly here or use Browse Input Folder to add a folder name." />
             <Button
                 AutomationId="CreateTaskAddInputFolderButton"
                 Command="{Binding AddInputFolderCommand}"
                 Style="{StaticResource SecondaryActionButtonStyle}"
                 Text="Browse Input Folder" />
 
-            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+            <VerticalStackLayout Spacing="2">
                 <Label AutomationId="CreateTaskOutputPathsHeadingLabel" Style="{StaticResource FormFieldTitle}" Text="Output files" />
-                <Button CommandParameter="output-paths" Clicked="OnHelpButtonClicked" Style="{StaticResource InfoButtonStyle}" Text="?" />
-            </Grid>
+                <Label Style="{StaticResource FormFieldSubtitle}" Text="Stable deliverables under outputs/. One file per line. Leave blank to only keep run-scoped history copies." />
+            </VerticalStackLayout>
             <VerticalStackLayout Spacing="0">
                 <Border Style="{StaticResource EditorPanelStyle}">
                     <Editor
@@ -90,7 +88,7 @@
                         AutomationId="CreateTaskOutputPathsEditor"
                         AutoSize="Disabled"
                         HeightRequest="90"
-                        Placeholder="Editable plain text. One task-relative output file per line, for example: deliverables/final-report.md"
+                        Placeholder="e.g. outputs/final-report.md"
                         Style="{StaticResource FormEditorStyle}"
                         Text="{Binding OutputPathsText}" />
                 </Border>
@@ -105,12 +103,11 @@
                     </HorizontalStackLayout>
                 </Border>
             </VerticalStackLayout>
-            <Label Style="{StaticResource FormFieldHint}" Text="Each line should point to a file under outputs/. Leave this blank if you only want run-history copies under outputs/&lt;sequence&gt;-worker/." />
 
-            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+            <VerticalStackLayout Spacing="2">
                 <Label Style="{StaticResource FormFieldTitle}" Text="Task instructions" />
-                <Button CommandParameter="instructions" Clicked="OnHelpButtonClicked" Style="{StaticResource InfoButtonStyle}" Text="?" />
-            </Grid>
+                <Label Style="{StaticResource FormFieldSubtitle}" Text="Full task definition. Describe the work, how inputs should be used, acceptance criteria, and expected output format. Markdown recommended." />
+            </VerticalStackLayout>
             <VerticalStackLayout Spacing="0">
                 <Border Style="{StaticResource EditorPanelStyle}">
                     <Editor
@@ -118,7 +115,7 @@
                         AutomationId="CreateTaskMarkdownEditor"
                         AutoSize="Disabled"
                         HeightRequest="320"
-                        Placeholder="Editable plain text. Write the full task, acceptance criteria, output expectations, and how inputs should be used."
+                        Placeholder="Write the full task prompt. Use headings, bullet lists, and examples when useful."
                         Style="{StaticResource FormEditorStyle}"
                         Text="{Binding TaskMarkdown}" />
                 </Border>
@@ -133,7 +130,6 @@
                     </HorizontalStackLayout>
                 </Border>
             </VerticalStackLayout>
-            <Label Style="{StaticResource FormFieldHint}" Text="Markdown is recommended for structure. Use headings, bullet lists, and examples when useful." />
 
             <Label AutomationId="CreateTaskErrorLabel" Style="{StaticResource ErrorLabelStyle}" Text="{Binding ErrorMessage}" />
 

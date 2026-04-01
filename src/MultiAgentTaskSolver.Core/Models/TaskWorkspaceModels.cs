@@ -26,6 +26,8 @@ public sealed record TaskManifest
 
     public IReadOnlyList<string> OutputPaths { get; init; } = TaskFolderConventions.DefaultOutputPaths.ToArray();
 
+    public IReadOnlyDictionary<string, string> OutputPathDescriptions { get; init; } = new Dictionary<string, string>();
+
     // Legacy compatibility for previously saved task manifests.
     public IReadOnlyList<string> InputCategories { get; init; } = TaskFolderConventions.DefaultInputCategories.ToArray();
 
@@ -146,6 +148,8 @@ public sealed record CreateTaskRequest
     public IReadOnlyList<string> InputPaths { get; init; } = [];
 
     public IReadOnlyList<string> OutputPaths { get; init; } = [];
+
+    public IReadOnlyDictionary<string, string> OutputPathDescriptions { get; init; } = new Dictionary<string, string>();
 }
 
 public sealed record ArtifactImportRequest

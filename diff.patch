@@ -1,0 +1,1433 @@
+diff --git a/src/MultiAgentTaskSolver.App/Pages/CreateTaskPage.xaml b/src/MultiAgentTaskSolver.App/Pages/CreateTaskPage.xaml
+index e4a18b9..b51c2ff 100644
+--- a/src/MultiAgentTaskSolver.App/Pages/CreateTaskPage.xaml
++++ b/src/MultiAgentTaskSolver.App/Pages/CreateTaskPage.xaml
+@@ -12,16 +12,16 @@
+             <Label AutomationId="CreateTaskHeadingLabel" Style="{StaticResource PageHeadingStyle}" Text="New task" />
+             <Label Style="{StaticResource FormFieldHint}" Text="Define the task, declare any task-local input folders, and optionally declare explicit output file targets." />
+ 
+-            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
++            <VerticalStackLayout Spacing="2">
+                 <Label Style="{StaticResource FormFieldTitle}" Text="Task title" />
+-                <Button CommandParameter="title" Clicked="OnHelpButtonClicked" Style="{StaticResource InfoButtonStyle}" Text="?" />
+-            </Grid>
+-            <Entry AutomationId="CreateTaskTitleEntry" Placeholder="Short task name used in the task list and workspace." Style="{StaticResource FormEntryStyle}" Text="{Binding Title}" />
++                <Label Style="{StaticResource FormFieldSubtitle}" Text="Short, specific name (3–10 words). Visible in the task list without opening the task." />
++            </VerticalStackLayout>
++            <Entry AutomationId="CreateTaskTitleEntry" Placeholder="e.g. Summarize Q4 sales transcripts" Style="{StaticResource FormEntryStyle}" Text="{Binding Title}" />
+ 
+-            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
++            <VerticalStackLayout Spacing="2">
+                 <Label Style="{StaticResource FormFieldTitle}" Text="Short summary" />
+-                <Button CommandParameter="summary" Clicked="OnHelpButtonClicked" Style="{StaticResource InfoButtonStyle}" Text="?" />
+-            </Grid>
++                <Label Style="{StaticResource FormFieldSubtitle}" Text="Compact overview of the goal, main constraints, and expected result. One to four short paragraphs." />
++            </VerticalStackLayout>
+             <VerticalStackLayout Spacing="0">
+                 <Border Style="{StaticResource EditorPanelStyle}">
+                     <Editor
+@@ -29,7 +29,7 @@
+                         AutomationId="CreateTaskSummaryEditor"
+                         AutoSize="Disabled"
+                         HeightRequest="96"
+-                        Placeholder="Editable plain text. Describe the goal, outcome, and important context in 1-4 short paragraphs."
++                        Placeholder="Describe what the task should accomplish and why."
+                         Style="{StaticResource FormEditorStyle}"
+                         Text="{Binding Summary}" />
+                 </Border>
+@@ -44,12 +44,11 @@
+                     </HorizontalStackLayout>
+                 </Border>
+             </VerticalStackLayout>
+-            <Label Style="{StaticResource FormFieldHint}" Text="Plain text. Keep it short enough to scan quickly." />
+ 
+-            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
++            <VerticalStackLayout Spacing="2">
+                 <Label AutomationId="CreateTaskInputPathsHeadingLabel" Style="{StaticResource FormFieldTitle}" Text="Input folders" />
+-                <Button CommandParameter="input-paths" Clicked="OnHelpButtonClicked" Style="{StaticResource InfoButtonStyle}" Text="?" />
+-            </Grid>
++                <Label Style="{StaticResource FormFieldSubtitle}" Text="Task-local folders under inputs/. One folder per line. Use Browse to pick a folder name from your file system." />
++            </VerticalStackLayout>
+             <VerticalStackLayout Spacing="0">
+                 <Border Style="{StaticResource EditorPanelStyle}">
+                     <Editor
+@@ -57,7 +56,7 @@
+                         AutomationId="CreateTaskInputPathsEditor"
+                         AutoSize="Disabled"
+                         HeightRequest="120"
+-                        Placeholder="Editable plain text. One task-relative folder per line, for example: research/articles"
++                        Placeholder="e.g. inputs/research&#10;inputs/contracts"
+                         Style="{StaticResource FormEditorStyle}"
+                         Text="{Binding InputPathsText}" />
+                 </Border>
+@@ -72,17 +71,16 @@
+                     </HorizontalStackLayout>
+                 </Border>
+             </VerticalStackLayout>
+-            <Label Style="{StaticResource FormFieldHint}" Text="You can type directly here or use Browse Input Folder to add a folder name." />
+             <Button
+                 AutomationId="CreateTaskAddInputFolderButton"
+                 Command="{Binding AddInputFolderCommand}"
+                 Style="{StaticResource SecondaryActionButtonStyle}"
+                 Text="Browse Input Folder" />
+ 
+-            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
++            <VerticalStackLayout Spacing="2">
+                 <Label AutomationId="CreateTaskOutputPathsHeadingLabel" Style="{StaticResource FormFieldTitle}" Text="Output files" />
+-                <Button CommandParameter="output-paths" Clicked="OnHelpButtonClicked" Style="{StaticResource InfoButtonStyle}" Text="?" />
+-            </Grid>
++                <Label Style="{StaticResource FormFieldSubtitle}" Text="Stable deliverables under outputs/. One file per line. Leave blank to only keep run-scoped history copies." />
++            </VerticalStackLayout>
+             <VerticalStackLayout Spacing="0">
+                 <Border Style="{StaticResource EditorPanelStyle}">
+                     <Editor
+@@ -90,7 +88,7 @@
+                         AutomationId="CreateTaskOutputPathsEditor"
+                         AutoSize="Disabled"
+                         HeightRequest="90"
+-                        Placeholder="Editable plain text. One task-relative output file per line, for example: deliverables/final-report.md"
++                        Placeholder="e.g. outputs/final-report.md"
+                         Style="{StaticResource FormEditorStyle}"
+                         Text="{Binding OutputPathsText}" />
+                 </Border>
+@@ -105,12 +103,11 @@
+                     </HorizontalStackLayout>
+                 </Border>
+             </VerticalStackLayout>
+-            <Label Style="{StaticResource FormFieldHint}" Text="Each line should point to a file under outputs/. Leave this blank if you only want run-history copies under outputs/&lt;sequence&gt;-worker/." />
+ 
+-            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
++            <VerticalStackLayout Spacing="2">
+                 <Label Style="{StaticResource FormFieldTitle}" Text="Task instructions" />
+-                <Button CommandParameter="instructions" Clicked="OnHelpButtonClicked" Style="{StaticResource InfoButtonStyle}" Text="?" />
+-            </Grid>
++                <Label Style="{StaticResource FormFieldSubtitle}" Text="Full task definition. Describe the work, how inputs should be used, acceptance criteria, and expected output format. Markdown recommended." />
++            </VerticalStackLayout>
+             <VerticalStackLayout Spacing="0">
+                 <Border Style="{StaticResource EditorPanelStyle}">
+                     <Editor
+@@ -118,7 +115,7 @@
+                         AutomationId="CreateTaskMarkdownEditor"
+                         AutoSize="Disabled"
+                         HeightRequest="320"
+-                        Placeholder="Editable plain text. Write the full task, acceptance criteria, output expectations, and how inputs should be used."
++                        Placeholder="Write the full task prompt. Use headings, bullet lists, and examples when useful."
+                         Style="{StaticResource FormEditorStyle}"
+                         Text="{Binding TaskMarkdown}" />
+                 </Border>
+@@ -133,7 +130,6 @@
+                     </HorizontalStackLayout>
+                 </Border>
+             </VerticalStackLayout>
+-            <Label Style="{StaticResource FormFieldHint}" Text="Markdown is recommended for structure. Use headings, bullet lists, and examples when useful." />
+ 
+             <Label AutomationId="CreateTaskErrorLabel" Style="{StaticResource ErrorLabelStyle}" Text="{Binding ErrorMessage}" />
+ 
+diff --git a/src/MultiAgentTaskSolver.App/Pages/CreateTaskPage.xaml.cs b/src/MultiAgentTaskSolver.App/Pages/CreateTaskPage.xaml.cs
+index 2bd80de..7714be1 100644
+--- a/src/MultiAgentTaskSolver.App/Pages/CreateTaskPage.xaml.cs
++++ b/src/MultiAgentTaskSolver.App/Pages/CreateTaskPage.xaml.cs
+@@ -20,36 +20,6 @@ public partial class CreateTaskPage : ContentPage
+         ConfigureResizableEditor(TaskMarkdownEditor, TaskMarkdownResizeHandle, TaskMarkdownHeightKey, 320d);
+     }
+ 
+-    private async void OnHelpButtonClicked(object? sender, EventArgs e)
+-    {
+-        if (sender is not Button button || button.CommandParameter is not string helpKey)
+-        {
+-            return;
+-        }
+-
+-        var (title, message) = helpKey switch
+-        {
+-            "title" => (
+-                "Task title",
+-                "Use a short, specific title. Aim for 3-10 words. It should make sense in the task list without opening the task."),
+-            "summary" => (
+-                "Short summary",
+-                "Write a compact description of the task. State the goal, main constraints, and expected result. One to four short paragraphs is usually enough."),
+-            "input-paths" => (
+-                "Input folders",
+-                "Type one folder per line. These are task-local paths under inputs/. Example: research/articles or inputs/contracts. You can edit them manually as plain text."),
+-            "output-paths" => (
+-                "Output files",
+-                "Type one file path per line when you want a stable top-level deliverable under outputs/. Leave it blank if the run-scoped worker history copy is enough."),
+-            "instructions" => (
+-                "Task instructions",
+-                "This is the main task prompt. Describe the work to do, how imported material should be used, and what the final output should contain. Markdown works best for longer instructions."),
+-            _ => ("Field help", "No additional help is available for this field yet."),
+-        };
+-
+-        await DisplayAlertAsync(title, message, "Close");
+-    }
+-
+     private static void ConfigureResizableEditor(Editor editor, View handle, string key, double fallbackHeight)
+     {
+         editor.HeightRequest = UiStateStore.GetEditorHeight(key, fallbackHeight);
+diff --git a/src/MultiAgentTaskSolver.App/Pages/SettingsHomeView.cs b/src/MultiAgentTaskSolver.App/Pages/SettingsHomeView.cs
+index ec8ca3f..343d5f5 100644
+--- a/src/MultiAgentTaskSolver.App/Pages/SettingsHomeView.cs
++++ b/src/MultiAgentTaskSolver.App/Pages/SettingsHomeView.cs
+@@ -79,16 +79,13 @@ public sealed class SettingsHomeView : ContentView
+                 Children =
+                 {
+                     CreateSectionHeading("Workspace and gateway"),
+-                    CreateFieldHeader("Workspace root", "workspace-root"),
++                    CreateFieldHeaderWithSubtitle("Workspace root", "Base folder where task folders, manifests, run artifacts, and imported files are stored."),
+                     workspaceEntry,
+-                    CreateHintLabel("This should point to the base folder where task manifests and artifacts are saved."),
+                     browseWorkspaceButton,
+-                    CreateFieldHeader("OpenAI gateway base URL", "gateway-base-url"),
++                    CreateFieldHeaderWithSubtitle("OpenAI gateway base URL", "Include the scheme (e.g. https://your-service-host). Do not add endpoint-specific paths."),
+                     gatewayEntry,
+-                    CreateHintLabel("Base URL for the gateway service that forwards requests to OpenAI."),
+-                    CreateFieldHeader("OpenAI client bearer token", "bearer-token"),
++                    CreateFieldHeaderWithSubtitle("OpenAI client bearer token", "Stored locally on this machine. Used for authenticated calls from the app to the gateway."),
+                     bearerTokenEntry,
+-                    CreateHintLabel("Stored locally and used for authenticated calls from the app to the gateway."),
+                     saveButton,
+                     errorLabel
+                 }
+@@ -104,7 +101,11 @@ public sealed class SettingsHomeView : ContentView
+                 Spacing = 12,
+                 Children =
+                 {
+-                    CreateFieldHeader("Seeded OpenAI models", "seeded-models", automationId: "OpenAiModelsHeadingLabel", useSectionHeading: true),
++                    CreateFieldHeaderWithSubtitle(
++                        "Seeded OpenAI models",
++                        "Models available through the gateway for review and worker selection. Informational only.",
++                        automationId: "OpenAiModelsHeadingLabel",
++                        useSectionHeading: true),
+                     _modelsHost
+                 }
+             }
+@@ -139,31 +140,6 @@ public sealed class SettingsHomeView : ContentView
+         RenderModels();
+     }
+ 
+-    private static async Task ShowHelpAsync(string helpKey)
+-    {
+-        var (title, message) = helpKey switch
+-        {
+-            "workspace-root" => (
+-                "Workspace root",
+-                "Choose the base folder where task folders, manifests, run artifacts, and copied imports are stored. Keep this as a stable local path that the app can write to."),
+-            "gateway-base-url" => (
+-                "OpenAI gateway base URL",
+-                "Enter the base URL for the gateway service that this app calls. Include the scheme, for example https://your-service-host, but do not add endpoint-specific paths."),
+-            "bearer-token" => (
+-                "OpenAI client bearer token",
+-                "Paste the client token used to authenticate from this app to the gateway. It is stored locally on this machine and sent with gateway requests."),
+-            "seeded-models" => (
+-                "Seeded OpenAI models",
+-                "This list shows the models currently seeded in the app for review and worker selection. It is informational here so you can verify what the app expects to be available through the gateway."),
+-            _ => ("Field help", "No additional help is available for this field yet."),
+-        };
+-
+-        if (Shell.Current?.CurrentPage is Page currentPage)
+-        {
+-            await currentPage.DisplayAlertAsync(title, message, "Close");
+-        }
+-    }
+-
+     private void RenderModels()
+     {
+         _modelsHost.Children.Clear();
+@@ -206,37 +182,30 @@ public sealed class SettingsHomeView : ContentView
+         }
+     }
+ 
+-    private static Grid CreateFieldHeader(string title, string helpKey, string? automationId = null, bool useSectionHeading = false)
++    private static VerticalStackLayout CreateFieldHeaderWithSubtitle(
++        string title,
++        string subtitle,
++        string? automationId = null,
++        bool useSectionHeading = false)
+     {
+-        var label = new Label
++        var titleLabel = new Label
+         {
+             Text = title,
+-            AutomationId = automationId
++            AutomationId = automationId,
++            Style = TryGetStyle(useSectionHeading ? "SectionHeadingStyle" : "FormFieldTitle")
+         };
+-        label.Style = TryGetStyle(useSectionHeading ? "SectionHeadingStyle" : "FormFieldTitle");
+ 
+-        var button = new Button
++        var subtitleLabel = new Label
+         {
+-            Command = new Command(async () => await ShowHelpAsync(helpKey)),
+-            Style = TryGetStyle("InfoButtonStyle"),
+-            Text = "?"
++            Text = subtitle,
++            Style = TryGetStyle("FormFieldSubtitle")
+         };
+ 
+-        var grid = new Grid
++        return new VerticalStackLayout
+         {
+-            ColumnDefinitions =
+-            {
+-                new ColumnDefinition(GridLength.Star),
+-                new ColumnDefinition(GridLength.Auto)
+-            },
+-            ColumnSpacing = 8
++            Spacing = 2,
++            Children = { titleLabel, subtitleLabel }
+         };
+-
+-        Grid.SetColumn(label, 0);
+-        Grid.SetColumn(button, 1);
+-        grid.Children.Add(label);
+-        grid.Children.Add(button);
+-        return grid;
+     }
+ 
+     private static Label CreateSectionHeading(string text)
+diff --git a/src/MultiAgentTaskSolver.App/Pages/SettingsPage.xaml b/src/MultiAgentTaskSolver.App/Pages/SettingsPage.xaml
+index f2367e7..f188ccc 100644
+--- a/src/MultiAgentTaskSolver.App/Pages/SettingsPage.xaml
++++ b/src/MultiAgentTaskSolver.App/Pages/SettingsPage.xaml
+@@ -16,16 +16,15 @@
+                 <VerticalStackLayout Spacing="12">
+                     <Label Style="{StaticResource SectionHeadingStyle}" Text="Workspace and gateway" />
+ 
+-                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
++                    <VerticalStackLayout Spacing="2">
+                         <Label Style="{StaticResource FormFieldTitle}" Text="Workspace root" />
+-                        <Button CommandParameter="workspace-root" Clicked="OnHelpButtonClicked" Style="{StaticResource InfoButtonStyle}" Text="?" />
+-                    </Grid>
++                        <Label Style="{StaticResource FormFieldSubtitle}" Text="Base folder where task folders, manifests, run artifacts, and imported files are stored." />
++                    </VerticalStackLayout>
+                     <Entry
+                         AutomationId="WorkspaceRootEntry"
+                         Placeholder="Folder where task workspaces are stored."
+                         Style="{StaticResource FormEntryStyle}"
+                         Text="{Binding WorkspaceRootPath}" />
+-                    <Label Style="{StaticResource FormFieldHint}" Text="This should point to the base folder where task manifests and artifacts are saved." />
+                     <Button
+                         AutomationId="BrowseWorkspaceButton"
+                         Command="{Binding BrowseWorkspaceFolderCommand}"
+@@ -33,29 +32,27 @@
+                         Style="{StaticResource SecondaryActionButtonStyle}"
+                         Text="Browse Workspace Folder" />
+ 
+-                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
++                    <VerticalStackLayout Spacing="2">
+                         <Label Style="{StaticResource FormFieldTitle}" Text="OpenAI gateway base URL" />
+-                        <Button CommandParameter="gateway-base-url" Clicked="OnHelpButtonClicked" Style="{StaticResource InfoButtonStyle}" Text="?" />
+-                    </Grid>
++                        <Label Style="{StaticResource FormFieldSubtitle}" Text="Include the scheme (e.g. https://your-service-host). Do not add endpoint-specific paths." />
++                    </VerticalStackLayout>
+                     <Entry
+                         AutomationId="OpenAiGatewayBaseUrlEntry"
+                         Keyboard="Url"
+                         Placeholder="https://your-gateway-host"
+                         Style="{StaticResource FormEntryStyle}"
+                         Text="{Binding OpenAiGatewayBaseUrl}" />
+-                    <Label Style="{StaticResource FormFieldHint}" Text="Base URL for the gateway service that forwards requests to OpenAI." />
+ 
+-                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
++                    <VerticalStackLayout Spacing="2">
+                         <Label Style="{StaticResource FormFieldTitle}" Text="OpenAI client bearer token" />
+-                        <Button CommandParameter="bearer-token" Clicked="OnHelpButtonClicked" Style="{StaticResource InfoButtonStyle}" Text="?" />
+-                    </Grid>
++                        <Label Style="{StaticResource FormFieldSubtitle}" Text="Stored locally on this machine. Used for authenticated calls from the app to the gateway." />
++                    </VerticalStackLayout>
+                     <Entry
+                         AutomationId="OpenAiBearerTokenEntry"
+                         IsPassword="True"
+                         Placeholder="Paste the client bearer token"
+                         Style="{StaticResource FormEntryStyle}"
+                         Text="{Binding OpenAiBearerToken}" />
+-                    <Label Style="{StaticResource FormFieldHint}" Text="Stored locally and used for authenticated calls from the app to the gateway." />
+ 
+                     <HorizontalStackLayout Spacing="12">
+                         <Button
+@@ -71,10 +68,10 @@
+ 
+             <Border Style="{StaticResource SurfaceCardStyle}" Padding="16">
+                 <VerticalStackLayout Spacing="12">
+-                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
++                    <VerticalStackLayout Spacing="2">
+                         <Label AutomationId="OpenAiModelsHeadingLabel" Style="{StaticResource SectionHeadingStyle}" Text="Seeded OpenAI models" />
+-                        <Button CommandParameter="seeded-models" Clicked="OnHelpButtonClicked" Style="{StaticResource InfoButtonStyle}" Text="?" />
+-                    </Grid>
++                        <Label Style="{StaticResource FormFieldSubtitle}" Text="Models available through the gateway for review and worker selection. Informational only." />
++                    </VerticalStackLayout>
+                     <CollectionView AutomationId="OpenAiModelsCollectionView" ItemsSource="{Binding OpenAiModels}">
+                         <CollectionView.ItemTemplate>
+                             <DataTemplate x:DataType="viewModels:ModelEntryViewModel">
+diff --git a/src/MultiAgentTaskSolver.App/Pages/SettingsPage.xaml.cs b/src/MultiAgentTaskSolver.App/Pages/SettingsPage.xaml.cs
+index fae7a16..d0c5a72 100644
+--- a/src/MultiAgentTaskSolver.App/Pages/SettingsPage.xaml.cs
++++ b/src/MultiAgentTaskSolver.App/Pages/SettingsPage.xaml.cs
+@@ -17,31 +17,4 @@ public partial class SettingsPage : ContentPage
+         base.OnAppearing();
+         await _viewModel.LoadAsync();
+     }
+-
+-    private async void OnHelpButtonClicked(object? sender, EventArgs e)
+-    {
+-        if (sender is not Button button || button.CommandParameter is not string helpKey)
+-        {
+-            return;
+-        }
+-
+-        var (title, message) = helpKey switch
+-        {
+-            "workspace-root" => (
+-                "Workspace root",
+-                "Choose the base folder where task folders, manifests, run artifacts, and copied imports are stored. Keep this as a stable local path that the app can write to."),
+-            "gateway-base-url" => (
+-                "OpenAI gateway base URL",
+-                "Enter the base URL for the gateway service that this app calls. Include the scheme, for example https://your-service-host, but do not add endpoint-specific paths."),
+-            "bearer-token" => (
+-                "OpenAI client bearer token",
+-                "Paste the client token used to authenticate from this app to the gateway. It is stored locally on this machine and sent with gateway requests."),
+-            "seeded-models" => (
+-                "Seeded OpenAI models",
+-                "This list shows the models currently seeded in the app for review and worker selection. It is informational here so you can verify what the app expects to be available through the gateway."),
+-            _ => ("Field help", "No additional help is available for this field yet."),
+-        };
+-
+-        await DisplayAlertAsync(title, message, "Close");
+-    }
+ }
+diff --git a/src/MultiAgentTaskSolver.App/Pages/TaskDetailsPage.xaml b/src/MultiAgentTaskSolver.App/Pages/TaskDetailsPage.xaml
+index cb8bdb4..44ea5de 100644
+--- a/src/MultiAgentTaskSolver.App/Pages/TaskDetailsPage.xaml
++++ b/src/MultiAgentTaskSolver.App/Pages/TaskDetailsPage.xaml
+@@ -4,6 +4,7 @@
+     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+     xmlns:viewModels="clr-namespace:MultiAgentTaskSolver.App.ViewModels"
++    xmlns:pages="clr-namespace:MultiAgentTaskSolver.App.Pages"
+     x:DataType="viewModels:TaskDetailsViewModel"
+     Title="Task Details">
+ 
+@@ -14,259 +15,354 @@
+             <Label AutomationId="TaskStatusLabel" Style="{StaticResource StatusLabelStyle}" Text="{Binding TaskStatusText}" />
+             <Label AutomationId="TaskUsageSummaryLabel" Style="{StaticResource FormFieldHint}" Text="{Binding TaskUsageSummaryText}" />
+ 
+-            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+-                <Label Style="{StaticResource FormFieldTitle}" Text="Task title" />
+-                <Button CommandParameter="title" Clicked="OnHelpButtonClicked" Style="{StaticResource InfoButtonStyle}" Text="?" />
+-            </Grid>
+-            <Entry AutomationId="TaskTitleEntry" Placeholder="Short task name used in the task list and workspace." Style="{StaticResource FormEntryStyle}" Text="{Binding Title}" />
++            <!-- Section 1: Task Definition (expanded by default) -->
++            <pages:CollapsibleSection x:Name="TaskDefinitionSection" Title="Task Definition" StateKey="section.details.definition">
++                <pages:CollapsibleSection.SectionBody>
++                    <VerticalStackLayout Spacing="14">
++                        <VerticalStackLayout Spacing="2">
++                            <Label Style="{StaticResource FormFieldTitle}" Text="Task title" />
++                            <Label Style="{StaticResource FormFieldSubtitle}" Text="Short, specific name. Describes the task clearly in the list view." />
++                        </VerticalStackLayout>
++                        <Entry AutomationId="TaskTitleEntry" Placeholder="e.g. Summarize Q4 sales transcripts" Style="{StaticResource FormEntryStyle}" Text="{Binding Title}" />
+ 
+-            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+-                <Label Style="{StaticResource FormFieldTitle}" Text="Short summary" />
+-                <Button CommandParameter="summary" Clicked="OnHelpButtonClicked" Style="{StaticResource InfoButtonStyle}" Text="?" />
+-            </Grid>
+-            <VerticalStackLayout Spacing="0">
+-                <Border Style="{StaticResource EditorPanelStyle}">
+-                    <Editor
+-                        x:Name="TaskSummaryEditor"
+-                        AutomationId="TaskSummaryEditor"
+-                        AutoSize="Disabled"
+-                        HeightRequest="96"
+-                        Placeholder="Editable plain text. Describe the task briefly for the list and the next person reading it."
+-                        Style="{StaticResource FormEditorStyle}"
+-                        Text="{Binding Summary}" />
+-                </Border>
+-                <Border
+-                    x:Name="TaskSummaryResizeHandle"
+-                    AutomationId="TaskSummaryResizeHandle"
+-                    Style="{StaticResource EditorResizeHandleStyle}">
+-                    <HorizontalStackLayout HorizontalOptions="Center" Spacing="4">
+-                        <BoxView Style="{StaticResource EditorResizeGripStyle}" />
+-                        <BoxView Style="{StaticResource EditorResizeGripStyle}" />
+-                        <BoxView Style="{StaticResource EditorResizeGripStyle}" />
+-                    </HorizontalStackLayout>
+-                </Border>
+-            </VerticalStackLayout>
++                        <VerticalStackLayout Spacing="2">
++                            <Label Style="{StaticResource FormFieldTitle}" Text="Short summary" />
++                            <Label Style="{StaticResource FormFieldSubtitle}" Text="Quick overview for scanning. Keep it compact so the current state of the task is easy to understand." />
++                        </VerticalStackLayout>
++                        <VerticalStackLayout Spacing="0">
++                            <Border Style="{StaticResource EditorPanelStyle}">
++                                <Editor
++                                    x:Name="TaskSummaryEditor"
++                                    AutomationId="TaskSummaryEditor"
++                                    AutoSize="Disabled"
++                                    HeightRequest="96"
++                                    Placeholder="Describe what the task should accomplish and why."
++                                    Style="{StaticResource FormEditorStyle}"
++                                    Text="{Binding Summary}" />
++                            </Border>
++                            <Border
++                                x:Name="TaskSummaryResizeHandle"
++                                AutomationId="TaskSummaryResizeHandle"
++                                Style="{StaticResource EditorResizeHandleStyle}">
++                                <HorizontalStackLayout HorizontalOptions="Center" Spacing="4">
++                                    <BoxView Style="{StaticResource EditorResizeGripStyle}" />
++                                    <BoxView Style="{StaticResource EditorResizeGripStyle}" />
++                                    <BoxView Style="{StaticResource EditorResizeGripStyle}" />
++                                </HorizontalStackLayout>
++                            </Border>
++                        </VerticalStackLayout>
+ 
+-            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+-                <Label Style="{StaticResource FormFieldTitle}" Text="Task instructions" />
+-                <Button CommandParameter="instructions" Clicked="OnHelpButtonClicked" Style="{StaticResource InfoButtonStyle}" Text="?" />
+-            </Grid>
+-            <VerticalStackLayout Spacing="0">
+-                <Border Style="{StaticResource EditorPanelStyle}">
+-                    <Editor
+-                        x:Name="TaskMarkdownEditor"
+-                        AutomationId="TaskMarkdownEditor"
+-                        AutoSize="Disabled"
+-                        HeightRequest="300"
+-                        Placeholder="Editable plain text. Write the full task, constraints, references, and expected outputs."
+-                        Style="{StaticResource FormEditorStyle}"
+-                        Text="{Binding TaskMarkdown}" />
+-                </Border>
+-                <Border
+-                    x:Name="TaskMarkdownResizeHandle"
+-                    AutomationId="TaskMarkdownResizeHandle"
+-                    Style="{StaticResource EditorResizeHandleStyle}">
+-                    <HorizontalStackLayout HorizontalOptions="Center" Spacing="4">
+-                        <BoxView Style="{StaticResource EditorResizeGripStyle}" />
+-                        <BoxView Style="{StaticResource EditorResizeGripStyle}" />
+-                        <BoxView Style="{StaticResource EditorResizeGripStyle}" />
+-                    </HorizontalStackLayout>
+-                </Border>
+-            </VerticalStackLayout>
++                        <VerticalStackLayout Spacing="2">
++                            <Label Style="{StaticResource FormFieldTitle}" Text="Task instructions" />
++                            <Label Style="{StaticResource FormFieldSubtitle}" Text="Full task definition. Explain the work, what inputs matter, what to ignore, and how outputs should be structured. Markdown recommended." />
++                        </VerticalStackLayout>
++                        <VerticalStackLayout Spacing="0">
++                            <Border Style="{StaticResource EditorPanelStyle}">
++                                <Editor
++                                    x:Name="TaskMarkdownEditor"
++                                    AutomationId="TaskMarkdownEditor"
++                                    AutoSize="Disabled"
++                                    HeightRequest="300"
++                                    Placeholder="Write the full task prompt. Use headings, bullet lists, and examples when useful."
++                                    Style="{StaticResource FormEditorStyle}"
++                                    Text="{Binding TaskMarkdown}" />
++                            </Border>
++                            <Border
++                                x:Name="TaskMarkdownResizeHandle"
++                                AutomationId="TaskMarkdownResizeHandle"
++                                Style="{StaticResource EditorResizeHandleStyle}">
++                                <HorizontalStackLayout HorizontalOptions="Center" Spacing="4">
++                                    <BoxView Style="{StaticResource EditorResizeGripStyle}" />
++                                    <BoxView Style="{StaticResource EditorResizeGripStyle}" />
++                                    <BoxView Style="{StaticResource EditorResizeGripStyle}" />
++                                </HorizontalStackLayout>
++                            </Border>
++                        </VerticalStackLayout>
+ 
+-            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+-                <Label AutomationId="TaskInputPathsHeadingLabel" Style="{StaticResource FormFieldTitle}" Text="Input folders" />
+-                <Button CommandParameter="input-paths" Clicked="OnHelpButtonClicked" Style="{StaticResource InfoButtonStyle}" Text="?" />
+-            </Grid>
+-            <VerticalStackLayout Spacing="0">
+-                <Border Style="{StaticResource EditorPanelStyle}">
+-                    <Editor
+-                        x:Name="TaskInputPathsEditor"
+-                        AutomationId="TaskInputPathsEditor"
+-                        AutoSize="Disabled"
+-                        HeightRequest="120"
+-                        Placeholder="Editable plain text. One task-relative input folder per line."
+-                        Style="{StaticResource FormEditorStyle}"
+-                        Text="{Binding InputPathsText}" />
+-                </Border>
+-                <Border
+-                    x:Name="TaskInputPathsResizeHandle"
+-                    AutomationId="TaskInputPathsResizeHandle"
+-                    Style="{StaticResource EditorResizeHandleStyle}">
+-                    <HorizontalStackLayout HorizontalOptions="Center" Spacing="4">
+-                        <BoxView Style="{StaticResource EditorResizeGripStyle}" />
+-                        <BoxView Style="{StaticResource EditorResizeGripStyle}" />
+-                        <BoxView Style="{StaticResource EditorResizeGripStyle}" />
+-                    </HorizontalStackLayout>
+-                </Border>
+-            </VerticalStackLayout>
+-            <Label Style="{StaticResource FormFieldHint}" Text="You can edit these paths directly as plain text." />
++                        <HorizontalStackLayout Spacing="12">
++                            <Button AutomationId="TaskSaveButton" Style="{StaticResource PrimaryActionButtonStyle}" Text="Save" Command="{Binding SaveCommand}" />
++                            <Button AutomationId="TaskRunHistoryButton" Style="{StaticResource SecondaryActionButtonStyle}" Text="Flow &amp; History" Command="{Binding OpenRunHistoryCommand}" />
++                        </HorizontalStackLayout>
++                    </VerticalStackLayout>
++                </pages:CollapsibleSection.SectionBody>
++            </pages:CollapsibleSection>
+ 
+-            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+-                <Label AutomationId="TaskOutputPathsHeadingLabel" Style="{StaticResource FormFieldTitle}" Text="Output files" />
+-                <Button CommandParameter="output-paths" Clicked="OnHelpButtonClicked" Style="{StaticResource InfoButtonStyle}" Text="?" />
+-            </Grid>
+-            <VerticalStackLayout Spacing="0">
+-                <Border Style="{StaticResource EditorPanelStyle}">
+-                    <Editor
+-                        x:Name="TaskOutputPathsEditor"
+-                        AutomationId="TaskOutputPathsEditor"
+-                        AutoSize="Disabled"
+-                        HeightRequest="90"
+-                        Placeholder="Editable plain text. One task-relative output file per line."
+-                        Style="{StaticResource FormEditorStyle}"
+-                        Text="{Binding OutputPathsText}" />
+-                </Border>
+-                <Border
+-                    x:Name="TaskOutputPathsResizeHandle"
+-                    AutomationId="TaskOutputPathsResizeHandle"
+-                    Style="{StaticResource EditorResizeHandleStyle}">
+-                    <HorizontalStackLayout HorizontalOptions="Center" Spacing="4">
+-                        <BoxView Style="{StaticResource EditorResizeGripStyle}" />
+-                        <BoxView Style="{StaticResource EditorResizeGripStyle}" />
+-                        <BoxView Style="{StaticResource EditorResizeGripStyle}" />
+-                    </HorizontalStackLayout>
+-                </Border>
+-            </VerticalStackLayout>
+-            <Label Style="{StaticResource FormFieldHint}" Text="Each line should resolve under outputs/. Leave it blank if the run-scoped history copy is enough." />
++            <!-- Section 2: Inputs & Outputs (expanded by default) -->
++            <pages:CollapsibleSection x:Name="InputsOutputsSection" Title="Inputs &amp; Outputs" StateKey="section.details.io">
++                <pages:CollapsibleSection.SectionBody>
++                    <VerticalStackLayout Spacing="14">
++                        <VerticalStackLayout Spacing="2">
++                            <Label AutomationId="TaskInputPathsHeadingLabel" Style="{StaticResource FormFieldTitle}" Text="Input folders" />
++                            <Label Style="{StaticResource FormFieldSubtitle}" Text="Declared input folders. Import files into a folder, then copy the @alias to reference them in your task instructions." />
++                        </VerticalStackLayout>
+ 
+-            <HorizontalStackLayout Spacing="12">
+-                <Button AutomationId="TaskSaveButton" Style="{StaticResource PrimaryActionButtonStyle}" Text="Save" Command="{Binding SaveCommand}" />
+-                <Button AutomationId="TaskRunHistoryButton" Style="{StaticResource SecondaryActionButtonStyle}" Text="Flow &amp; History" Command="{Binding OpenRunHistoryCommand}" />
+-            </HorizontalStackLayout>
++                        <VerticalStackLayout
++                            AutomationId="InputFoldersCollectionView"
++                            Spacing="8"
++                            BindableLayout.ItemsSource="{Binding InputFolders}">
++                            <BindableLayout.EmptyView>
++                                <Label Text="No input folders declared. Add folders in the text editor below." />
++                            </BindableLayout.EmptyView>
++                            <BindableLayout.ItemTemplate>
++                                <DataTemplate x:DataType="viewModels:InputFolderViewModel">
++                                    <Border Padding="10" Style="{StaticResource SurfaceCardStyle}">
++                                        <VerticalStackLayout Spacing="6">
++                                            <HorizontalStackLayout Spacing="8">
++                                                <Label Style="{StaticResource BodyStrongStyle}" Text="{Binding Path}" />
++                                                <Label Style="{StaticResource FormFieldHint}" Text="{Binding FileCount, StringFormat='{0} file(s)'}" VerticalOptions="Center" />
++                                            </HorizontalStackLayout>
++                                            <VerticalStackLayout
++                                                Spacing="4"
++                                                BindableLayout.ItemsSource="{Binding Files}">
++                                                <BindableLayout.ItemTemplate>
++                                                    <DataTemplate x:DataType="viewModels:InputFileViewModel">
++                                                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
++                                                            <VerticalStackLayout Spacing="2">
++                                                                <Label Text="{Binding FileName}" />
++                                                                <HorizontalStackLayout Spacing="8">
++                                                                    <Label Style="{StaticResource FormFieldHint}" Text="{Binding Alias, StringFormat='@{0}'}" />
++                                                                    <Label Style="{StaticResource FormFieldHint}" Text="{Binding SizeText}" />
++                                                                </HorizontalStackLayout>
++                                                            </VerticalStackLayout>
++                                                        </Grid>
++                                                    </DataTemplate>
++                                                </BindableLayout.ItemTemplate>
++                                            </VerticalStackLayout>
++                                        </VerticalStackLayout>
++                                    </Border>
++                                </DataTemplate>
++                            </BindableLayout.ItemTemplate>
++                        </VerticalStackLayout>
+ 
+-            <Label AutomationId="TaskReviewHeadingLabel" Style="{StaticResource SectionHeadingStyle}" Text="Task review agent" />
+-            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+-                <Label Style="{StaticResource FormFieldTitle}" Text="Review model" />
+-                <Button CommandParameter="review-model" Clicked="OnHelpButtonClicked" Style="{StaticResource InfoButtonStyle}" Text="?" />
+-            </Grid>
+-            <Picker
+-                AutomationId="TaskReviewModelPicker"
+-                Style="{StaticResource FormPickerStyle}"
+-                IsEnabled="{Binding CanRunTaskReview}"
+-                ItemDisplayBinding="{Binding DisplayName}"
+-                ItemsSource="{Binding ReviewModels}"
+-                SelectedItem="{Binding SelectedReviewModel}" />
+-            <Button
+-                AutomationId="RunTaskReviewButton"
+-                Command="{Binding RunTaskReviewCommand}"
+-                IsEnabled="{Binding CanRunTaskReview}"
+-                Style="{StaticResource PrimaryActionButtonStyle}"
+-                Text="Run Task Review" />
++                        <VerticalStackLayout Spacing="0">
++                            <Border Style="{StaticResource EditorPanelStyle}">
++                                <Editor
++                                    x:Name="TaskInputPathsEditor"
++                                    AutomationId="TaskInputPathsEditor"
++                                    AutoSize="Disabled"
++                                    HeightRequest="120"
++                                    Placeholder="e.g. inputs/research&#10;inputs/contracts"
++                                    Style="{StaticResource FormEditorStyle}"
++                                    Text="{Binding InputPathsText}" />
++                            </Border>
++                            <Border
++                                x:Name="TaskInputPathsResizeHandle"
++                                AutomationId="TaskInputPathsResizeHandle"
++                                Style="{StaticResource EditorResizeHandleStyle}">
++                                <HorizontalStackLayout HorizontalOptions="Center" Spacing="4">
++                                    <BoxView Style="{StaticResource EditorResizeGripStyle}" />
++                                    <BoxView Style="{StaticResource EditorResizeGripStyle}" />
++                                    <BoxView Style="{StaticResource EditorResizeGripStyle}" />
++                                </HorizontalStackLayout>
++                            </Border>
++                        </VerticalStackLayout>
+ 
+-            <Label AutomationId="LatestReviewHeadingLabel" Style="{StaticResource SectionHeadingStyle}" Text="Latest review summary" />
+-            <Border Padding="10" Style="{StaticResource SurfaceCardStyle}">
+-                <Label AutomationId="LatestReviewSummaryLabel" Text="{Binding LatestReviewSummary}" />
+-            </Border>
+-            <Label AutomationId="LatestReviewUsageLabel" Style="{StaticResource FormFieldHint}" Text="{Binding LatestReviewUsageText}" />
++                        <VerticalStackLayout Spacing="2">
++                            <Label AutomationId="TaskOutputPathsHeadingLabel" Style="{StaticResource FormFieldTitle}" Text="Output files" />
++                            <Label Style="{StaticResource FormFieldSubtitle}" Text="Stable deliverables under outputs/. Edit paths below. Leave blank to only keep run-scoped history copies." />
++                        </VerticalStackLayout>
+ 
+-            <Label AutomationId="LatestReviewOutputHeadingLabel" Style="{StaticResource SectionHeadingStyle}" Text="Latest review output" />
+-            <Border Padding="10" Style="{StaticResource SurfaceCardStyle}">
+-                <Editor
+-                    AutomationId="LatestReviewOutputEditor"
+-                    AutoSize="Disabled"
+-                    HeightRequest="200"
+-                    IsReadOnly="True"
+-                    Style="{StaticResource FormEditorStyle}"
+-                    Text="{Binding LatestReviewOutput}" />
+-            </Border>
++                        <VerticalStackLayout
++                            AutomationId="OutputTargetsCollectionView"
++                            Spacing="8"
++                            BindableLayout.ItemsSource="{Binding OutputTargets}">
++                            <BindableLayout.EmptyView>
++                                <Label Text="No output targets declared yet." />
++                            </BindableLayout.EmptyView>
++                            <BindableLayout.ItemTemplate>
++                                <DataTemplate x:DataType="viewModels:OutputTargetViewModel">
++                                    <Border Padding="10" Style="{StaticResource SurfaceCardStyle}">
++                                        <VerticalStackLayout Spacing="4">
++                                            <Label Style="{StaticResource BodyStrongStyle}" Text="{Binding Path}" />
++                                            <Label Style="{StaticResource FormFieldHint}" Text="{Binding Description}" />
++                                        </VerticalStackLayout>
++                                    </Border>
++                                </DataTemplate>
++                            </BindableLayout.ItemTemplate>
++                        </VerticalStackLayout>
+ 
+-            <Label
+-                AutomationId="ReviewDecisionHeadingLabel"
+-                IsVisible="{Binding CanApplyReviewDecision}"
+-                Style="{StaticResource SectionHeadingStyle}"
+-                Text="Review decision" />
+-            <HorizontalStackLayout IsVisible="{Binding CanApplyReviewDecision}" Spacing="12">
+-                <Button AutomationId="ApproveReviewButton" Style="{StaticResource PrimaryActionButtonStyle}" Text="Approve" Command="{Binding ApproveReviewCommand}" />
+-                <Button AutomationId="ReviseReviewButton" Style="{StaticResource SecondaryActionButtonStyle}" Text="Revise Task" Command="{Binding ReviseReviewCommand}" />
+-            </HorizontalStackLayout>
++                        <VerticalStackLayout Spacing="0">
++                            <Border Style="{StaticResource EditorPanelStyle}">
++                                <Editor
++                                    x:Name="TaskOutputPathsEditor"
++                                    AutomationId="TaskOutputPathsEditor"
++                                    AutoSize="Disabled"
++                                    HeightRequest="90"
++                                    Placeholder="e.g. outputs/final-report.md"
++                                    Style="{StaticResource FormEditorStyle}"
++                                    Text="{Binding OutputPathsText}" />
++                            </Border>
++                            <Border
++                                x:Name="TaskOutputPathsResizeHandle"
++                                AutomationId="TaskOutputPathsResizeHandle"
++                                Style="{StaticResource EditorResizeHandleStyle}">
++                                <HorizontalStackLayout HorizontalOptions="Center" Spacing="4">
++                                    <BoxView Style="{StaticResource EditorResizeGripStyle}" />
++                                    <BoxView Style="{StaticResource EditorResizeGripStyle}" />
++                                    <BoxView Style="{StaticResource EditorResizeGripStyle}" />
++                                </HorizontalStackLayout>
++                            </Border>
++                        </VerticalStackLayout>
++                    </VerticalStackLayout>
++                </pages:CollapsibleSection.SectionBody>
++            </pages:CollapsibleSection>
+ 
+-            <Label AutomationId="WorkerHeadingLabel" Style="{StaticResource SectionHeadingStyle}" Text="Worker agent" />
+-            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+-                <Label Style="{StaticResource FormFieldTitle}" Text="Worker model" />
+-                <Button CommandParameter="worker-model" Clicked="OnHelpButtonClicked" Style="{StaticResource InfoButtonStyle}" Text="?" />
+-            </Grid>
+-            <Picker
+-                AutomationId="WorkerModelPicker"
+-                Style="{StaticResource FormPickerStyle}"
+-                IsEnabled="{Binding CanRunWorker}"
+-                ItemDisplayBinding="{Binding DisplayName}"
+-                ItemsSource="{Binding WorkerModels}"
+-                SelectedItem="{Binding SelectedWorkerModel}" />
+-            <Button
+-                AutomationId="RunWorkerButton"
+-                Command="{Binding RunWorkerCommand}"
+-                IsEnabled="{Binding CanRunWorker}"
+-                Style="{StaticResource PrimaryActionButtonStyle}"
+-                Text="Run Worker" />
++            <!-- Section 3: Review Agent (collapsed by default) -->
++            <pages:CollapsibleSection x:Name="ReviewAgentSection" Title="Review Agent" StateKey="section.details.review">
++                <pages:CollapsibleSection.SectionBody>
++                    <VerticalStackLayout Spacing="14">
++                        <VerticalStackLayout Spacing="2">
++                            <Label Style="{StaticResource FormFieldTitle}" Text="Review model" />
++                            <Label Style="{StaticResource FormFieldSubtitle}" Text="Choose the model for the review step. Use a stronger model when the task is ambiguous or high risk." />
++                        </VerticalStackLayout>
++                        <Picker
++                            AutomationId="TaskReviewModelPicker"
++                            Style="{StaticResource FormPickerStyle}"
++                            IsEnabled="{Binding CanRunTaskReview}"
++                            ItemDisplayBinding="{Binding DisplayName}"
++                            ItemsSource="{Binding ReviewModels}"
++                            SelectedItem="{Binding SelectedReviewModel}" />
++                        <Button
++                            AutomationId="RunTaskReviewButton"
++                            Command="{Binding RunTaskReviewCommand}"
++                            IsEnabled="{Binding CanRunTaskReview}"
++                            Style="{StaticResource PrimaryActionButtonStyle}"
++                            Text="Run Task Review" />
+ 
+-            <Label AutomationId="LatestWorkerHeadingLabel" Style="{StaticResource SectionHeadingStyle}" Text="Latest worker summary" />
+-            <Border Padding="10" Style="{StaticResource SurfaceCardStyle}">
+-                <Label AutomationId="LatestWorkerSummaryLabel" Text="{Binding LatestWorkerSummary}" />
+-            </Border>
+-            <Label AutomationId="LatestWorkerUsageLabel" Style="{StaticResource FormFieldHint}" Text="{Binding LatestWorkerUsageText}" />
++                        <Label AutomationId="LatestReviewHeadingLabel" Style="{StaticResource SubsectionHeadingStyle}" Text="Latest review summary" />
++                        <Border Padding="10" Style="{StaticResource SurfaceCardStyle}">
++                            <Label AutomationId="LatestReviewSummaryLabel" Text="{Binding LatestReviewSummary}" />
++                        </Border>
++                        <Label AutomationId="LatestReviewUsageLabel" Style="{StaticResource FormFieldHint}" Text="{Binding LatestReviewUsageText}" />
+ 
+-            <Label AutomationId="LatestWorkerOutputHeadingLabel" Style="{StaticResource SectionHeadingStyle}" Text="Latest worker output" />
+-            <Border Padding="10" Style="{StaticResource SurfaceCardStyle}">
+-                <Editor
+-                    AutomationId="LatestWorkerOutputEditor"
+-                    AutoSize="Disabled"
+-                    HeightRequest="200"
+-                    IsReadOnly="True"
+-                    Style="{StaticResource FormEditorStyle}"
+-                    Text="{Binding LatestWorkerOutput}" />
+-            </Border>
++                        <Label AutomationId="LatestReviewOutputHeadingLabel" Style="{StaticResource SubsectionHeadingStyle}" Text="Latest review output" />
++                        <Border Padding="10" Style="{StaticResource SurfaceCardStyle}">
++                            <Editor
++                                AutomationId="LatestReviewOutputEditor"
++                                AutoSize="Disabled"
++                                HeightRequest="200"
++                                IsReadOnly="True"
++                                Style="{StaticResource FormEditorStyle}"
++                                Text="{Binding LatestReviewOutput}" />
++                        </Border>
+ 
+-            <Label AutomationId="ImportFilesHeadingLabel" Style="{StaticResource SectionHeadingStyle}" Text="Import files" />
++                        <Label
++                            AutomationId="ReviewDecisionHeadingLabel"
++                            IsVisible="{Binding CanApplyReviewDecision}"
++                            Style="{StaticResource SubsectionHeadingStyle}"
++                            Text="Review decision" />
++                        <HorizontalStackLayout IsVisible="{Binding CanApplyReviewDecision}" Spacing="12">
++                            <Button AutomationId="ApproveReviewButton" Style="{StaticResource PrimaryActionButtonStyle}" Text="Approve" Command="{Binding ApproveReviewCommand}" />
++                            <Button AutomationId="ReviseReviewButton" Style="{StaticResource SecondaryActionButtonStyle}" Text="Revise Task" Command="{Binding ReviseReviewCommand}" />
++                        </HorizontalStackLayout>
++                    </VerticalStackLayout>
++                </pages:CollapsibleSection.SectionBody>
++            </pages:CollapsibleSection>
+ 
+-            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+-                <Label Style="{StaticResource FormFieldTitle}" Text="Import destination" />
+-                <Button CommandParameter="import-destination" Clicked="OnHelpButtonClicked" Style="{StaticResource InfoButtonStyle}" Text="?" />
+-            </Grid>
+-            <Picker AutomationId="ImportDestinationPicker" Style="{StaticResource FormPickerStyle}" ItemsSource="{Binding ImportDestinations}" SelectedItem="{Binding SelectedImportDestination}" />
+-            <HorizontalStackLayout Spacing="12">
+-                <Button AutomationId="ImportFilesButton" Style="{StaticResource SecondaryActionButtonStyle}" Text="Import Files" Command="{Binding ImportPickedFilesCommand}" />
+-                <Button AutomationId="ImportFolderButton" Style="{StaticResource SecondaryActionButtonStyle}" Text="Import Folder" Command="{Binding ImportPickedFolderCommand}" />
+-            </HorizontalStackLayout>
++            <!-- Section 4: Worker Agent (collapsed by default) -->
++            <pages:CollapsibleSection x:Name="WorkerAgentSection" Title="Worker Agent" StateKey="section.details.worker">
++                <pages:CollapsibleSection.SectionBody>
++                    <VerticalStackLayout Spacing="14">
++                        <VerticalStackLayout Spacing="2">
++                            <Label Style="{StaticResource FormFieldTitle}" Text="Worker model" />
++                            <Label Style="{StaticResource FormFieldSubtitle}" Text="Choose the model that produces the actual output. Match to task complexity and cost tolerance." />
++                        </VerticalStackLayout>
++                        <Picker
++                            AutomationId="WorkerModelPicker"
++                            Style="{StaticResource FormPickerStyle}"
++                            IsEnabled="{Binding CanRunWorker}"
++                            ItemDisplayBinding="{Binding DisplayName}"
++                            ItemsSource="{Binding WorkerModels}"
++                            SelectedItem="{Binding SelectedWorkerModel}" />
++                        <Button
++                            AutomationId="RunWorkerButton"
++                            Command="{Binding RunWorkerCommand}"
++                            IsEnabled="{Binding CanRunWorker}"
++                            Style="{StaticResource PrimaryActionButtonStyle}"
++                            Text="Run Worker" />
+ 
+-            <Label AutomationId="TaskDetailsErrorLabel" Style="{StaticResource ErrorLabelStyle}" Text="{Binding ErrorMessage}" />
++                        <Label AutomationId="LatestWorkerHeadingLabel" Style="{StaticResource SubsectionHeadingStyle}" Text="Latest worker summary" />
++                        <Border Padding="10" Style="{StaticResource SurfaceCardStyle}">
++                            <Label AutomationId="LatestWorkerSummaryLabel" Text="{Binding LatestWorkerSummary}" />
++                        </Border>
++                        <Label AutomationId="LatestWorkerUsageLabel" Style="{StaticResource FormFieldHint}" Text="{Binding LatestWorkerUsageText}" />
+ 
+-            <Label AutomationId="ArtifactsHeadingLabel" Style="{StaticResource SectionHeadingStyle}" Text="Artifacts" />
+-            <VerticalStackLayout
+-                AutomationId="ArtifactsCollectionView"
+-                Spacing="8"
+-                BindableLayout.ItemsSource="{Binding Artifacts}">
+-                <BindableLayout.EmptyView>
+-                    <Label Text="No imported artifacts yet." />
+-                </BindableLayout.EmptyView>
+-                <BindableLayout.ItemTemplate>
+-                    <DataTemplate x:DataType="viewModels:ArtifactEntryViewModel">
++                        <Label AutomationId="LatestWorkerOutputHeadingLabel" Style="{StaticResource SubsectionHeadingStyle}" Text="Latest worker output" />
+                         <Border Padding="10" Style="{StaticResource SurfaceCardStyle}">
+-                            <VerticalStackLayout Spacing="4">
+-                                <Label Style="{StaticResource BodyStrongStyle}" Text="{Binding Alias}" />
+-                                <Label Text="{Binding RelativePath}" />
+-                                <Label Text="{Binding MediaType}" Style="{StaticResource FormFieldHint}" />
+-                                <Label Text="{Binding SizeText}" Style="{StaticResource FormFieldHint}" />
+-                            </VerticalStackLayout>
++                            <Editor
++                                AutomationId="LatestWorkerOutputEditor"
++                                AutoSize="Disabled"
++                                HeightRequest="200"
++                                IsReadOnly="True"
++                                Style="{StaticResource FormEditorStyle}"
++                                Text="{Binding LatestWorkerOutput}" />
+                         </Border>
+-                    </DataTemplate>
+-                </BindableLayout.ItemTemplate>
+-            </VerticalStackLayout>
++                    </VerticalStackLayout>
++                </pages:CollapsibleSection.SectionBody>
++            </pages:CollapsibleSection>
++
++            <!-- Section 5: File Import (collapsed by default) -->
++            <pages:CollapsibleSection x:Name="FileImportSection" Title="File Import" StateKey="section.details.import">
++                <pages:CollapsibleSection.SectionBody>
++                    <VerticalStackLayout Spacing="14">
++                        <VerticalStackLayout Spacing="2">
++                            <Label Style="{StaticResource FormFieldTitle}" Text="Import destination" />
++                            <Label Style="{StaticResource FormFieldSubtitle}" Text="Choose which declared input folder should receive imported files. Imports are copied into the task workspace." />
++                        </VerticalStackLayout>
++                        <Picker AutomationId="ImportDestinationPicker" Style="{StaticResource FormPickerStyle}" ItemsSource="{Binding ImportDestinations}" SelectedItem="{Binding SelectedImportDestination}" />
++                        <HorizontalStackLayout Spacing="12">
++                            <Button AutomationId="ImportFilesButton" Style="{StaticResource SecondaryActionButtonStyle}" Text="Import Files" Command="{Binding ImportPickedFilesCommand}" />
++                            <Button AutomationId="ImportFolderButton" Style="{StaticResource SecondaryActionButtonStyle}" Text="Import Folder" Command="{Binding ImportPickedFolderCommand}" />
++                        </HorizontalStackLayout>
++                    </VerticalStackLayout>
++                </pages:CollapsibleSection.SectionBody>
++            </pages:CollapsibleSection>
++
++            <Label AutomationId="TaskDetailsErrorLabel" Style="{StaticResource ErrorLabelStyle}" Text="{Binding ErrorMessage}" />
++
++            <!-- Section 6: Artifacts & Files (collapsed by default) -->
++            <pages:CollapsibleSection x:Name="ArtifactsFilesSection" Title="Artifacts &amp; Files" StateKey="section.details.artifacts">
++                <pages:CollapsibleSection.SectionBody>
++                    <VerticalStackLayout Spacing="14">
++                        <Label AutomationId="ArtifactsHeadingLabel" Style="{StaticResource SubsectionHeadingStyle}" Text="Artifacts" />
++                        <VerticalStackLayout
++                            AutomationId="ArtifactsCollectionView"
++                            Spacing="8"
++                            BindableLayout.ItemsSource="{Binding Artifacts}">
++                            <BindableLayout.EmptyView>
++                                <Label Text="No imported artifacts yet." />
++                            </BindableLayout.EmptyView>
++                            <BindableLayout.ItemTemplate>
++                                <DataTemplate x:DataType="viewModels:ArtifactEntryViewModel">
++                                    <Border Padding="10" Style="{StaticResource SurfaceCardStyle}">
++                                        <VerticalStackLayout Spacing="4">
++                                            <Label Style="{StaticResource BodyStrongStyle}" Text="{Binding Alias}" />
++                                            <Label Text="{Binding RelativePath}" />
++                                            <Label Text="{Binding MediaType}" Style="{StaticResource FormFieldHint}" />
++                                            <Label Text="{Binding SizeText}" Style="{StaticResource FormFieldHint}" />
++                                        </VerticalStackLayout>
++                                    </Border>
++                                </DataTemplate>
++                            </BindableLayout.ItemTemplate>
++                        </VerticalStackLayout>
+ 
+-            <Label AutomationId="FolderTreeHeadingLabel" Style="{StaticResource SectionHeadingStyle}" Text="Folder tree" />
+-            <VerticalStackLayout
+-                AutomationId="FolderTreeCollectionView"
+-                Spacing="4"
+-                BindableLayout.ItemsSource="{Binding TreeEntries}">
+-                <BindableLayout.EmptyView>
+-                    <Label Text="No task files yet." />
+-                </BindableLayout.EmptyView>
+-                <BindableLayout.ItemTemplate>
+-                    <DataTemplate x:DataType="viewModels:TaskTreeEntryViewModel">
+-                        <Label Text="{Binding DisplayName}" />
+-                    </DataTemplate>
+-                </BindableLayout.ItemTemplate>
+-            </VerticalStackLayout>
++                        <Label AutomationId="FolderTreeHeadingLabel" Style="{StaticResource SubsectionHeadingStyle}" Text="Folder tree" />
++                        <VerticalStackLayout
++                            AutomationId="FolderTreeCollectionView"
++                            Spacing="4"
++                            BindableLayout.ItemsSource="{Binding TreeEntries}">
++                            <BindableLayout.EmptyView>
++                                <Label Text="No task files yet." />
++                            </BindableLayout.EmptyView>
++                            <BindableLayout.ItemTemplate>
++                                <DataTemplate x:DataType="viewModels:TaskTreeEntryViewModel">
++                                    <Label Text="{Binding DisplayName}" />
++                                </DataTemplate>
++                            </BindableLayout.ItemTemplate>
++                        </VerticalStackLayout>
++                    </VerticalStackLayout>
++                </pages:CollapsibleSection.SectionBody>
++            </pages:CollapsibleSection>
+         </VerticalStackLayout>
+     </ScrollView>
+ </ContentPage>
+diff --git a/src/MultiAgentTaskSolver.App/Pages/TaskDetailsPage.xaml.cs b/src/MultiAgentTaskSolver.App/Pages/TaskDetailsPage.xaml.cs
+index 73f0c3e..1f50599 100644
+--- a/src/MultiAgentTaskSolver.App/Pages/TaskDetailsPage.xaml.cs
++++ b/src/MultiAgentTaskSolver.App/Pages/TaskDetailsPage.xaml.cs
+@@ -20,49 +20,17 @@ public partial class TaskDetailsPage : ContentPage
+         ConfigureResizableEditor(TaskInputPathsEditor, TaskInputPathsResizeHandle, InputPathsHeightKey, 120d);
+         ConfigureResizableEditor(TaskOutputPathsEditor, TaskOutputPathsResizeHandle, OutputPathsHeightKey, 90d);
+         ConfigureResizableEditor(TaskMarkdownEditor, TaskMarkdownResizeHandle, TaskMarkdownHeightKey, 300d);
++
++        TaskDefinitionSection.Initialize(defaultExpanded: true);
++        InputsOutputsSection.Initialize(defaultExpanded: true);
++        ReviewAgentSection.Initialize(defaultExpanded: false);
++        WorkerAgentSection.Initialize(defaultExpanded: false);
++        FileImportSection.Initialize(defaultExpanded: false);
++        ArtifactsFilesSection.Initialize(defaultExpanded: false);
+     }
+ 
+     public Task LoadAsync(string taskId) => _viewModel.LoadAsync(taskId);
+ 
+-    private async void OnHelpButtonClicked(object? sender, EventArgs e)
+-    {
+-        if (sender is not Button button || button.CommandParameter is not string helpKey)
+-        {
+-            return;
+-        }
+-
+-        var (title, message) = helpKey switch
+-        {
+-            "title" => (
+-                "Task title",
+-                "Keep the title short and specific. It should describe the task clearly in the list view."),
+-            "summary" => (
+-                "Short summary",
+-                "Use this as the quick overview. Keep it compact and practical so the current state of the task is easy to understand."),
+-            "instructions" => (
+-                "Task instructions",
+-                "This is the full task definition. Explain the expected work, what inputs matter, what to ignore, and how the outputs should be structured."),
+-            "input-paths" => (
+-                "Input folders",
+-                "Type one folder per line. These are task-local paths under inputs/. You can edit them directly as plain text."),
+-            "output-paths" => (
+-                "Output files",
+-                "Type one file per line when you want a stable top-level deliverable under outputs/. Leave it blank if the run-scoped worker history copy is enough."),
+-            "review-model" => (
+-                "Review model",
+-                "Choose the model used by the review step. Use a stronger model when the task is ambiguous or high risk."),
+-            "worker-model" => (
+-                "Worker model",
+-                "Choose the model used to produce the actual output. Match this to the task complexity and cost you want."),
+-            "import-destination" => (
+-                "Import destination",
+-                "Choose which declared input folder should receive imported files or folders. Imports are copied into the task workspace."),
+-            _ => ("Field help", "No additional help is available for this field yet."),
+-        };
+-
+-        await DisplayAlertAsync(title, message, "Close");
+-    }
+-
+     private static void ConfigureResizableEditor(Editor editor, View handle, string key, double fallbackHeight)
+     {
+         editor.HeightRequest = UiStateStore.GetEditorHeight(key, fallbackHeight);
+diff --git a/src/MultiAgentTaskSolver.App/Resources/Styles/Styles.xaml b/src/MultiAgentTaskSolver.App/Resources/Styles/Styles.xaml
+index 2fc1d5b..c81cc8c 100644
+--- a/src/MultiAgentTaskSolver.App/Resources/Styles/Styles.xaml
++++ b/src/MultiAgentTaskSolver.App/Resources/Styles/Styles.xaml
+@@ -95,6 +95,17 @@
+         <Setter Property="TextColor" Value="{StaticResource TextMuted}" />
+     </Style>
+ 
++    <Style TargetType="Label" x:Key="FormFieldSubtitle">
++        <Setter Property="FontFamily" Value="OpenSansRegular" />
++        <Setter Property="FontSize" Value="12" />
++        <Setter Property="TextColor" Value="{StaticResource TextSecondary}" />
++        <Setter Property="LineBreakMode" Value="WordWrap" />
++    </Style>
++
++    <Style TargetType="Grid" x:Key="CollapsibleSectionHeaderStyle">
++        <Setter Property="Padding" Value="0,8,0,4" />
++    </Style>
++
+     <Style TargetType="Border">
+         <Setter Property="BackgroundColor" Value="{StaticResource Surface}" />
+         <Setter Property="Stroke" Value="{StaticResource OutlineBrush}" />
+diff --git a/src/MultiAgentTaskSolver.App/Services/UiStateStore.cs b/src/MultiAgentTaskSolver.App/Services/UiStateStore.cs
+index 06ccb60..c82be7d 100644
+--- a/src/MultiAgentTaskSolver.App/Services/UiStateStore.cs
++++ b/src/MultiAgentTaskSolver.App/Services/UiStateStore.cs
+@@ -47,6 +47,16 @@ internal static class UiStateStore
+         Preferences.Default.Set("ui.window.height", height);
+     }
+ 
++    public static bool GetSectionExpanded(string key, bool fallback)
++    {
++        return Preferences.Default.Get(key, fallback);
++    }
++
++    public static void SaveSectionExpanded(string key, bool value)
++    {
++        Preferences.Default.Set(key, value);
++    }
++
+     internal static double ClampEditorHeight(double height)
+     {
+         return Math.Clamp(height, MinimumEditorHeight, MaximumEditorHeight);
+diff --git a/src/MultiAgentTaskSolver.App/ViewModels/CreateTaskViewModel.cs b/src/MultiAgentTaskSolver.App/ViewModels/CreateTaskViewModel.cs
+index 18dcb8f..0c9adae 100644
+--- a/src/MultiAgentTaskSolver.App/ViewModels/CreateTaskViewModel.cs
++++ b/src/MultiAgentTaskSolver.App/ViewModels/CreateTaskViewModel.cs
+@@ -1,3 +1,4 @@
++using System.Collections.ObjectModel;
+ using CommunityToolkit.Mvvm.Input;
+ using MultiAgentTaskSolver.App.Services;
+ using MultiAgentTaskSolver.Core;
+@@ -27,6 +28,10 @@ public sealed partial class CreateTaskViewModel : ViewModelBase
+         CreateCommand = new AsyncRelayCommand(CreateAsync);
+         CancelCommand = new AsyncRelayCommand(CancelAsync);
+         AddInputFolderCommand = new AsyncRelayCommand(AddInputFolderAsync);
++        AddInputFolderByNameCommand = new RelayCommand<string>(AddInputFolderByName);
++        RemoveInputFolderCommand = new RelayCommand<string>(RemoveInputFolder);
++        AddOutputTargetCommand = new RelayCommand<string>(AddOutputTarget);
++        RemoveOutputTargetCommand = new RelayCommand<string>(RemoveOutputTarget);
+     }
+ 
+     [CommunityToolkit.Mvvm.ComponentModel.ObservableProperty]
+@@ -44,23 +49,51 @@ public sealed partial class CreateTaskViewModel : ViewModelBase
+     [CommunityToolkit.Mvvm.ComponentModel.ObservableProperty]
+     public partial string TaskMarkdown { get; set; } = string.Empty;
+ 
++    public ObservableCollection<string> InputFolders { get; } = [];
++
++    public ObservableCollection<OutputTargetViewModel> OutputTargets { get; } = [];
++
+     public IAsyncRelayCommand CreateCommand { get; }
+ 
+     public IAsyncRelayCommand CancelCommand { get; }
+ 
+     public IAsyncRelayCommand AddInputFolderCommand { get; }
+ 
++    public IRelayCommand<string> AddInputFolderByNameCommand { get; }
++
++    public IRelayCommand<string> RemoveInputFolderCommand { get; }
++
++    public IRelayCommand<string> AddOutputTargetCommand { get; }
++
++    public IRelayCommand<string> RemoveOutputTargetCommand { get; }
++
+     public Task CreateAsync()
+     {
+         return RunBusyAsync(async () =>
+         {
++            var inputPaths = InputFolders.Count > 0
++                ? InputFolders.Select(TaskFolderConventions.NormalizeInputPath).Distinct(StringComparer.OrdinalIgnoreCase).ToArray()
++                : TaskFolderConventions.ParseInputPaths(InputPathsText);
++
++            var outputTargetsList = OutputTargets.Count > 0
++                ? OutputTargets.ToArray()
++                : TaskFolderConventions.ParseOutputPaths(OutputPathsText)
++                    .Select(static path => new OutputTargetViewModel(path, string.Empty))
++                    .ToArray();
++
++            var outputPaths = outputTargetsList.Select(static t => t.Path).ToArray();
++            var outputDescriptions = outputTargetsList
++                .Where(static t => !string.IsNullOrWhiteSpace(t.Description))
++                .ToDictionary(static t => t.Path, static t => t.Description, StringComparer.OrdinalIgnoreCase);
++
+             var snapshot = await _coordinator.CreateTaskAsync(new CreateTaskRequest
+             {
+                 Title = Title,
+                 Summary = Summary,
+                 TaskMarkdown = TaskMarkdown,
+-                InputPaths = TaskFolderConventions.ParseInputPaths(InputPathsText),
+-                OutputPaths = TaskFolderConventions.ParseOutputPaths(OutputPathsText),
++                InputPaths = inputPaths,
++                OutputPaths = outputPaths,
++                OutputPathDescriptions = outputDescriptions,
+             });
+ 
+             await _navigationService.GoToTaskDetailsAsync(snapshot.Manifest.Id, replaceCurrentPage: true);
+@@ -88,24 +121,78 @@ public sealed partial class CreateTaskViewModel : ViewModelBase
+                 return;
+             }
+ 
+-            InputPathsText = AppendDeclaredPath(InputPathsText, TaskFolderConventions.NormalizeInputPath(folderName));
++            var normalizedPath = TaskFolderConventions.NormalizeInputPath(folderName);
++            if (!InputFolders.Contains(normalizedPath, StringComparer.OrdinalIgnoreCase))
++            {
++                InputFolders.Add(normalizedPath);
++            }
++
++            InputPathsText = string.Join(Environment.NewLine, InputFolders);
+         });
+     }
+ 
+-    private static string AppendDeclaredPath(string existingValue, string path)
++    public void AddInputFolderByName(string? folderName)
++    {
++        if (string.IsNullOrWhiteSpace(folderName))
++        {
++            return;
++        }
++
++        var normalizedPath = TaskFolderConventions.NormalizeInputPath(folderName.Trim());
++        if (!InputFolders.Contains(normalizedPath, StringComparer.OrdinalIgnoreCase))
++        {
++            InputFolders.Add(normalizedPath);
++        }
++
++        InputPathsText = string.Join(Environment.NewLine, InputFolders);
++    }
++
++    public void RemoveInputFolder(string? path)
+     {
+-        var paths = string.IsNullOrWhiteSpace(existingValue)
+-            ? []
+-            : existingValue
+-                .Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+-                .ToList();
++        if (string.IsNullOrWhiteSpace(path))
++        {
++            return;
++        }
++
++        var match = InputFolders.FirstOrDefault(f => string.Equals(f, path, StringComparison.OrdinalIgnoreCase));
++        if (match is not null)
++        {
++            InputFolders.Remove(match);
++        }
++
++        InputPathsText = string.Join(Environment.NewLine, InputFolders);
++    }
++
++    public void AddOutputTarget(string? path)
++    {
++        if (string.IsNullOrWhiteSpace(path))
++        {
++            return;
++        }
++
++        var normalizedPath = TaskFolderConventions.NormalizeOutputPath(path.Trim());
++        if (OutputTargets.All(t => !string.Equals(t.Path, normalizedPath, StringComparison.OrdinalIgnoreCase)))
++        {
++            OutputTargets.Add(new OutputTargetViewModel(normalizedPath, string.Empty));
++        }
++
++        OutputPathsText = string.Join(Environment.NewLine, OutputTargets.Select(static t => t.Path));
++    }
++
++    public void RemoveOutputTarget(string? path)
++    {
++        if (string.IsNullOrWhiteSpace(path))
++        {
++            return;
++        }
+ 
+-        if (!paths.Contains(path, StringComparer.OrdinalIgnoreCase))
++        var match = OutputTargets.FirstOrDefault(t => string.Equals(t.Path, path, StringComparison.OrdinalIgnoreCase));
++        if (match is not null)
+         {
+-            paths.Add(path);
++            OutputTargets.Remove(match);
+         }
+ 
+-        return string.Join(Environment.NewLine, paths);
++        OutputPathsText = string.Join(Environment.NewLine, OutputTargets.Select(static t => t.Path));
+     }
+ 
+     private sealed class NullFolderPickerService : IFolderPickerService
+diff --git a/src/MultiAgentTaskSolver.App/ViewModels/PresentationModels.cs b/src/MultiAgentTaskSolver.App/ViewModels/PresentationModels.cs
+index ae57a0b..0e873e2 100644
+--- a/src/MultiAgentTaskSolver.App/ViewModels/PresentationModels.cs
++++ b/src/MultiAgentTaskSolver.App/ViewModels/PresentationModels.cs
+@@ -59,3 +59,19 @@ public sealed record ModelEntryViewModel(
+     string ModelId,
+     string DisplayName,
+     string Description);
++
++public sealed record InputFolderViewModel(
++    string Path,
++    int FileCount,
++    IReadOnlyList<InputFileViewModel> Files);
++
++public sealed record InputFileViewModel(
++    string Alias,
++    string FileName,
++    string RelativePath,
++    string MediaType,
++    string SizeText);
++
++public sealed record OutputTargetViewModel(
++    string Path,
++    string Description);
+diff --git a/src/MultiAgentTaskSolver.App/ViewModels/TaskDetailsViewModel.cs b/src/MultiAgentTaskSolver.App/ViewModels/TaskDetailsViewModel.cs
+index 1c7ca63..3a7af88 100644
+--- a/src/MultiAgentTaskSolver.App/ViewModels/TaskDetailsViewModel.cs
++++ b/src/MultiAgentTaskSolver.App/ViewModels/TaskDetailsViewModel.cs
+@@ -41,6 +41,7 @@ public sealed partial class TaskDetailsViewModel : ViewModelBase
+         RunWorkerCommand = new AsyncRelayCommand(RunWorkerAsync);
+         ApproveReviewCommand = new AsyncRelayCommand(ApproveReviewAsync);
+         ReviseReviewCommand = new AsyncRelayCommand(ReviseReviewAsync);
++        CopyAliasToClipboardCommand = new AsyncRelayCommand<string>(CopyAliasToClipboardAsync);
+     }
+ 
+     public ObservableCollection<string> ImportDestinations { get; } = [];
+@@ -49,6 +50,10 @@ public sealed partial class TaskDetailsViewModel : ViewModelBase
+ 
+     public ObservableCollection<ArtifactEntryViewModel> Artifacts { get; } = [];
+ 
++    public ObservableCollection<InputFolderViewModel> InputFolders { get; } = [];
++
++    public ObservableCollection<OutputTargetViewModel> OutputTargets { get; } = [];
++
+     public ObservableCollection<ModelEntryViewModel> ReviewModels { get; } = [];
+ 
+     public ObservableCollection<ModelEntryViewModel> WorkerModels { get; } = [];
+@@ -69,6 +74,8 @@ public sealed partial class TaskDetailsViewModel : ViewModelBase
+ 
+     public IAsyncRelayCommand ReviseReviewCommand { get; }
+ 
++    public IAsyncRelayCommand<string> CopyAliasToClipboardCommand { get; }
++
+     [CommunityToolkit.Mvvm.ComponentModel.ObservableProperty]
+     public partial string TaskId { get; set; } = string.Empty;
+ 
+@@ -146,12 +153,17 @@ public sealed partial class TaskDetailsViewModel : ViewModelBase
+                 return;
+             }
+ 
++            var outputDescriptions = OutputTargets
++                .Where(static t => !string.IsNullOrWhiteSpace(t.Description))
++                .ToDictionary(static t => t.Path, static t => t.Description, StringComparer.OrdinalIgnoreCase);
++
+             var updatedManifest = _manifest with
+             {
+                 Title = Title.Trim(),
+                 Summary = Summary.Trim(),
+                 InputPaths = TaskFolderConventions.ParseInputPaths(InputPathsText),
+                 OutputPaths = TaskFolderConventions.ParseOutputPaths(OutputPathsText),
++                OutputPathDescriptions = outputDescriptions,
+             };
+ 
+             await _coordinator.SaveTaskAsync(updatedManifest, TaskMarkdown);
+@@ -205,6 +217,16 @@ public sealed partial class TaskDetailsViewModel : ViewModelBase
+         });
+     }
+ 
++    public static Task CopyAliasToClipboardAsync(string? alias)
++    {
++        if (string.IsNullOrWhiteSpace(alias))
++        {
++            return Task.CompletedTask;
++        }
++
++        return Clipboard.Default.SetTextAsync($"@{alias}");
++    }
++
+     public Task OpenRunHistoryAsync()
+     {
+         return RunBusyAsync(() =>
+@@ -312,6 +334,29 @@ public sealed partial class TaskDetailsViewModel : ViewModelBase
+         TaskMarkdown = snapshot.TaskMarkdown;
+         InputPathsText = string.Join(Environment.NewLine, snapshot.Manifest.InputPaths);
+         OutputPathsText = string.Join(Environment.NewLine, snapshot.Manifest.OutputPaths);
++
++        InputFolders.Clear();
++        foreach (var inputPath in snapshot.Manifest.InputPaths)
++        {
++            var filesInFolder = snapshot.Manifest.Artifacts
++                .Where(a => a.RelativePath.StartsWith(inputPath + "/", StringComparison.OrdinalIgnoreCase))
++                .Select(a => new InputFileViewModel(
++                    a.Alias,
++                    Path.GetFileName(a.RelativePath),
++                    a.RelativePath,
++                    a.MediaType,
++                    $"{a.SizeBytes:n0} bytes"))
++                .ToArray();
++
++            InputFolders.Add(new InputFolderViewModel(inputPath, filesInFolder.Length, filesInFolder));
++        }
++
++        OutputTargets.Clear();
++        foreach (var outputPath in snapshot.Manifest.OutputPaths)
++        {
++            snapshot.Manifest.OutputPathDescriptions.TryGetValue(outputPath, out var description);
++            OutputTargets.Add(new OutputTargetViewModel(outputPath, description ?? string.Empty));
++        }
+         TaskStatusText = snapshot.Manifest.Status.GetDisplayName();
+         TaskUsageSummaryText = await LoadTaskUsageSummaryTextAsync(snapshot);
+ 
+diff --git a/src/MultiAgentTaskSolver.Core/Models/TaskWorkspaceModels.cs b/src/MultiAgentTaskSolver.Core/Models/TaskWorkspaceModels.cs
+index 04a3e85..c59a573 100644
+--- a/src/MultiAgentTaskSolver.Core/Models/TaskWorkspaceModels.cs
++++ b/src/MultiAgentTaskSolver.Core/Models/TaskWorkspaceModels.cs
+@@ -26,6 +26,8 @@ public sealed record TaskManifest
+ 
+     public IReadOnlyList<string> OutputPaths { get; init; } = TaskFolderConventions.DefaultOutputPaths.ToArray();
+ 
++    public IReadOnlyDictionary<string, string> OutputPathDescriptions { get; init; } = new Dictionary<string, string>();
++
+     // Legacy compatibility for previously saved task manifests.
+     public IReadOnlyList<string> InputCategories { get; init; } = TaskFolderConventions.DefaultInputCategories.ToArray();
+ 
+@@ -146,6 +148,8 @@ public sealed record CreateTaskRequest
+     public IReadOnlyList<string> InputPaths { get; init; } = [];
+ 
+     public IReadOnlyList<string> OutputPaths { get; init; } = [];
++
++    public IReadOnlyDictionary<string, string> OutputPathDescriptions { get; init; } = new Dictionary<string, string>();
+ }
+ 
+ public sealed record ArtifactImportRequest
+diff --git a/src/MultiAgentTaskSolver.Infrastructure/FileSystem/FileSystemTaskWorkspaceStore.cs b/src/MultiAgentTaskSolver.Infrastructure/FileSystem/FileSystemTaskWorkspaceStore.cs
+index f7b7e40..c9eea57 100644
+--- a/src/MultiAgentTaskSolver.Infrastructure/FileSystem/FileSystemTaskWorkspaceStore.cs
++++ b/src/MultiAgentTaskSolver.Infrastructure/FileSystem/FileSystemTaskWorkspaceStore.cs
+@@ -45,6 +45,7 @@ public sealed class FileSystemTaskWorkspaceStore : ITaskWorkspaceStore
+             UpdatedAtUtc = createdAtUtc,
+             InputPaths = inputPaths,
+             OutputPaths = outputPaths,
++            OutputPathDescriptions = request.OutputPathDescriptions,
+             InputCategories = inputPaths.Select(ToLegacyInputCategory).ToArray(),
+         };
+ 
+diff --git a/tests/MultiAgentTaskSolver.App.Tests/UiSurfaceContractTests.cs b/tests/MultiAgentTaskSolver.App.Tests/UiSurfaceContractTests.cs
+index 986e67e..9739d24 100644
+--- a/tests/MultiAgentTaskSolver.App.Tests/UiSurfaceContractTests.cs
++++ b/tests/MultiAgentTaskSolver.App.Tests/UiSurfaceContractTests.cs
+@@ -14,7 +14,7 @@ public sealed class UiSurfaceContractTests
+         Assert.Contains("CreateTaskInputPathsResizeHandle", xaml, StringComparison.Ordinal);
+         Assert.Contains("CreateTaskOutputPathsResizeHandle", xaml, StringComparison.Ordinal);
+         Assert.Contains("CreateTaskMarkdownResizeHandle", xaml, StringComparison.Ordinal);
+-        Assert.Contains("Leave this blank if you only want run-history copies", xaml, StringComparison.Ordinal);
++        Assert.Contains("Leave blank to only keep run-scoped history copies", xaml, StringComparison.Ordinal);
+     }
+ 
+     [Fact]

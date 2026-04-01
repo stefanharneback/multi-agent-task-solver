@@ -20,36 +20,6 @@ public partial class CreateTaskPage : ContentPage
         ConfigureResizableEditor(TaskMarkdownEditor, TaskMarkdownResizeHandle, TaskMarkdownHeightKey, 320d);
     }
 
-    private async void OnHelpButtonClicked(object? sender, EventArgs e)
-    {
-        if (sender is not Button button || button.CommandParameter is not string helpKey)
-        {
-            return;
-        }
-
-        var (title, message) = helpKey switch
-        {
-            "title" => (
-                "Task title",
-                "Use a short, specific title. Aim for 3-10 words. It should make sense in the task list without opening the task."),
-            "summary" => (
-                "Short summary",
-                "Write a compact description of the task. State the goal, main constraints, and expected result. One to four short paragraphs is usually enough."),
-            "input-paths" => (
-                "Input folders",
-                "Type one folder per line. These are task-local paths under inputs/. Example: research/articles or inputs/contracts. You can edit them manually as plain text."),
-            "output-paths" => (
-                "Output files",
-                "Type one file path per line when you want a stable top-level deliverable under outputs/. Leave it blank if the run-scoped worker history copy is enough."),
-            "instructions" => (
-                "Task instructions",
-                "This is the main task prompt. Describe the work to do, how imported material should be used, and what the final output should contain. Markdown works best for longer instructions."),
-            _ => ("Field help", "No additional help is available for this field yet."),
-        };
-
-        await DisplayAlertAsync(title, message, "Close");
-    }
-
     private static void ConfigureResizableEditor(Editor editor, View handle, string key, double fallbackHeight)
     {
         editor.HeightRequest = UiStateStore.GetEditorHeight(key, fallbackHeight);

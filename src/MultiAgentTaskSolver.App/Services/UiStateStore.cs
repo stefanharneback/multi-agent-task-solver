@@ -47,6 +47,16 @@ internal static class UiStateStore
         Preferences.Default.Set("ui.window.height", height);
     }
 
+    public static bool GetSectionExpanded(string key, bool fallback)
+    {
+        return Preferences.Default.Get(key, fallback);
+    }
+
+    public static void SaveSectionExpanded(string key, bool value)
+    {
+        Preferences.Default.Set(key, value);
+    }
+
     internal static double ClampEditorHeight(double height)
     {
         return Math.Clamp(height, MinimumEditorHeight, MaximumEditorHeight);

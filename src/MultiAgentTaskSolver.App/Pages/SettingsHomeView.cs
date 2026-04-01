@@ -79,16 +79,13 @@ public sealed class SettingsHomeView : ContentView
                 Children =
                 {
                     CreateSectionHeading("Workspace and gateway"),
-                    CreateFieldHeader("Workspace root", "workspace-root"),
+                    CreateFieldHeaderWithSubtitle("Workspace root", "Base folder where task folders, manifests, run artifacts, and imported files are stored."),
                     workspaceEntry,
-                    CreateHintLabel("This should point to the base folder where task manifests and artifacts are saved."),
                     browseWorkspaceButton,
-                    CreateFieldHeader("OpenAI gateway base URL", "gateway-base-url"),
+                    CreateFieldHeaderWithSubtitle("OpenAI gateway base URL", "Include the scheme (e.g. https://your-service-host). Do not add endpoint-specific paths."),
                     gatewayEntry,
-                    CreateHintLabel("Base URL for the gateway service that forwards requests to OpenAI."),
-                    CreateFieldHeader("OpenAI client bearer token", "bearer-token"),
+                    CreateFieldHeaderWithSubtitle("OpenAI client bearer token", "Stored locally on this machine. Used for authenticated calls from the app to the gateway."),
                     bearerTokenEntry,
-                    CreateHintLabel("Stored locally and used for authenticated calls from the app to the gateway."),
                     saveButton,
                     errorLabel
                 }
@@ -104,7 +101,11 @@ public sealed class SettingsHomeView : ContentView
                 Spacing = 12,
                 Children =
                 {
-                    CreateFieldHeader("Seeded OpenAI models", "seeded-models", automationId: "OpenAiModelsHeadingLabel", useSectionHeading: true),
+                    CreateFieldHeaderWithSubtitle(
+                        "Seeded OpenAI models",
+                        "Models available through the gateway for review and worker selection. Informational only.",
+                        automationId: "OpenAiModelsHeadingLabel",
+                        useSectionHeading: true),
                     _modelsHost
                 }
             }
@@ -137,31 +138,6 @@ public sealed class SettingsHomeView : ContentView
     {
         await _viewModel.LoadAsync();
         RenderModels();
-    }
-
-    private static async Task ShowHelpAsync(string helpKey)
-    {
-        var (title, message) = helpKey switch
-        {
-            "workspace-root" => (
-                "Workspace root",
-                "Choose the base folder where task folders, manifests, run artifacts, and copied imports are stored. Keep this as a stable local path that the app can write to."),
-            "gateway-base-url" => (
-                "OpenAI gateway base URL",
-                "Enter the base URL for the gateway service that this app calls. Include the scheme, for example https://your-service-host, but do not add endpoint-specific paths."),
-            "bearer-token" => (
-                "OpenAI client bearer token",
-                "Paste the client token used to authenticate from this app to the gateway. It is stored locally on this machine and sent with gateway requests."),
-            "seeded-models" => (
-                "Seeded OpenAI models",
-                "This list shows the models currently seeded in the app for review and worker selection. It is informational here so you can verify what the app expects to be available through the gateway."),
-            _ => ("Field help", "No additional help is available for this field yet."),
-        };
-
-        if (Shell.Current?.CurrentPage is Page currentPage)
-        {
-            await currentPage.DisplayAlertAsync(title, message, "Close");
-        }
     }
 
     private void RenderModels()
@@ -206,37 +182,30 @@ public sealed class SettingsHomeView : ContentView
         }
     }
 
-    private static Grid CreateFieldHeader(string title, string helpKey, string? automationId = null, bool useSectionHeading = false)
+    private static VerticalStackLayout CreateFieldHeaderWithSubtitle(
+        string title,
+        string subtitle,
+        string? automationId = null,
+        bool useSectionHeading = false)
     {
-        var label = new Label
+        var titleLabel = new Label
         {
             Text = title,
-            AutomationId = automationId
+            AutomationId = automationId,
+            Style = TryGetStyle(useSectionHeading ? "SectionHeadingStyle" : "FormFieldTitle")
         };
-        label.Style = TryGetStyle(useSectionHeading ? "SectionHeadingStyle" : "FormFieldTitle");
 
-        var button = new Button
+        var subtitleLabel = new Label
         {
-            Command = new Command(async () => await ShowHelpAsync(helpKey)),
-            Style = TryGetStyle("InfoButtonStyle"),
-            Text = "?"
+            Text = subtitle,
+            Style = TryGetStyle("FormFieldSubtitle")
         };
 
-        var grid = new Grid
+        return new VerticalStackLayout
         {
-            ColumnDefinitions =
-            {
-                new ColumnDefinition(GridLength.Star),
-                new ColumnDefinition(GridLength.Auto)
-            },
-            ColumnSpacing = 8
+            Spacing = 2,
+            Children = { titleLabel, subtitleLabel }
         };
-
-        Grid.SetColumn(label, 0);
-        Grid.SetColumn(button, 1);
-        grid.Children.Add(label);
-        grid.Children.Add(button);
-        return grid;
     }
 
     private static Label CreateSectionHeading(string text)

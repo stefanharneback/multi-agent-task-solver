@@ -45,6 +45,7 @@ public sealed class FileSystemTaskWorkspaceStore : ITaskWorkspaceStore
             UpdatedAtUtc = createdAtUtc,
             InputPaths = inputPaths,
             OutputPaths = outputPaths,
+            OutputPathDescriptions = request.OutputPathDescriptions,
             InputCategories = inputPaths.Select(ToLegacyInputCategory).ToArray(),
         };
 
